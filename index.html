@@ -318,6 +318,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
       <button type="button" class="atab" onclick="aTab('sugestoes')">Sugestões</button>
       <button type="button" class="atab" onclick="aTab('lembrete')">Lembrete</button>
       <button type="button" class="atab" onclick="aTab('backup')">💾 Backup</button>
+      <button type="button" class="atab" onclick="aTab('cozinheiro')">👨‍🍳 Cozinheiro</button>
     </div>
 
     <!-- SEMANA -->
@@ -474,6 +475,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
       </div>
     </div>
 
+    <!-- COZINHEIRO -->
+    <div class="asec" id="asec-cozinheiro">
+      <div style="font-size:12px;color:var(--g2);margin-bottom:.75rem;line-height:1.6">Relatório diário para o cozinheiro: cardápio, quantidade de marmitas por dia e total arrecadado. Gerado automaticamente ao fechar o prazo de inscrição.</div>
+      <div id="coz-status" style="display:none;margin-bottom:.75rem;padding:.6rem .9rem;background:var(--okc);border:1px solid #aaddbf;border-radius:8px;font-size:12px;color:var(--ok);font-weight:600"></div>
+      <div id="coz-preview" style="background:var(--vdx);border:1px solid #c5ddc9;border-radius:var(--r);padding:1rem;margin-bottom:.75rem;font-size:13px;color:var(--g1);white-space:pre-wrap;line-height:1.8;font-family:monospace;min-height:80px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn-sv" style="flex:1" onclick="gerarRelatorioCozinheiro()">🔄 Gerar / Atualizar</button>
+        <button type="button" class="btn-sv" style="flex:1" onclick="copiarRelatorioCozinheiro()">📋 Copiar</button>
+        <button type="button" class="btn-sv" style="flex:1;background:var(--g2)" onclick="abrirWhatsAppCozinheiro()">📱 WhatsApp</button>
+      </div>
+      <div style="font-size:11px;color:var(--g3);margin-top:.5rem;text-align:center">Atualiza automaticamente quando o prazo de inscrição fecha</div>
+    </div>
+
     <div class="asec" id="asec-relatorio">
       <div class="afield"><label>Total de gastos da semana (R$)</label><input type="number" id="a-gastos" step="0.01" min="0" placeholder="0,00" oninput="calcRelatorio()"></div>
       <div class="afield"><label>Crédito acumulado semana anterior (R$)</label><input type="number" id="a-credito-ant" step="0.01" min="0" placeholder="0,00" oninput="calcRelatorio()"></div>
@@ -614,6 +628,7 @@ function renderHero(sem, ins){
   }
   document.getElementById('hero-wk').textContent='Semana '+sem.label;
   verificarPrazo(sem);
+  verificarPrazoAutoRelatorio(sem);
   verificarSemConfig(sem);
   const vlr=parseFloat(sem.valor)||0;
   document.getElementById('hc-val').textContent=vlr?`R$${vlr.toFixed(2)}`:'—';
@@ -869,12 +884,13 @@ async function backupAutomatico(){
 window.backupAutomatico = backupAutomatico;
 
 function aTab(t){
-  const ts=['semana','inscritos','pagamento','notas','comprovantes','relatorio','compras','sugestoes','lembrete','backup'];
+  const ts=['semana','inscritos','pagamento','notas','comprovantes','relatorio','compras','sugestoes','lembrete','backup','cozinheiro'];
   document.querySelectorAll('.atab').forEach((b,i)=>b.classList.toggle('active',ts[i]===t));
   document.querySelectorAll('.asec').forEach(s=>s.classList.remove('active'));
   const sec=document.getElementById('asec-'+t);
-  if(sec) sec.classList.add('active');   // FIX: proteção se seção não existir
+  if(sec) sec.classList.add('active');
   if(t==='relatorio') calcRelatorio();
+  if(t==='cozinheiro') gerarRelatorioCozinheiro();
 }
 window.aTab = aTab;
 
@@ -1667,6 +1683,109 @@ async function renderListaCompras(){
     </div>`).join('')}`;
 }
 window.renderListaCompras = renderListaCompras;
+
+// ── Relatório do Cozinheiro ───────────────────────────────────────────────────
+let _textoCozinheiro = '';
+
+function gerarRelatorioCozinheiro(){
+  const prev = document.getElementById('coz-preview');
+  const status = document.getElementById('coz-status');
+  const sem = _cacheSem;
+  const ins = _cacheIns;
+  if(!sem){ prev.textContent = 'Nenhuma semana ativa selecionada.'; return; }
+
+  const vlr = parseFloat(sem.valor)||0;
+  const cdp = sem.cardapio||[];
+  const prazoData = sem.prazoData||'';
+  const prazoHora = sem.prazoHora||'23:59';
+
+  // Verifica se prazo já fechou
+  let prazoFechou = false;
+  let prazoTexto = 'Prazo não definido';
+  if(prazoData){
+    const prazoTs = new Date(prazoData+'T'+prazoHora);
+    prazoFechou = Date.now() >= prazoTs.getTime();
+    prazoTexto = prazoTs.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  }
+
+  // Monta relatório
+  const titulo = `🍽 RELATÓRIO DO COZINHEIRO\n📅 Semana: ${sem.label}\n`;
+  const separador = '─'.repeat(32)+'\n';
+
+  let corpo = '';
+  let totalMarmitas = 0;
+  DK.forEach((dk,i)=>{
+    const r = cdp[i]||{};
+    const qtd = ins.filter(x=>x.dias&&x.dias[dk]).length;
+    if(!qtd && !r.principal) return;
+    totalMarmitas += qtd;
+    corpo += `\n📌 ${DN[i]}\n`;
+    corpo += `   Prato: ${r.principal||'—'}\n`;
+    if(r.acomp) corpo += `   Acomp: ${r.acomp}\n`;
+    corpo += `   Marmitas: ${qtd} pessoa${qtd!==1?'s':''}\n`;
+    corpo += separador;
+  });
+
+  const totalArrecadado = ins.filter(i=>i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr,0);
+  const totalEsperado   = ins.reduce((a,i)=>a+cntD(i.dias)*vlr,0);
+
+  const rodape =
+    `\n💰 Total arrecadado: R$ ${totalArrecadado.toFixed(2).replace('.',',')}` +
+    `\n💰 Total esperado:   R$ ${totalEsperado.toFixed(2).replace('.',',')}` +
+    `\n👥 Total de marmitas na semana: ${totalMarmitas}` +
+    `\n\n⏰ Prazo encerrado: ${prazoTexto}` +
+    `\n📋 Gerado em: ${new Date().toLocaleString('pt-BR')}`;
+
+  _textoCozinheiro = titulo + separador + corpo + rodape;
+  prev.textContent = _textoCozinheiro;
+
+  if(prazoFechou && status){
+    status.style.display='block';
+    status.textContent='✅ Prazo encerrado — inscrições fechadas. Relatório final gerado.';
+  } else if(status){
+    status.style.display='block';
+    status.style.background='var(--wnc)';
+    status.style.borderColor='#e8d48a';
+    status.style.color='var(--wn)';
+    status.textContent='⏳ Prazo ainda aberto — o relatório será finalizado ao fechar as inscrições.';
+  }
+}
+window.gerarRelatorioCozinheiro = gerarRelatorioCozinheiro;
+
+function copiarRelatorioCozinheiro(){
+  if(!_textoCozinheiro){ toast('Gere o relatório primeiro'); return; }
+  navigator.clipboard.writeText(_textoCozinheiro)
+    .then(()=>toast('✓ Relatório copiado!'))
+    .catch(()=>{ alert(_textoCozinheiro); });
+}
+window.copiarRelatorioCozinheiro = copiarRelatorioCozinheiro;
+
+function abrirWhatsAppCozinheiro(){
+  if(!_textoCozinheiro){ toast('Gere o relatório primeiro'); return; }
+  window.open('https://wa.me/?text='+encodeURIComponent(_textoCozinheiro),'_blank');
+}
+window.abrirWhatsAppCozinheiro = abrirWhatsAppCozinheiro;
+
+// Verifica automaticamente se o prazo fechou e atualiza o relatório do cozinheiro
+function verificarPrazoAutoRelatorio(sem){
+  if(!sem||!sem.prazoData) return;
+  const prazoTs = new Date(sem.prazoData+'T'+(sem.prazoHora||'23:59'));
+  const agora = Date.now();
+  if(agora >= prazoTs.getTime()){
+    // Prazo já fechou — se aba cozinheiro estiver ativa, atualiza
+    const sec = document.getElementById('asec-cozinheiro');
+    if(sec&&sec.classList.contains('active')) gerarRelatorioCozinheiro();
+  } else {
+    // Agenda para quando o prazo fechar
+    const diff = prazoTs.getTime() - agora;
+    if(diff < 24*60*60*1000){ // só agenda se for em menos de 24h
+      setTimeout(()=>{
+        gerarRelatorioCozinheiro();
+        toast('⏰ Prazo encerrado! Relatório do cozinheiro atualizado.');
+      }, diff);
+    }
+  }
+}
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 iniciarListeners();
