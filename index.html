@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260604-v3-admin-redesign -->
+<meta charset="UTF-8"><!-- deploy:20260604-v4-security-hardening -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -236,7 +236,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
           <button type="button" class="dia-btn" data-dia="qui" onclick="toggleDia(this)"><span class="db-nome">QUI</span><span class="db-chk">○</span></button>
           <button type="button" class="dia-btn" data-dia="sex" onclick="toggleDia(this)"><span class="db-nome">SEX</span><span class="db-chk">○</span></button>
         </div>
-        <div id="total-resumo" style="display:none;margin-top:10px;padding:10px 12px;background:var(--vdx);border:1px solid #c5ddc9;border-radius:8px;display:flex;align-items:center;justify-content:space-between">
+        <div id="total-resumo" style="display:none;margin-top:10px;padding:10px 12px;background:var(--vdx);border:1px solid #c5ddc9;border-radius:8px;align-items:center;justify-content:space-between">
           <span style="font-size:13px;color:var(--g2)"><span id="total-dias-txt">0 dia</span> selecionado</span>
           <span style="font-size:1.1rem;font-weight:700;color:var(--vd)" id="total-valor-txt">R$ 0,00</span>
         </div>
@@ -573,7 +573,8 @@ function toast(m){
   t.textContent=m; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2600);
 }
-function cntD(dias){ if(!dias) return 0; return DK.reduce((a,d)=>a+(dias[d]?1:0),0); }
+function cntD(dias){ if(!dias||typeof dias!=='object') return 0; return DK.reduce((a,d)=>a+(dias[d]?1:0),0); }
+function escHTML(s){ const d=document.createElement('div'); d.textContent=String(s||''); return d.innerHTML; }
 
 // ── Dias seleção ─────────────────────────────────────────────────────────────
 function toggleDia(btn){
@@ -677,7 +678,7 @@ function renderInscritos(ins, vlr){
     const dias=DK.filter(d=>i.dias&&i.dias[d]);
     const pills=dias.map(d=>`<span class="dp">${DN[DK.indexOf(d)]}</span>`).join('');
     const comp=i.comprovante?`<span style="font-size:12px;color:var(--ok)">📎 Comprovante enviado</span>`:'';
-    return`<div class="ins-row"><div><div class="ins-nome">${i.qra}</div><div class="ins-dias" style="margin-top:3px">${pills}</div>${comp?`<div style="margin-top:3px">${comp}</div>`:''}</div></div>`;
+    return`<div class="ins-row"><div><div class="ins-nome">${escHTML(i.qra)}</div><div class="ins-dias" style="margin-top:3px">${pills}</div>${comp?`<div style="margin-top:3px">${comp}</div>`:''}</div></div>`;
   }).join('');
 }
 
@@ -999,16 +1000,18 @@ window.novaSemana = novaSemana;
 
 async function delSemana(id){
   if(!confirm('Excluir esta semana e todos os dados?')) return;
-  // Deletar inscritos
-  const insSnap=await getDocs(collection(db,'semanas',id,'inscritos'));
-  for(const d of insSnap.docs) await deleteDoc(d.ref);
-  await deleteDoc(doc(db,'semanas',id));
-  if(semAtiva===id){
-    const snap=await getDocs(collection(db,'semanas'));
-    semAtiva=snap.docs.length?snap.docs[snap.docs.length-1].id:null;
-  }
-  toast('Semana excluída');
-  preencherAdmin();
+  try{
+    const insSnap=await getDocs(collection(db,'semanas',id,'inscritos'));
+    for(const d of insSnap.docs){ try{ await deleteDoc(d.ref); }catch(e){ console.warn('[delSemana] inscrito:',e); } }
+    await deleteDoc(doc(db,'semanas',id));
+    if(semAtiva===id){
+      _semCarregada=null;
+      const snap=await getDocs(collection(db,'semanas'));
+      semAtiva=snap.docs.length?snap.docs[snap.docs.length-1].id:null;
+    }
+    toast('Semana excluída');
+    preencherAdmin();
+  }catch(e){ toast('Erro ao excluir semana'); console.error('[delSemana]',e); }
 }
 window.delSemana = delSemana;
 
@@ -1048,7 +1051,7 @@ function renderAdmIns(sem, ins){
   el.innerHTML=ins.map(i=>{
     const dias=DK.filter(d=>i.dias&&i.dias[d]), tot=dias.length*vlr;
     const comp=i.comprovante?`<a href="${i.comprovante.data64}" download="${i.comprovante.nome}" style="font-size:10px;color:var(--vdm);font-weight:700;text-decoration:none">📎</a>`:'';
-    return`<div class="mgmt-row"><div><div class="mgmt-nome">${i.qra}</div><div class="mgmt-sub">${dias.map(d=>DN[DK.indexOf(d)]).join(', ')}${vlr?` · R$${tot.toFixed(2)}`:''}</div></div><div style="display:flex;gap:6px;align-items:center">${comp}<button type="button" class="btn-pg ${i.pago?'pago':'deve'}" onclick="tglPago('${i.id}',${!i.pago})">${i.pago?'✓ Pago':'Pendente'}</button><button type="button" class="btn-dl" onclick="delIns('${i.id}')">✕</button></div></div>`;
+    return`<div class="mgmt-row"><div><div class="mgmt-nome">${escHTML(i.qra)}</div><div class="mgmt-sub">${dias.map(d=>DN[DK.indexOf(d)]).join(', ')}${vlr?` · R$${tot.toFixed(2)}`:''}</div></div><div style="display:flex;gap:6px;align-items:center">${comp}<button type="button" class="btn-pg ${i.pago?'pago':'deve'}" onclick="tglPago('${i.id}',${!i.pago})">${i.pago?'✓ Pago':'Pendente'}</button><button type="button" class="btn-dl" onclick="delIns('${i.id}')">✕</button></div></div>`;
   }).join('');
   td.innerHTML='<div style="font-size:10px;color:var(--g3);font-weight:700;width:100%;margin-bottom:4px">MARMITAS POR DIA</div>'+
     DK.map((dk,i)=>`<div class="totd-item"><div class="totd-l">${DN[i]}</div><div class="totd-n">${ins.filter(x=>x.dias&&x.dias[dk]).length}</div></div>`).join('');
@@ -1296,17 +1299,17 @@ async function restaurarAutoBackup(){
     let totSem=0, totIns=0;
     for(const sem of backup.semanas){
       const {id, inscritos, ...semData} = sem;
-      await setDoc(doc(db,'semanas',id), semData);
+      await setDoc(doc(db,'semanas',id), semData, {merge:true});
       totSem++;
       for(const ins of (inscritos||[])){
         const {id:insId, ...insData} = ins;
-        await setDoc(doc(db,'semanas',id,'inscritos',insId), insData);
+        await setDoc(doc(db,'semanas',id,'inscritos',insId), insData, {merge:true});
         totIns++;
       }
     }
     if(backup.config){
       for(const [key,val] of Object.entries(backup.config)){
-        await setDoc(doc(db,'config',key), val);
+        await setDoc(doc(db,'config',key), val, {merge:true});
       }
     }
     if(status){ status.textContent=`✓ Restaurado: ${totSem} semana(s), ${totIns} inscrito(s).`; status.style.color='var(--ok)'; }
@@ -1399,12 +1402,12 @@ Dados existentes com o mesmo ID serão atualizados.`)){
     for(const sem of backup.semanas){
       status.textContent=`Restaurando semana: ${sem.label}...`;
       const {id, inscritos, ...semData} = sem;
-      await setDoc(doc(db,'semanas',id), semData);
+      await setDoc(doc(db,'semanas',id), semData, {merge:true});
       totalSem++;
       // Restaurar inscritos
       for(const ins of (inscritos||[])){
         const {id:insId, ...insData} = ins;
-        await setDoc(doc(db,'semanas',id,'inscritos',insId), insData);
+        await setDoc(doc(db,'semanas',id,'inscritos',insId), insData, {merge:true});
         totalIns++;
       }
     }
@@ -1413,7 +1416,7 @@ Dados existentes com o mesmo ID serão atualizados.`)){
     if(backup.config){
       for(const [key, val] of Object.entries(backup.config)){
         status.textContent=`Restaurando configuração: ${key}...`;
-        await setDoc(doc(db,'config',key), val);
+        await setDoc(doc(db,'config',key), val, {merge:true});
       }
     }
 
@@ -1718,8 +1721,8 @@ async function renderAdmSugestoes(){
   el.innerHTML=[...lista].reverse().map((s,i)=>
     `<div style="padding:.65rem .75rem;border-bottom:1px solid var(--g5);display:flex;justify-content:space-between;align-items:start;gap:8px">
       <div>
-        <div style="font-size:13px;color:var(--g1)">${s.texto}</div>
-        <div style="font-size:10px;color:var(--g3);margin-top:2px">${s.data} às ${s.hora}</div>
+        <div style="font-size:13px;color:var(--g1)">${escHTML(s.texto)}</div>
+        <div style="font-size:10px;color:var(--g3);margin-top:2px">${escHTML(s.data)} às ${escHTML(s.hora)}</div>
       </div>
       <button type="button" onclick="delSugestao(${lista.length-1-i})" style="background:none;border:none;color:var(--g3);cursor:pointer;font-size:14px;flex-shrink:0">✕</button>
     </div>`
@@ -1911,20 +1914,23 @@ function abrirWhatsAppCozinheiro(){
 }
 window.abrirWhatsAppCozinheiro = abrirWhatsAppCozinheiro;
 
-// Verifica automaticamente se o prazo fechou e atualiza o relatório do cozinheiro
+let _prazoTimerId = null;
+let _prazoTimerTs = null;
 function verificarPrazoAutoRelatorio(sem){
   if(!sem||!sem.prazoData) return;
   const prazoTs = new Date(sem.prazoData+'T'+(sem.prazoHora||'23:59'));
+  if(isNaN(prazoTs.getTime())) return;
   const agora = Date.now();
   if(agora >= prazoTs.getTime()){
-    // Prazo já fechou — se aba cozinheiro estiver ativa, atualiza
     const sec = document.getElementById('asec-cozinheiro');
     if(sec&&sec.classList.contains('active')) gerarRelatorioCozinheiro();
   } else {
-    // Agenda para quando o prazo fechar
     const diff = prazoTs.getTime() - agora;
-    if(diff < 24*60*60*1000){ // só agenda se for em menos de 24h
-      setTimeout(()=>{
+    if(diff < 24*60*60*1000 && _prazoTimerTs !== prazoTs.getTime()){
+      if(_prazoTimerId) clearTimeout(_prazoTimerId);
+      _prazoTimerTs = prazoTs.getTime();
+      _prazoTimerId = setTimeout(()=>{
+        _prazoTimerId=null; _prazoTimerTs=null;
         gerarRelatorioCozinheiro();
         toast('⏰ Prazo encerrado! Relatório do cozinheiro atualizado.');
       }, diff);
@@ -1933,8 +1939,21 @@ function verificarPrazoAutoRelatorio(sem){
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-iniciarListeners();
+window.addEventListener('beforeunload', ()=>{
+  if(unsubSem) unsubSem();
+  if(unsubIns) unsubIns();
+  if(unsubSemDoc) unsubSemDoc();
+  if(_prazoTimerId) clearTimeout(_prazoTimerId);
+});
+
+let _listenersIniciados = false;
+function iniciarListenersUmaVez(){
+  if(_listenersIniciados) return;
+  _listenersIniciados = true;
+  iniciarListeners();
+}
+iniciarListenersUmaVez();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v3</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v4</div>
 </body>
 </html>
