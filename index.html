@@ -310,16 +310,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
     <div class="atabs" style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px">
       <button type="button" class="atab active" onclick="aTab('semana')">Semana</button>
       <button type="button" class="atab" onclick="aTab('inscritos')">Inscritos</button>
-      <button type="button" class="atab" onclick="aTab('cozinheiro')">🍳 Cozinheiro</button>
+      <button type="button" class="atab" onclick="aTab('cozinheiro')">Cozinheiro</button>
       <button type="button" class="atab" onclick="aTab('relatorio')">Relatório</button>
       <button type="button" class="atab" onclick="aTab('pagamento')">Pagamento</button>
       <button type="button" class="atab" onclick="aTab('notas')">Notas</button>
       <button type="button" class="atab" onclick="aTab('comprovantes')">Comprov.</button>
       <button type="button" class="atab" onclick="aTab('lembrete')">Lembrete</button>
-      <button type="button" class="atab" onclick="aTab('compras')">Compras</button>
       <button type="button" class="atab" onclick="aTab('sugestoes')">Sugestões</button>
-      <button type="button" class="atab" onclick="aTab('backup')">💾 Backup</button>
-      <button type="button" class="atab" onclick="aTab('dummy')" style="visibility:hidden;pointer-events:none"></button>
+      <button type="button" class="atab" onclick="aTab('backup')">Backup</button>
     </div>
 
     <!-- SEMANA -->
@@ -885,7 +883,7 @@ async function backupAutomatico(){
 window.backupAutomatico = backupAutomatico;
 
 function aTab(t){
-  const ts=['semana','inscritos','pagamento','notas','comprovantes','relatorio','compras','sugestoes','lembrete','backup','cozinheiro'];
+  const ts=['semana','inscritos','cozinheiro','relatorio','pagamento','notas','comprovantes','lembrete','sugestoes','backup'];
   document.querySelectorAll('.atab').forEach((b,i)=>b.classList.toggle('active',ts[i]===t));
   document.querySelectorAll('.asec').forEach(s=>s.classList.remove('active'));
   const sec=document.getElementById('asec-'+t);
