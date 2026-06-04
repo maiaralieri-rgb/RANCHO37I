@@ -1,0 +1,11 @@
+{
+  "name": "Previsão de Rancho 37° BPM-I",
+  "short_name": "Rancho 37I",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a3a1f",
+  "theme_color": "#1a3a1f",
+  "icons": [
+    { "src": "/icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
