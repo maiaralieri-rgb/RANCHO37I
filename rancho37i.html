@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><!-- deploy:20260604022556-audit -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rancho 37I</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --vd:#1a3a1f;--vdm:#2d5a34;--vdl:#4a8c52;--vdx:#e8f2ea;
+  --ou:#c9a84c;--cr:#f7f4ee;--br:#ffffff;
+  --g1:#2c2c2a;--g2:#5a5a56;--g3:#9a9a94;--g4:#e4e2dc;--g5:#f2f0ea;
+  --er:#c0392b;--erc:#fdf0ef;--ok:#1a6b3a;--okc:#eaf4ee;
+  --wn:#b8860b;--wnc:#fdf8ec;--r:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-height:100vh}
+.topbar{background:var(--vd);padding:0 1.2rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100}
+.tb-brand{display:flex;align-items:center;gap:10px}
+.tb-ico{width:32px;height:32px;border-radius:50%;background:var(--ou);display:flex;align-items:center;justify-content:center;font-size:15px}
+.tb-title{font-family:'DM Serif Display',serif;font-size:1.05rem;color:#fff}
+.tb-sub{font-size:10px;color:rgba(255,255,255,.45);display:block}
+.btn-adm{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:5px 13px;border-radius:20px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-adm:hover{background:rgba(255,255,255,.22)}
+.badge-adm{background:var(--ou);color:var(--vd);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;display:none}
+.hero{background:var(--vd);padding:1.5rem 1.2rem 1.2rem;color:#fff;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(60deg,transparent,transparent 28px,rgba(255,255,255,.02) 28px,rgba(255,255,255,.02) 29px)}
+.hero-in{position:relative;max-width:680px;margin:0 auto}
+.hero-wk{font-size:14px;letter-spacing:2px;text-transform:uppercase;color:var(--ou);margin-bottom:8px;font-weight:600}
+.hero h2{font-family:'DM Serif Display',serif;font-size:1.6rem;margin-bottom:.4rem}
+.hero-sub{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:1rem}
+.hero-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.hc{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.65rem .6rem}
+.hc-l{font-size:9px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+.hc-v{font-size:1.25rem;font-weight:700}
+.hc-s{font-size:10px;color:rgba(255,255,255,.4)}
+.main{max-width:680px;margin:0 auto;padding:1.2rem}
+.sec{margin-bottom:1.4rem}
+.sec-title{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--g3);font-weight:700;margin-bottom:.65rem;display:flex;align-items:center;gap:8px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--g4)}
+.card{background:var(--br);border:1px solid var(--g4);border-radius:var(--r);overflow:hidden}
+.cb{padding:1rem 1.1rem}
+.vbox{background:var(--vdx);border:1px solid #c5ddc9;border-radius:var(--r);padding:.9rem 1.1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.vbox-n{display:flex;align-items:baseline;gap:5px}
+.vbox-cifrao{font-size:.95rem;color:var(--vdm);font-weight:600}
+.vbox-num{font-size:1.9rem;font-weight:700;color:var(--vd);font-family:'DM Serif Display',serif}
+.vbox-lbl{font-size:11px;color:var(--g2)}
+.vbox-obs{font-size:13px;color:var(--g2);max-width:320px;line-height:1.6;font-style:italic}
+.cdp-row{display:grid;grid-template-columns:46px 1fr;border-bottom:1px solid var(--g5);padding:.55rem .75rem;align-items:start}
+.cdp-row:last-child{border-bottom:none}
+.cdp-dia{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g3);padding-top:2px}
+.cdp-principal{font-size:13px;font-weight:500;color:var(--g1)}
+.cdp-acomp{font-size:11px;color:var(--g3);margin-top:1px}
+.dias-wrap{display:flex;gap:8px;margin-top:4px}
+.dia-btn{flex:1;border:2px solid var(--g4);border-radius:10px;padding:14px 4px 12px;cursor:pointer;text-align:center;background:var(--br);transition:border-color .15s,background .15s,transform .1s;font-family:'DM Sans',sans-serif}
+.dia-btn:hover{border-color:var(--vdl);background:var(--vdx)}
+.dia-btn:active{transform:scale(.95)}
+.dia-btn.ativo{background:var(--vd);border-color:var(--vd);color:#fff}
+.dia-btn .db-nome{display:block;font-size:13px;font-weight:700;letter-spacing:.5px;color:inherit}
+.dia-btn .db-chk{display:block;font-size:16px;margin-top:5px;color:var(--g4);line-height:1}
+.dia-btn.ativo .db-chk{color:rgba(255,255,255,.7)}
+.field{margin-bottom:.75rem}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--g2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.field input,.field textarea{width:100%;padding:9px 12px;border:1px solid var(--g4);border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;background:var(--br);color:var(--g1);transition:border-color .15s}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--vdl)}
+.btn-pri{background:var(--vd);color:#fff;border:none;padding:11px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s;width:100%}
+.btn-pri:hover{background:var(--vdm)}
+.btn-pri:disabled{background:var(--g3);cursor:default}
+.upload-comp{border:2px dashed var(--g4);border-radius:10px;padding:1rem;text-align:center;cursor:pointer;transition:border-color .15s;background:var(--g5)}
+.upload-comp:hover{border-color:var(--vdl);background:var(--vdx)}
+.upload-comp p{font-size:12px;color:var(--g3);margin-top:5px}
+.comp-prev{margin-top:.65rem;padding:.6rem .75rem;background:var(--vdx);border:1px solid #c5ddc9;border-radius:8px;display:flex;align-items:center;gap:8px}
+.comp-prev span{font-size:12px;color:var(--vdm);flex:1;font-weight:500;word-break:break-all}
+.comp-prev button{background:none;border:none;color:var(--g3);cursor:pointer;font-size:16px;line-height:1;padding:0}
+.ins-row{display:grid;grid-template-columns:1fr auto;padding:.65rem .75rem;border-bottom:1px solid var(--g5);align-items:center;gap:8px}
+.ins-row:last-child{border-bottom:none}
+.ins-nome{font-size:13px;font-weight:600;color:var(--g1)}
+.ins-dias{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}
+.dp{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:var(--vdx);color:var(--vd)}
+.s-pago{background:var(--okc);color:var(--ok);padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700}
+.s-deve{background:var(--wnc);color:var(--wn);padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700}
+.ins-val{font-size:12px;color:var(--g3)}
+.empty-st{padding:1.5rem;text-align:center;color:var(--g3);font-size:13px}
+.pgto-box{background:var(--wnc);border:1px solid #e8d48a;border-radius:var(--r);padding:.9rem 1.1rem}
+.pgto-tit{font-size:13px;font-weight:700;color:var(--wn);margin-bottom:.4rem}
+.pgto-inf{font-size:13px;color:var(--g1);line-height:1.6;white-space:pre-wrap;user-select:text;-webkit-user-select:text;cursor:text}
+.pgto-obs{font-size:11px;color:var(--g2);margin-top:.4rem}
+.nota-item{display:flex;align-items:center;gap:9px;padding:.6rem .75rem;background:var(--g5);border-radius:8px;margin-bottom:6px}
+.nota-ico{font-size:18px}
+.nota-nome{font-size:12px;font-weight:500;flex:1;color:var(--g1);word-break:break-all}
+.nota-data{font-size:10px;color:var(--g3);white-space:nowrap}
+.nota-dl{color:var(--vdm);font-size:11px;font-weight:700;text-decoration:none}
+.nota-dl:hover{text-decoration:underline}
+.sem-nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+.sc{padding:4px 13px;font-size:11px;border:1px solid var(--g4);border-radius:20px;cursor:pointer;background:var(--br);color:var(--g2);font-family:'DM Sans',sans-serif;transition:all .15s}
+.sc.ativa{background:var(--vd);color:#fff;border-color:var(--vd);font-weight:600}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--g1);color:#fff;padding:9px 20px;border-radius:20px;font-size:13px;z-index:400;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.loading-bar{position:fixed;top:0;left:0;height:3px;background:var(--ou);width:0;transition:width .3s;z-index:500}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.52);display:none;align-items:flex-end;justify-content:center;z-index:200}
+.ov.open{display:flex}
+.ash{background:var(--br);border-radius:16px 16px 0 0;width:100%;max-width:680px;max-height:88vh;overflow-y:auto;padding:1.4rem}
+.ash-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem}
+.ash-hd h3{font-family:'DM Serif Display',serif;font-size:1.15rem}
+.btn-cl{background:var(--g5);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.atabs{display:flex;gap:3px;background:var(--g5);border-radius:8px;padding:4px;margin-bottom:1rem;flex-wrap:wrap}
+.atab{flex:1;padding:6px 4px;font-size:11px;border:none;background:transparent;cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;color:var(--g2);transition:all .15s;min-width:60px}
+.atab.active{background:var(--br);color:var(--g1);font-weight:700}
+.asec{display:none}.asec.active{display:block}
+.afield{margin-bottom:.85rem}
+.afield label{display:block;font-size:11px;font-weight:700;color:var(--g2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.afield input,.afield textarea{width:100%;padding:9px 12px;border:1px solid var(--g4);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--br);color:var(--g1);resize:vertical}
+.afield input:focus,.afield textarea:focus{outline:none;border-color:var(--vdl)}
+.cdp-adm{display:flex;flex-direction:column;gap:7px;margin-top:4px}
+.cdp-adm-row{display:grid;grid-template-columns:38px 1fr 1fr;gap:6px;align-items:center}
+.cdp-adm-lbl{font-size:10px;font-weight:800;text-transform:uppercase;color:var(--g3);text-align:center}
+.cdp-adm-row input{padding:7px 10px;font-size:12px}
+.btn-sv{background:var(--vd);color:#fff;border:none;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;margin-top:.4rem;transition:background .2s}
+.btn-sv:hover{background:var(--vdm)}
+.senha-box{display:flex;flex-direction:column;gap:.75rem;max-width:260px;margin:2rem auto;text-align:center}
+.senha-box p{font-size:13px;color:var(--g2)}
+.mgmt-row{display:flex;align-items:center;justify-content:space-between;padding:.55rem .75rem;border-bottom:1px solid var(--g5)}
+.mgmt-row:last-child{border-bottom:none}
+.mgmt-nome{font-size:13px;font-weight:600}
+.mgmt-sub{font-size:11px;color:var(--g3);margin-top:1px}
+.btn-pg{font-size:11px;padding:3px 10px;border-radius:20px;cursor:pointer;font-family:'DM Sans',sans-serif;border:1px solid transparent;transition:all .15s}
+.btn-pg.pago{background:var(--okc);color:var(--ok);border-color:#aaddbf}
+.btn-pg.deve{background:var(--wnc);color:var(--wn);border-color:#e8d48a}
+.btn-dl{background:var(--erc);color:var(--er);border:none;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:11px;font-family:'DM Sans',sans-serif}
+.totd{display:flex;gap:7px;flex-wrap:wrap;margin-top:.75rem}
+.totd-item{text-align:center;background:var(--br);border:1px solid var(--g4);border-radius:8px;padding:6px 12px;min-width:52px}
+.totd-l{font-size:9px;color:var(--g3);font-weight:800;text-transform:uppercase}
+.totd-n{font-size:1.2rem;font-weight:700;color:var(--g1)}
+.nota-adm-row{display:flex;align-items:center;gap:8px;padding:.45rem 0;border-bottom:1px solid var(--g5)}
+.nota-adm-row:last-child{border-bottom:none}
+.nota-adm-nm{font-size:12px;font-weight:500;flex:1;word-break:break-all}
+.btn-dn{background:none;border:none;color:var(--g3);cursor:pointer;font-size:15px}
+.btn-dn:hover{color:var(--er)}
+.sem-adm-row{display:flex;align-items:center;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--g5)}
+.sem-adm-row:last-child{border-bottom:none}
+.comp-adm-row{padding:.55rem .75rem;border-bottom:1px solid var(--g5);display:flex;align-items:center;gap:8px}
+.comp-adm-row:last-child{border-bottom:none}
+.rel-card{background:var(--br);border:1px solid var(--g4);border-radius:8px;padding:.75rem;text-align:center}
+.rel-card .rc-l{font-size:10px;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:700}
+.rel-card .rc-v{font-size:1.3rem;font-weight:700;color:var(--g1)}
+.rel-card .rc-v.pos{color:var(--ok)}
+.rel-card .rc-v.neg{color:var(--er)}
+.rel-card .rc-s{font-size:10px;color:var(--g3);margin-top:2px}
+.sync-badge{font-size:10px;color:var(--ok);background:var(--okc);padding:2px 8px;border-radius:20px;margin-left:6px;display:none}
+@keyframes pulse{from{opacity:1}to{opacity:.4}}
+@media print{.topbar,.hero,.main,.toast,.ov{display:none!important}#print-area{display:block!important}}
+#print-area{display:none;padding:2rem;font-family:'DM Sans',sans-serif;color:#1a1a1a}
+@media(max-width:480px){.hero-cards{grid-template-columns:repeat(2,1fr)}.cdp-adm-row{grid-template-columns:32px 1fr}.cdp-adm-row input:last-child{display:none}}
+</style>
+</head>
+<body>
+
+<div class="loading-bar" id="loading-bar"></div>
+<div id="print-area"></div>
+
+<div class="topbar">
+  <div class="tb-brand">
+    <div class="tb-ico">🍽</div>
+    <div>
+      <div class="tb-title">Rancho 37I <span class="sync-badge" id="sync-badge">● online</span></div>
+      <span class="tb-sub">Almoço do Batalhão</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="badge-adm" id="badge-adm">Admin</span>
+    <button class="btn-adm" onclick="abrirAdmin()">⚙ Admin</button>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="hero-in">
+    <div class="hero-wk" id="hero-wk">Carregando...</div>
+    <h2>Almoço no Batalhão</h2>
+    <div class="hero-sub">Confirme sua presença para a semana</div>
+    <div class="hero-cards">
+      <div class="hc"><div class="hc-l">Valor/dia</div><div class="hc-v" id="hc-val">—</div><div class="hc-s">por refeição</div></div>
+      <div class="hc"><div class="hc-l">Inscritos</div><div class="hc-v" id="hc-ins">0</div><div class="hc-s"> </div></div>
+      <div class="hc" id="hc-arr-card"><div class="hc-l">Arrecadado</div><div class="hc-v" id="hc-arr">R$0</div><div class="hc-s">confirmado</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="sem-nav" id="sem-nav"></div>
+  <div id="aviso-sem-config" style="display:none;padding:1.5rem;text-align:center;background:var(--br);border:1px solid var(--g4);border-radius:var(--r);margin-bottom:1rem">
+    <div style="font-size:2rem;margin-bottom:.5rem">🍽</div>
+    <div style="font-size:14px;font-weight:600;color:var(--g1);margin-bottom:.25rem">Cardápio ainda não disponível</div>
+    <div style="font-size:12px;color:var(--g3)">As inscrições para a próxima semana serão abertas em breve. Fique de olho no grupo!</div>
+  </div>
+  <div class="sec">
+    <div class="sec-title">Valor da semana</div>
+    <div class="vbox">
+      <div class="vbox-n"><span class="vbox-cifrao">R$</span><span class="vbox-num" id="val-num">—</span><span class="vbox-lbl">por refeição</span></div>
+      <div class="vbox-obs" id="val-obs">—</div>
+    </div>
+  </div>
+  <div class="sec">
+    <div class="sec-title">Cardápio da semana</div>
+    <div class="card" id="cdp-card"><div class="empty-st">Carregando...</div></div>
+  </div>
+  <div id="prazo-aviso" style="display:none;margin-bottom:1rem;padding:.75rem 1rem;background:var(--erc);border:1px solid #f1a9a0;border-radius:var(--r);font-size:13px;color:var(--er);font-weight:500"></div>
+  <div class="sec">
+    <div class="sec-title">Quero almoçar</div>
+    <div class="card"><div class="cb">
+      <div class="field">
+        <label>NOME (QRA):</label>
+        <input type="text" id="inp-qra" placeholder="Ex: Sd PM Silva" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Selecione os dias</label>
+        <div class="dias-wrap">
+          <button type="button" class="dia-btn" data-dia="seg" onclick="toggleDia(this)"><span class="db-nome">SEG</span><span class="db-chk">○</span></button>
+          <button type="button" class="dia-btn" data-dia="ter" onclick="toggleDia(this)"><span class="db-nome">TER</span><span class="db-chk">○</span></button>
+          <button type="button" class="dia-btn" data-dia="qua" onclick="toggleDia(this)"><span class="db-nome">QUA</span><span class="db-chk">○</span></button>
+          <button type="button" class="dia-btn" data-dia="qui" onclick="toggleDia(this)"><span class="db-nome">QUI</span><span class="db-chk">○</span></button>
+          <button type="button" class="dia-btn" data-dia="sex" onclick="toggleDia(this)"><span class="db-nome">SEX</span><span class="db-chk">○</span></button>
+        </div>
+        <div id="total-resumo" style="display:none;margin-top:10px;padding:10px 12px;background:var(--vdx);border:1px solid #c5ddc9;border-radius:8px;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;color:var(--g2)"><span id="total-dias-txt">0 dia</span> selecionado</span>
+          <span style="font-size:1.1rem;font-weight:700;color:var(--vd)" id="total-valor-txt">R$ 0,00</span>
+        </div>
+      </div>
+      <div class="field" id="pgto-inline-wrap" style="display:none">
+        <label>Como pagar</label>
+        <div class="pgto-box" style="margin-top:2px">
+          <div class="pgto-tit" id="pgto-tit">⏳ Informações de pagamento em breve</div>
+          <div class="pgto-inf" id="pgto-inf">O responsável será definido em breve. Aguarde comunicado no grupo.</div>
+          <div class="pgto-obs" id="pgto-obs"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Comprovante de pagamento</label>
+        <div class="upload-comp" id="upload-comp" onclick="document.getElementById('inp-comp').click()">
+          <div style="font-size:28px">📎</div>
+          <p>Anexe o comprovante do Pix</p>
+          <input type="file" id="inp-comp" accept="image/*,.pdf" style="display:none" onchange="selecionarComp(this)">
+        </div>
+        <div class="comp-prev" id="comp-prev" style="display:none">
+          <span id="comp-nome">—</span>
+          <button type="button" onclick="removerComp()">✕</button>
+        </div>
+      </div>
+      <button type="button" class="btn-pri" id="btn-inscrever" onclick="inscrever()">Confirmar inscrição</button>
+      <div id="resumo-pos-inscricao" style="display:none;margin-top:1rem;background:var(--okc);border:1px solid #aaddbf;border-radius:10px;padding:1rem">
+        <div style="font-size:13px;font-weight:700;color:var(--ok);margin-bottom:.5rem">✓ Inscrição confirmada!</div>
+        <div id="resumo-pos-content" style="font-size:13px;color:var(--g1);line-height:1.7"></div>
+        <div style="font-size:11px;color:var(--g2);margin-top:.5rem">Guarde este resumo. Realize o pagamento e anexe o comprovante.</div>
+      </div>
+      <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--g4)">
+        <div style="font-size:11px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">💡 Sugestão para o cardápio da próxima semana</div>
+        <textarea id="inp-sugestao" placeholder="Tem algum prato que gostaria de ver no cardápio? Escreva aqui..." style="width:100%;padding:9px 12px;border:1px solid var(--g4);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;resize:vertical;min-height:70px;color:var(--g1);background:var(--g5)"></textarea>
+        <button type="button" onclick="enviarSugestao()" style="margin-top:6px;padding:7px 16px;font-size:12px;font-weight:600;background:var(--g5);border:1px solid var(--g4);border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--g2);width:100%">Enviar sugestão</button>
+      </div>
+    </div></div>
+  </div>
+  <div class="sec">
+    <div class="sec-title">Inscritos</div>
+    <div class="card"><div id="ins-list"><div style="padding:1rem;display:flex;flex-direction:column;gap:8px"><div style="height:40px;background:var(--g4);border-radius:8px;animation:pulse 1.2s infinite alternate"></div><div style="height:40px;background:var(--g4);border-radius:8px;animation:pulse 1.2s infinite alternate;animation-delay:.2s"></div><div style="height:40px;background:var(--g4);border-radius:8px;animation:pulse 1.2s infinite alternate;animation-delay:.4s"></div></div></div></div>
+  </div>
+
+
+</div>
+
+  <div class="sec" id="sec-historico" style="display:none">
+    <div class="sec-title">Histórico de semanas</div>
+    <div id="hist-list" class="card"></div>
+  </div>
+  <div style="text-align:center;margin-bottom:1.5rem">
+    <button type="button" id="btn-historico" onclick="toggleHistorico()" style="padding:6px 18px;font-size:12px;border:1px solid var(--g4);border-radius:20px;background:var(--br);cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--g2)">Ver histórico de semanas ▼</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="ov" id="ov" onclick="ovClick(event)">
+<div class="ash">
+  <div class="ash-hd">
+    <h3>Painel Admin</h3>
+    <button type="button" class="btn-cl" onclick="fecharAdmin()">✕</button>
+  </div>
+  <div id="adm-login">
+    <div class="senha-box">
+      <p>Senha de administrador</p>
+      <input type="password" id="inp-senha" placeholder="Senha" style="padding:9px 12px;border:1px solid var(--g4);border-radius:8px;font-size:14px;text-align:center;font-family:'DM Sans',sans-serif" onkeydown="if(event.key==='Enter')loginAdmin()">
+      <button type="button" class="btn-sv" onclick="loginAdmin()">Entrar</button>
+    </div>
+  </div>
+  <div id="adm-painel" style="display:none">
+    <div class="atabs">
+      <button type="button" class="atab active" onclick="aTab('semana')">Semana</button>
+      <button type="button" class="atab" onclick="aTab('inscritos')">Inscritos</button>
+      <button type="button" class="atab" onclick="aTab('pagamento')">Pagamento</button>
+      <button type="button" class="atab" onclick="aTab('notas')">Notas</button>
+      <button type="button" class="atab" onclick="aTab('comprovantes')">Comprov.</button>
+      <button type="button" class="atab" onclick="aTab('relatorio')">Relatório</button>
+      <button type="button" class="atab" onclick="aTab('compras')">Compras</button>
+      <button type="button" class="atab" onclick="aTab('sugestoes')">Sugestões</button>
+      <button type="button" class="atab" onclick="aTab('lembrete')">Lembrete</button>
+      <button type="button" class="atab" onclick="aTab('backup')">💾 Backup</button>
+    </div>
+
+    <!-- SEMANA -->
+    <div class="asec active" id="asec-semana">
+      <div class="afield">
+        <label>Nova semana</label>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="a-sem-nova" placeholder="Ex: 08 a 12/07">
+          <button type="button" onclick="novaSemana()" style="padding:0 14px;border:1px solid var(--g4);border-radius:8px;background:var(--br);cursor:pointer;font-size:12px;white-space:nowrap;font-family:'DM Sans',sans-serif">+ Criar</button>
+        </div>
+      </div>
+      <div id="a-sem-lista" style="margin-bottom:.85rem"></div>
+      <div class="afield"><label>Prazo para inscrição</label>
+        <div style="display:flex;gap:6px">
+          <input type="date" id="a-prazo-data" style="flex:1">
+          <input type="time" id="a-prazo-hora" value="12:00" style="width:100px">
+        </div>
+        <div style="font-size:11px;color:var(--g3);margin-top:4px">Após este prazo o formulário fecha automaticamente</div>
+      </div>
+      <div class="afield"><label>Valor por refeição (R$)</label><input type="number" id="a-valor" step="0.50" min="0" placeholder="0,00"></div>
+      <div class="afield"><label>Observação sobre o valor</label><input type="text" id="a-valor-obs" placeholder="Ex: Inclui prato, acompanhamento e salada"></div>
+      <div class="afield">
+        <label>Cardápio da semana</label>
+        <div class="cdp-adm">
+          <div class="cdp-adm-row" style="margin-bottom:2px">
+            <div></div>
+            <div style="font-size:10px;color:var(--g3);font-weight:700">PRATO PRINCIPAL</div>
+            <div style="font-size:10px;color:var(--g3);font-weight:700">ACOMPANHAMENTO</div>
+          </div>
+          <div class="cdp-adm-row"><div class="cdp-adm-lbl">SEG</div><input type="text" id="cp-seg" placeholder="Prato principal"><input type="text" id="ca-seg" placeholder="Acompanhamento"></div>
+          <div class="cdp-adm-row"><div class="cdp-adm-lbl">TER</div><input type="text" id="cp-ter" placeholder="Prato principal"><input type="text" id="ca-ter" placeholder="Acompanhamento"></div>
+          <div class="cdp-adm-row"><div class="cdp-adm-lbl">QUA</div><input type="text" id="cp-qua" placeholder="Prato principal"><input type="text" id="ca-qua" placeholder="Acompanhamento"></div>
+          <div class="cdp-adm-row"><div class="cdp-adm-lbl">QUI</div><input type="text" id="cp-qui" placeholder="Prato principal"><input type="text" id="ca-qui" placeholder="Acompanhamento"></div>
+          <div class="cdp-adm-row"><div class="cdp-adm-lbl">SEX</div><input type="text" id="cp-sex" placeholder="Prato principal"><input type="text" id="ca-sex" placeholder="Acompanhamento"></div>
+        </div>
+      </div>
+      <button type="button" class="btn-sv" onclick="salvarSemana()">💾 Salvar semana</button>
+    </div>
+
+    <!-- INSCRITOS -->
+    <div class="asec" id="asec-inscritos">
+      <!-- Inserção manual pelo admin -->
+      <div style="background:var(--wnc);border:1px solid #e8d48a;border-radius:var(--r);padding:.9rem 1rem;margin-bottom:.85rem">
+        <div style="font-size:11px;font-weight:700;color:var(--wn);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.65rem">➕ Inserir inscrito manualmente</div>
+        <div style="display:flex;flex-direction:column;gap:.5rem">
+          <input type="text" id="adm-ins-qra" placeholder="QRA (ex: Sd PM Silva)" style="padding:8px 10px;border:1px solid var(--g4);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;width:100%">
+          <div style="display:flex;gap:6px">
+            <button type="button" class="dia-adm-btn" data-dia="seg" onclick="toggleDiaAdm(this)" style="flex:1;padding:8px 4px;border:2px solid var(--g4);border-radius:8px;background:var(--br);cursor:pointer;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif">SEG</button>
+            <button type="button" class="dia-adm-btn" data-dia="ter" onclick="toggleDiaAdm(this)" style="flex:1;padding:8px 4px;border:2px solid var(--g4);border-radius:8px;background:var(--br);cursor:pointer;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif">TER</button>
+            <button type="button" class="dia-adm-btn" data-dia="qua" onclick="toggleDiaAdm(this)" style="flex:1;padding:8px 4px;border:2px solid var(--g4);border-radius:8px;background:var(--br);cursor:pointer;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif">QUA</button>
+            <button type="button" class="dia-adm-btn" data-dia="qui" onclick="toggleDiaAdm(this)" style="flex:1;padding:8px 4px;border:2px solid var(--g4);border-radius:8px;background:var(--br);cursor:pointer;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif">QUI</button>
+            <button type="button" class="dia-adm-btn" data-dia="sex" onclick="toggleDiaAdm(this)" style="flex:1;padding:8px 4px;border:2px solid var(--g4);border-radius:8px;background:var(--br);cursor:pointer;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif">SEX</button>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <label style="font-size:12px;color:var(--g2);display:flex;align-items:center;gap:5px;cursor:pointer">
+              <input type="checkbox" id="adm-ins-pago"> Já pagou
+            </label>
+            <button type="button" onclick="admInscrever()" style="flex:1;padding:8px;background:var(--vd);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Inserir</button>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--g2);margin-bottom:.5rem">Inscritos cadastrados</div>
+      <div class="card"><div id="a-ins-list"><div class="empty-st">Carregando...</div></div></div>
+      <div class="totd" id="a-totd"></div>
+    </div>
+
+    <!-- PAGAMENTO -->
+    <div class="asec" id="asec-pagamento">
+      <div class="afield"><label>Título</label><input type="text" id="a-pg-tit" placeholder="Ex: Pix — nome do responsável"></div>
+      <div class="afield"><label>Informações</label><textarea id="a-pg-inf" rows="3" placeholder="Chave Pix, banco, nome..."></textarea></div>
+      <div class="afield"><label>Observação</label><input type="text" id="a-pg-obs" placeholder="Ex: Pagar até sexta-feira"></div>
+      <button type="button" class="btn-sv" onclick="salvarPagamento()">💾 Salvar</button>
+    </div>
+
+    <!-- NOTAS -->
+    <div class="asec" id="asec-notas">
+      <div style="border:2px dashed var(--g4);border-radius:10px;padding:1rem;text-align:center;cursor:pointer;background:var(--g5);margin-bottom:.75rem" onclick="document.getElementById('inp-nota').click()">
+        <div style="font-size:26px">📄</div>
+        <p style="font-size:12px;color:var(--g3);margin-top:5px">Anexar nota fiscal (imagem ou PDF)</p>
+        <input type="file" id="inp-nota" accept="image/*,.pdf" style="display:none" onchange="anexarNota(this)">
+      </div>
+      <div id="a-notas-list"></div>
+    </div>
+
+    <!-- COMPROVANTES -->
+    <div class="asec" id="asec-comprovantes">
+      <div style="font-size:12px;color:var(--g2);margin-bottom:.75rem">Comprovantes enviados pelos participantes</div>
+      <div class="card"><div id="a-comp-list"><div class="empty-st">Nenhum comprovante enviado.</div></div></div>
+    </div>
+
+    <!-- RELATÓRIO -->
+    <!-- COMPRAS -->
+    <div class="asec" id="asec-compras">
+      <div style="font-size:12px;color:var(--g2);margin-bottom:.75rem">Lista de compras gerada a partir do cardápio e das inscrições da semana, com preços médios estimados e substitutos econômicos.</div>
+      <div id="compras-lista"><div class="empty-st">Selecione uma semana e preencha o cardápio.</div></div>
+    </div>
+
+    <!-- SUGESTÕES -->
+    <div class="asec" id="asec-sugestoes">
+      <div style="font-size:12px;color:var(--g2);margin-bottom:.75rem">Sugestões de cardápio enviadas pelos participantes.</div>
+      <div id="adm-sugestoes-list"><div class="empty-st">Nenhuma sugestão ainda.</div></div>
+    </div>
+
+    <!-- LEMBRETE -->
+    <div class="asec" id="asec-lembrete">
+      <div style="font-size:12px;color:var(--g2);margin-bottom:.75rem">Gera automaticamente a mensagem de lembrete para enviar no grupo toda sexta-feira.</div>
+      <div style="background:var(--vdx);border:1px solid #c5ddc9;border-radius:var(--r);padding:1rem;margin-bottom:.75rem">
+        <div style="font-size:11px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem">Prévia da mensagem</div>
+        <div id="lembrete-preview" style="font-size:13px;color:var(--g1);line-height:1.8;white-space:pre-wrap;background:var(--br);border-radius:8px;padding:.75rem;border:1px solid var(--g4)">Carregando...</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn-sv" style="flex:1" onclick="copiarLembrete()">📋 Copiar mensagem</button>
+        <button type="button" class="btn-sv" style="flex:1;background:var(--g2)" onclick="abrirWhatsApp()">📱 Abrir WhatsApp</button>
+      </div>
+      <div style="font-size:11px;color:var(--g3);margin-top:.5rem;text-align:center">A mensagem é gerada com base na semana ativa e no cardápio preenchido</div>
+    </div>
+
+
+    <!-- BACKUP / RESTAURAÇÃO -->
+    <div class="asec" id="asec-backup">
+      <div style="font-size:12px;color:var(--g2);margin-bottom:1rem;line-height:1.6">
+        Faça backup de todos os dados do Firebase em um arquivo no seu dispositivo. Em caso de problemas, restaure pelo mesmo arquivo.
+      </div>
+
+      <!-- BACKUP -->
+      <div style="background:var(--vdx);border:1px solid #c5ddc9;border-radius:var(--r);padding:1rem;margin-bottom:.85rem">
+        <div style="font-size:11px;font-weight:700;color:var(--vdm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem">📤 Exportar backup</div>
+        <div style="font-size:12px;color:var(--g2);margin-bottom:.65rem">Salva todas as semanas, inscritos, pagamentos, notas e configurações em um arquivo <strong>.json</strong>.</div>
+        <div id="backup-status" style="font-size:12px;color:var(--g3);margin-bottom:.5rem;display:none"></div>
+        <button type="button" class="btn-sv" onclick="fazerBackup()" id="btn-backup">⬇️ Baixar backup completo</button>
+      </div>
+
+      <!-- RESTAURAÇÃO -->
+      <div style="background:var(--wnc);border:1px solid #e8d48a;border-radius:var(--r);padding:1rem">
+        <div style="font-size:11px;font-weight:700;color:var(--wn);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem">📥 Restaurar backup</div>
+        <div style="font-size:12px;color:var(--g2);margin-bottom:.65rem">Selecione um arquivo de backup <strong>.json</strong> gerado por este sistema. Os dados existentes serão <strong>mesclados</strong> — nada será apagado.</div>
+        <div style="border:2px dashed #e8d48a;border-radius:8px;padding:.75rem;text-align:center;cursor:pointer;background:rgba(255,255,255,.5);margin-bottom:.5rem" onclick="document.getElementById('inp-restore').click()">
+          <div style="font-size:22px">📂</div>
+          <div style="font-size:12px;color:var(--g2);margin-top:4px">Toque para selecionar o arquivo de backup</div>
+          <input type="file" id="inp-restore" accept=".json" style="display:none" onchange="restaurarBackup(this)">
+        </div>
+        <div id="restore-status" style="font-size:12px;color:var(--g3);display:none"></div>
+      </div>
+
+      <!-- ÚLTIMA DATA -->
+      <div style="text-align:center;margin-top:.75rem;font-size:11px;color:var(--g3)" id="ultimo-backup-txt"></div>
+
+      <!-- CÓPIA AUTOMÁTICA LOCAL -->
+      <div style="background:var(--vdx);border:1px solid #c5ddc9;border-radius:var(--r);padding:1rem;margin-top:.85rem">
+        <div style="font-size:11px;font-weight:700;color:var(--vdm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem">🛡️ Cópia de segurança automática</div>
+        <div style="font-size:12px;color:var(--g2);margin-bottom:.65rem">O sistema salva uma cópia local automaticamente sempre que você entra como admin. Use para recuperação rápida neste mesmo dispositivo/navegador.</div>
+        <div id="autobackup-status" style="font-size:12px;color:var(--g3);margin-bottom:.5rem"></div>
+        <button type="button" class="btn-sv" style="background:var(--vdm)" onclick="restaurarAutoBackup()">♻️ Restaurar cópia automática</button>
+      </div>
+    </div>
+
+    <div class="asec" id="asec-relatorio">
+      <div class="afield"><label>Total de gastos da semana (R$)</label><input type="number" id="a-gastos" step="0.01" min="0" placeholder="0,00" oninput="calcRelatorio()"></div>
+      <div class="afield"><label>Crédito acumulado semana anterior (R$)</label><input type="number" id="a-credito-ant" step="0.01" min="0" placeholder="0,00" oninput="calcRelatorio()"></div>
+      <div id="rel-preview" style="display:none;margin-top:.5rem">
+        <div style="background:var(--vdx);border:1px solid #c5ddc9;border-radius:var(--r);padding:1rem;margin-bottom:.75rem">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="rel-cards"></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem">Detalhamento por participante</div>
+        <div class="card"><div id="rel-tabela"></div></div>
+        <div style="margin-top:.75rem;display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="btn-sv" style="flex:1" onclick="imprimirRelatorio()">🖨 Imprimir / PDF</button>
+          <button type="button" class="btn-sv" style="flex:1;background:var(--g2)" onclick="copiarRelatorio()">📋 Copiar texto</button>
+          <button type="button" class="btn-sv" style="flex:1;background:#1a5799" onclick="exportarCSV()">📊 Exportar Excel</button>
+        </div>
+      </div>
+      <div id="rel-empty" style="padding:1.5rem;text-align:center;color:var(--g3);font-size:13px">Informe o total de gastos para gerar o relatório.</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, collection, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC-TAsDQSQRLXqByhNjgtzerbOL0qEWzdQ",
+  authDomain: "rancho-37i-948eb.firebaseapp.com",
+  projectId: "rancho-37i-948eb",
+  storageBucket: "rancho-37i-948eb.firebasestorage.app",
+  messagingSenderId: "239935409213",
+  appId: "1:239935409213:web:d1d388dd66775371f1ae54"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+const DK = ['seg','ter','qua','qui','sex'];
+const DN = ['SEG','TER','QUA','QUI','SEX'];
+const SENHA = 'rancho37';
+
+let isAdmin = false;
+let semAtiva = null;
+let compSel = null;
+let unsubSem = null;
+let unsubIns = null;
+let unsubSemDoc = null;        // FIX: listener do doc da semana (antes vazava e duplicava)
+let _cacheSem = null;          // FIX BUG CRÍTICO: usado sem declaração -> ReferenceError travava o carregamento
+let _cacheIns = [];            // FIX BUG CRÍTICO: idem
+let _semCarregada = null;      // controla qual semana já tem listeners ativos (evita duplicação)
+
+// ── UI helpers ──────────────────────────────────────────────────────────────
+function loading(on){
+  const b = document.getElementById('loading-bar');
+  b.style.width = on ? '60%' : '100%';
+  if(!on) setTimeout(()=>{ b.style.width='0'; },400);
+}
+function toast(m){
+  const t=document.getElementById('toast');
+  t.textContent=m; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+function cntD(dias){ if(!dias) return 0; return DK.reduce((a,d)=>a+(dias[d]?1:0),0); }
+
+// ── Dias seleção ─────────────────────────────────────────────────────────────
+function toggleDia(btn){
+  btn.classList.toggle('ativo');
+  btn.querySelector('.db-chk').textContent = btn.classList.contains('ativo') ? '●' : '○';
+  atualizarTotalDias();
+}
+window.toggleDia = toggleDia;
+
+function atualizarTotalDias(){
+  const sel = document.querySelectorAll('.dia-btn.ativo').length;
+  const resumo = document.getElementById('total-resumo');
+  const txtDias = document.getElementById('total-dias-txt');
+  const txtVal  = document.getElementById('total-valor-txt');
+  if(!resumo) return;
+  if(sel === 0){ resumo.style.display='none'; return; }
+  resumo.style.display='flex';
+  txtDias.textContent = sel === 1 ? '1 dia' : sel + ' dias';
+  // Pegar valor atual da semana do DOM
+  const vlrTxt = document.getElementById('val-num') ? document.getElementById('val-num').textContent : '0';
+  const vlr = parseFloat(vlrTxt.replace(',','.')) || 0;
+  txtVal.textContent = vlr ? `R$ ${(sel * vlr).toFixed(2).replace('.',',')}` : `${sel} refeição${sel>1?'ões':''}`;
+}
+window.atualizarTotalDias = atualizarTotalDias;
+
+function getDias(){
+  const r={};
+  document.querySelectorAll('.dia-btn').forEach(b=>{ r[b.dataset.dia]=b.classList.contains('ativo')?1:0; });
+  return r;
+}
+function resetDias(){
+  document.querySelectorAll('.dia-btn').forEach(b=>{
+    b.classList.remove('ativo');
+    b.querySelector('.db-chk').textContent='○';
+  });
+  const resumo=document.getElementById('total-resumo');
+  if(resumo) resumo.style.display='none';
+}
+
+// ── Comprovante ──────────────────────────────────────────────────────────────
+function selecionarComp(inp){
+  const f=inp.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    compSel={nome:f.name, data64:e.target.result, tipo:f.type.includes('pdf')?'pdf':'img'};
+    document.getElementById('comp-nome').textContent=f.name;
+    document.getElementById('comp-prev').style.display='flex';
+    document.getElementById('upload-comp').style.display='none';
+  };
+  rd.readAsDataURL(f); inp.value='';
+}
+window.selecionarComp = selecionarComp;
+
+function removerComp(){
+  compSel=null;
+  document.getElementById('comp-prev').style.display='none';
+  document.getElementById('upload-comp').style.display='block';
+}
+window.removerComp = removerComp;
+
+// ── Render tela principal ────────────────────────────────────────────────────
+function renderHero(sem, ins){
+  if(!sem){
+    document.getElementById('hero-wk').textContent='Nenhuma semana configurada';
+    verificarSemConfig(null);
+    document.getElementById('hc-val').textContent='—';
+    document.getElementById('hc-ins').textContent='0';
+    document.getElementById('hc-arr').textContent='R$0';
+    document.getElementById('val-num').textContent='—';
+    document.getElementById('val-obs').textContent='Aguarde o administrador configurar a semana.';
+    document.getElementById('cdp-card').innerHTML='<div class="empty-st">Cardápio não definido.</div>';
+    document.getElementById('ins-list').innerHTML='<div class="empty-st">Nenhum inscrito ainda.</div>';
+    return;
+  }
+  document.getElementById('hero-wk').textContent='Semana '+sem.label;
+  verificarPrazo(sem);
+  verificarSemConfig(sem);
+  const vlr=parseFloat(sem.valor)||0;
+  document.getElementById('hc-val').textContent=vlr?`R$${vlr.toFixed(2)}`:'—';
+  document.getElementById('val-num').textContent=vlr?vlr.toFixed(2):'—';
+  document.getElementById('val-obs').textContent=sem.valorObs||'Inclui prato completo com guarnição, acompanhamento e salada.';
+  document.getElementById('hc-ins').textContent=ins.length;
+  const arr=ins.filter(i=>i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr,0);
+  document.getElementById('hc-arr').textContent=`R$${arr.toFixed(2)}`;
+  // Cardápio
+  const cdp=sem.cardapio||[];
+  document.getElementById('cdp-card').innerHTML=cdp.some(r=>r&&r.principal)
+    ? DK.map((d,i)=>{ const r=cdp[i]||{}; return`<div class="cdp-row"><div class="cdp-dia">${DN[i]}</div><div><div class="cdp-principal">${r.principal||'—'}</div>${r.acomp?`<div class="cdp-acomp">${r.acomp}</div>`:''}</div></div>`; }).join('')
+    : '<div class="empty-st">Cardápio não definido.</div>';
+  // Inscritos
+  renderInscritos(ins, vlr);
+}
+
+function renderInscritos(ins, vlr){
+  const el=document.getElementById('ins-list');
+  if(!ins.length){ el.innerHTML='<div class="empty-st">Nenhum inscrito ainda.</div>'; return; }
+  el.innerHTML=ins.map(i=>{
+    const dias=DK.filter(d=>i.dias&&i.dias[d]);
+    const pills=dias.map(d=>`<span class="dp">${DN[DK.indexOf(d)]}</span>`).join('');
+    const comp=i.comprovante?`<span style="font-size:12px;color:var(--ok)">📎 Comprovante enviado</span>`:'';
+    return`<div class="ins-row"><div><div class="ins-nome">${i.qra}</div><div class="ins-dias" style="margin-top:3px">${pills}</div>${comp?`<div style="margin-top:3px">${comp}</div>`:''}</div></div>`;
+  }).join('');
+}
+
+function renderPagamento(pg){
+  const wrap=document.getElementById('pgto-inline-wrap');
+  if(pg&&pg.titulo){
+    // Salva a chave para uso no botão de cópia
+    window._pixKey = pg.inf||'';
+    document.getElementById('pgto-tit').textContent=pg.titulo;
+    document.getElementById('pgto-obs').textContent=pg.obs||'';
+    // Botão público: só mostra "Clique para copiar chave Pix"
+    const infEl=document.getElementById('pgto-inf');
+    infEl.innerHTML='';
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.textContent='📋 Clique para copiar a chave Pix';
+    btn.style.cssText='width:100%;padding:10px;background:#fff3cd;border:1.5px dashed #e8d48a;border-radius:8px;font-size:13px;font-weight:700;color:#7b5e00;cursor:pointer;font-family:inherit;margin-top:4px;transition:background .15s';
+    btn.onmouseover=()=>btn.style.background='#ffeaa0';
+    btn.onmouseout=()=>btn.style.background='#fff3cd';
+    btn.onclick=()=>{
+      const key=window._pixKey||'';
+      if(!key) return;
+      navigator.clipboard.writeText(key).then(()=>{
+        btn.textContent='✓ Chave copiada!';
+        btn.style.background='#eaf4ee';
+        btn.style.borderColor='#aaddbf';
+        btn.style.color='#1a6b3a';
+        setTimeout(()=>{
+          btn.textContent='📋 Clique para copiar a chave Pix';
+          btn.style.background='#fff3cd';
+          btn.style.borderColor='#e8d48a';
+          btn.style.color='#7b5e00';
+        },2500);
+      }).catch(()=>{ alert('Chave Pix: '+key); });
+    };
+    infEl.appendChild(btn);
+    if(wrap) wrap.style.display='block';
+  } else {
+    if(wrap) wrap.style.display='none';
+  }
+}
+
+function renderNotasPub(notas){
+  const el=document.getElementById('notas-pub');
+  if(!el) return;   // FIX: seção pública de notas foi removida; evita TypeError no listener
+  el.innerHTML=notas.length
+    ? notas.map(n=>`<div class="nota-item"><span class="nota-ico">${n.tipo==='pdf'?'📄':'🧾'}</span><div class="nota-nome">${n.nome}</div><div class="nota-data">${n.data}</div><a href="${n.data64}" download="${n.nome}" class="nota-dl">Baixar</a></div>`).join('')
+    : '<div class="empty-st" style="padding:.75rem 0">Nenhuma nota anexada.</div>';
+}
+
+// ── Semanas nav ──────────────────────────────────────────────────────────────
+function renderSemNav(semanas){
+  document.getElementById('sem-nav').innerHTML=semanas.map(s=>
+    `<button type="button" class="sc${s.id===semAtiva?' ativa':''}" onclick="trocarSemana('${s.id}')">${s.label}</button>`
+  ).join('');
+}
+
+// ── Firestore listeners ──────────────────────────────────────────────────────
+async function iniciarListeners(){
+  loading(true);
+
+  // Pagamento
+  onSnapshot(doc(db,'config','pagamento'), snap=>{
+    if(snap.exists()) renderPagamento(snap.data());
+  }, err=>console.error('[pagamento]', err));
+
+  // Notas
+  onSnapshot(doc(db,'config','notas'), snap=>{
+    const d = snap.exists() ? snap.data() : null;
+    renderNotasPub(d&&d.lista ? d.lista : []);
+    if(isAdmin) renderAdmNotas(d&&d.lista ? d.lista : []);
+  }, err=>console.error('[notas]', err));
+
+  // Semanas — listener principal
+  const semanasRef = collection(db,'semanas');
+  if(unsubSem) unsubSem();
+  unsubSem = onSnapshot(query(semanasRef, orderBy('criadoEm','asc')), snap=>{
+    const semanas = snap.docs.map(d=>({id:d.id,...d.data()}));
+    // Define semana ativa só na primeira vez
+    if(!semAtiva && semanas.length) semAtiva = semanas[semanas.length-1].id;
+    renderSemNav(semanas);
+    if(isAdmin) preencherAdminSemanas(semanas);
+    const badge = document.getElementById('sync-badge');
+    if(badge) badge.style.display='inline';
+    // FIX BUG 2: só (re)carrega listeners da semana se ela mudou — evita acúmulo de listeners
+    if(semAtiva && semAtiva !== _semCarregada){
+      carregarSemanaAtiva();
+    } else if(!semAtiva){
+      renderHero(null, []);
+    }
+    loading(false);
+  }, err=>{
+    console.error('[semanas]', err);
+    loading(false);
+    const c = document.getElementById('cdp-card');
+    if(c) c.innerHTML='<div class="empty-st">Erro de conexão. Recarregue a página.</div>';
+  });
+}
+
+async function carregarSemanaAtiva(){
+  if(!semAtiva){ renderHero(null,[]); return; }
+
+  // FIX BUG 2: cancela listeners anteriores ANTES de criar novos (evita vazamento/duplicação)
+  if(unsubIns){ unsubIns(); unsubIns=null; }
+  if(unsubSemDoc){ unsubSemDoc(); unsubSemDoc=null; }
+
+  _semCarregada = semAtiva;
+  const semIdLocal = semAtiva;  // captura para detectar troca durante callbacks
+
+  const semRef = doc(db,'semanas',semAtiva);
+  const insRef = collection(db,'semanas',semAtiva,'inscritos');
+
+  // Listener do doc da semana (cardápio, valor, prazo)
+  unsubSemDoc = onSnapshot(semRef, semSnap=>{
+    if(semAtiva !== semIdLocal) return; // ignora se usuário trocou de semana
+    if(!semSnap.exists()){ _cacheSem=null; renderHero(null, _cacheIns); return; }
+    _cacheSem = {id:semSnap.id,...semSnap.data()};
+    renderHero(_cacheSem, _cacheIns);
+    if(isAdmin) renderAdmIns(_cacheSem, _cacheIns);
+  }, err=>{
+    console.error('[semana-doc]', err);
+    const c = document.getElementById('cdp-card');
+    if(c) c.innerHTML='<div class="empty-st">Erro ao carregar cardápio. Recarregue.</div>';
+  });
+
+  // Listener de inscritos
+  unsubIns = onSnapshot(insRef, snap=>{
+    if(semAtiva !== semIdLocal) return;
+    _cacheIns = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderHero(_cacheSem, _cacheIns);
+    if(isAdmin) renderAdmIns(_cacheSem, _cacheIns);
+  }, err=>{
+    console.error('[inscritos]', err);
+  });
+}
+
+// ── Inscrição ─────────────────────────────────────────────────────────────────
+async function inscrever(){
+  const qra=document.getElementById('inp-qra').value.trim();
+  if(!qra){ toast('Informe seu QRA'); return; }
+  const dias=getDias();
+  if(!Object.values(dias).some(Boolean)){ toast('Selecione ao menos um dia'); return; }
+  if(!semAtiva){ toast('Nenhuma semana ativa'); return; }
+  const btn=document.getElementById('btn-inscrever');
+  btn.disabled=true; btn.textContent='Salvando...';
+  try{
+    // Verificar duplicata
+    const insRef=collection(db,'semanas',semAtiva,'inscritos');
+    const snap=await getDocs(insRef);
+    const existe=snap.docs.find(d=>d.data().qra.toLowerCase()===qra.toLowerCase());
+    if(existe){ toast('QRA já inscrito. Fale com o admin.'); btn.disabled=false; btn.textContent='Confirmar inscrição'; return; }
+    const entry={qra, dias, pago:false, criadoEm:Date.now()};
+    if(compSel) entry.comprovante=compSel;
+    await addDoc(insRef, entry);
+    const vlrAtual = _cacheSem ? parseFloat(_cacheSem.valor)||0 : 0;
+    mostrarResumoPosInscricao(qra, dias, vlrAtual);
+    resetDias(); removerComp();
+    document.getElementById('inp-qra').value='';
+  }catch(e){ toast('Erro ao salvar. Tente novamente.'); console.error(e); }
+  btn.disabled=false; btn.textContent='Confirmar inscrição';
+}
+window.inscrever = inscrever;
+
+async function trocarSemana(id){
+  if(id === semAtiva) return;   // já está nessa semana
+  semAtiva=id;
+  _semCarregada=null;           // FIX: força recarga dos listeners para a nova semana
+  await carregarSemanaAtiva();
+  if(isAdmin) preencherAdmin();
+  document.querySelectorAll('.sc').forEach(b=>b.classList.toggle('ativa', b.getAttribute('onclick').includes(id)));
+}
+window.trocarSemana = trocarSemana;
+
+// ── Admin ─────────────────────────────────────────────────────────────────────
+function abrirAdmin(){
+  document.getElementById('ov').classList.add('open');
+  if(isAdmin){
+    document.getElementById('adm-login').style.display='none';
+    document.getElementById('adm-painel').style.display='block';
+    // Renderiza inscritos instantaneamente do cache
+    renderAdmIns(_cacheSem, _cacheIns);
+    // Preenche resto de forma assíncrona
+    preencherAdmin();
+  }
+}
+window.abrirAdmin = abrirAdmin;
+function fecharAdmin(){ document.getElementById('ov').classList.remove('open'); }
+window.fecharAdmin = fecharAdmin;
+function ovClick(e){ if(e.target.id==='ov') fecharAdmin(); }
+window.ovClick = ovClick;
+
+function loginAdmin(){
+  if(document.getElementById('inp-senha').value===SENHA){
+    isAdmin=true;
+    document.getElementById('adm-login').style.display='none';
+    document.getElementById('adm-painel').style.display='block';
+    document.getElementById('badge-adm').style.display='inline';
+    // hc-arr-card já visível para todos
+    preencherAdmin();
+    // PROTEÇÃO CONTRA PERDA DE DADOS: backup automático silencioso ao logar
+    backupAutomatico();
+  } else toast('Senha incorreta');
+}
+window.loginAdmin = loginAdmin;
+
+// Backup automático silencioso — salva cópia local no navegador toda vez que o admin entra.
+// Não substitui o backup manual em arquivo, mas garante uma rede de segurança recuperável.
+async function backupAutomatico(){
+  try{
+    const backup = { versao:'1.0', geradoEm: new Date().toISOString(), semanas:[], config:{} };
+    const semsSnap = await getDocs(collection(db,'semanas'));
+    for(const semDoc of semsSnap.docs){
+      const semData = {id:semDoc.id, ...semDoc.data(), inscritos:[]};
+      const insSnap = await getDocs(collection(db,'semanas',semDoc.id,'inscritos'));
+      semData.inscritos = insSnap.docs.map(d=>({id:d.id,...d.data()}));
+      backup.semanas.push(semData);
+    }
+    for(const key of ['pagamento','notas','sugestoes']){
+      const snap = await getDoc(doc(db,'config',key));
+      if(snap.exists()) backup.config[key] = snap.data();
+    }
+    // Mantém as 3 cópias mais recentes em localStorage
+    localStorage.setItem('r37i_autobackup', JSON.stringify(backup));
+    localStorage.setItem('r37i_autobackup_data', new Date().toLocaleString('pt-BR'));
+    console.log('[auto-backup] cópia local salva:', backup.semanas.length, 'semana(s)');
+  }catch(e){ console.error('[auto-backup] falhou:', e); }
+}
+window.backupAutomatico = backupAutomatico;
+
+function aTab(t){
+  const ts=['semana','inscritos','pagamento','notas','comprovantes','relatorio','compras','sugestoes','lembrete','backup'];
+  document.querySelectorAll('.atab').forEach((b,i)=>b.classList.toggle('active',ts[i]===t));
+  document.querySelectorAll('.asec').forEach(s=>s.classList.remove('active'));
+  const sec=document.getElementById('asec-'+t);
+  if(sec) sec.classList.add('active');   // FIX: proteção se seção não existir
+  if(t==='relatorio') calcRelatorio();
+}
+window.aTab = aTab;
+
+async function preencherAdmin(){
+  // Usa cache local para evitar buscas redundantes ao Firestore
+  const snap=await getDocs(collection(db,'semanas'));
+  const semanas=snap.docs.map(d=>({id:d.id,...d.data()}));
+  preencherAdminSemanas(semanas);
+  // Preenche campos da semana a partir do cache
+  const sem = _cacheSem;
+  if(!sem) return;
+  document.getElementById('a-valor').value=sem.valor||'';
+  document.getElementById('a-valor-obs').value=sem.valorObs||'';
+  document.getElementById('a-prazo-data').value=sem.prazoData||'';
+  document.getElementById('a-prazo-hora').value=sem.prazoHora||'12:00';
+  DK.forEach((dk,i)=>{
+    const r=sem.cardapio&&sem.cardapio[i]?sem.cardapio[i]:{};
+    const ep=document.getElementById('cp-'+dk), ea=document.getElementById('ca-'+dk);
+    if(ep) ep.value=r.principal||''; if(ea) ea.value=r.acomp||'';
+  });
+  // Pagamento já veio via listener — pega do DOM se já preenchido
+  const pgSnap=await getDoc(doc(db,'config','pagamento'));
+  if(pgSnap.exists()){
+    const pg=pgSnap.data();
+    document.getElementById('a-pg-tit').value=pg.titulo||'';
+    document.getElementById('a-pg-inf').value=pg.inf||'';
+    document.getElementById('a-pg-obs').value=pg.obs||'';
+  }
+}
+
+function preencherAdminSemanas(semanas){
+  document.getElementById('a-sem-lista').innerHTML=semanas.map(x=>
+    `<div class="sem-adm-row"><span style="font-size:12px;font-weight:${x.id===semAtiva?700:400}">${x.label}${x.id===semAtiva?' ✓':''}</span><div style="display:flex;gap:6px"><button type="button" onclick="trocarSemana('${x.id}')" style="font-size:11px;padding:2px 8px;border:1px solid var(--g4);border-radius:6px;background:var(--br);cursor:pointer;font-family:'DM Sans',sans-serif">Selecionar</button><button type="button" onclick="delSemana('${x.id}')" style="font-size:11px;padding:2px 8px;border:none;border-radius:6px;background:var(--erc);color:var(--er);cursor:pointer;font-family:'DM Sans',sans-serif">Excluir</button></div></div>`
+  ).join('')||'<div style="font-size:12px;color:var(--g3)">Nenhuma semana.</div>';
+}
+
+async function novaSemana(){
+  const lb=document.getElementById('a-sem-nova').value.trim();
+  if(!lb){ toast('Informe o nome da semana'); return; }
+  const ref=await addDoc(collection(db,'semanas'),{label:lb,valor:0,valorObs:'',cardapio:DK.map(()=>({principal:'',acomp:''})),criadoEm:Date.now()});
+  semAtiva=ref.id;
+  document.getElementById('a-sem-nova').value='';
+  toast('✓ Semana criada');
+  preencherAdmin();
+}
+window.novaSemana = novaSemana;
+
+async function delSemana(id){
+  if(!confirm('Excluir esta semana e todos os dados?')) return;
+  // Deletar inscritos
+  const insSnap=await getDocs(collection(db,'semanas',id,'inscritos'));
+  for(const d of insSnap.docs) await deleteDoc(d.ref);
+  await deleteDoc(doc(db,'semanas',id));
+  if(semAtiva===id){
+    const snap=await getDocs(collection(db,'semanas'));
+    semAtiva=snap.docs.length?snap.docs[snap.docs.length-1].id:null;
+  }
+  toast('Semana excluída');
+  preencherAdmin();
+}
+window.delSemana = delSemana;
+
+async function salvarSemana(){
+  if(!semAtiva){ toast('Selecione uma semana primeiro'); return; }
+  const data={
+    valor: document.getElementById('a-valor').value,
+    valorObs: document.getElementById('a-valor-obs').value,
+    prazoData: document.getElementById('a-prazo-data').value,
+    prazoHora: document.getElementById('a-prazo-hora').value,
+    cardapio: DK.map(dk=>({
+      principal:(document.getElementById('cp-'+dk)||{value:''}).value,
+      acomp:(document.getElementById('ca-'+dk)||{value:''}).value
+    }))
+  };
+  await updateDoc(doc(db,'semanas',semAtiva), data);
+  toast('✓ Semana salva');
+  await carregarSemanaAtiva();
+}
+window.salvarSemana = salvarSemana;
+
+async function salvarPagamento(){
+  await setDoc(doc(db,'config','pagamento'),{
+    titulo: document.getElementById('a-pg-tit').value,
+    inf: document.getElementById('a-pg-inf').value,
+    obs: document.getElementById('a-pg-obs').value
+  });
+  toast('✓ Pagamento salvo');
+}
+window.salvarPagamento = salvarPagamento;
+
+// ── Admin — Inscritos ─────────────────────────────────────────────────────────
+function renderAdmIns(sem, ins){
+  const el=document.getElementById('a-ins-list'), td=document.getElementById('a-totd');
+  if(!ins||!ins.length){ el.innerHTML='<div class="empty-st">Nenhum inscrito.</div>'; td.innerHTML=''; return; }
+  const vlr=sem?parseFloat(sem.valor)||0:0;
+  el.innerHTML=ins.map(i=>{
+    const dias=DK.filter(d=>i.dias&&i.dias[d]), tot=dias.length*vlr;
+    const comp=i.comprovante?`<a href="${i.comprovante.data64}" download="${i.comprovante.nome}" style="font-size:10px;color:var(--vdm);font-weight:700;text-decoration:none">📎</a>`:'';
+    return`<div class="mgmt-row"><div><div class="mgmt-nome">${i.qra}</div><div class="mgmt-sub">${dias.map(d=>DN[DK.indexOf(d)]).join(', ')}${vlr?` · R$${tot.toFixed(2)}`:''}</div></div><div style="display:flex;gap:6px;align-items:center">${comp}<button type="button" class="btn-pg ${i.pago?'pago':'deve'}" onclick="tglPago('${i.id}',${!i.pago})">${i.pago?'✓ Pago':'Pendente'}</button><button type="button" class="btn-dl" onclick="delIns('${i.id}')">✕</button></div></div>`;
+  }).join('');
+  td.innerHTML='<div style="font-size:10px;color:var(--g3);font-weight:700;width:100%;margin-bottom:4px">MARMITAS POR DIA</div>'+
+    DK.map((dk,i)=>`<div class="totd-item"><div class="totd-l">${DN[i]}</div><div class="totd-n">${ins.filter(x=>x.dias&&x.dias[dk]).length}</div></div>`).join('');
+}
+
+async function tglPago(id, val){
+  if(!semAtiva) return;
+  await updateDoc(doc(db,'semanas',semAtiva,'inscritos',id),{pago:val});
+}
+window.tglPago = tglPago;
+
+async function delIns(id){
+  if(!confirm('Remover inscrito?')) return;
+  if(!semAtiva) return;
+  await deleteDoc(doc(db,'semanas',semAtiva,'inscritos',id));
+  toast('Inscrito removido');
+}
+window.delIns = delIns;
+
+// ── Admin — Notas ─────────────────────────────────────────────────────────────
+function renderAdmNotas(lista){
+  const el=document.getElementById('a-notas-list');
+  if(!el) return;
+  el.innerHTML=lista.map((n,i)=>
+    `<div class="nota-adm-row"><span>${n.tipo==='pdf'?'📄':'🧾'}</span><div class="nota-adm-nm">${n.nome} <span style="color:var(--g3)">${n.data}</span></div><button type="button" class="btn-dn" onclick="delNota(${i})">✕</button></div>`
+  ).join('')||'<div style="font-size:12px;color:var(--g3);padding:.5rem 0">Nenhuma nota.</div>';
+}
+
+async function anexarNota(inp){
+  const f=inp.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=async e=>{
+    const snap=await getDoc(doc(db,'config','notas'));
+    const lista=(snap.exists()&&snap.data().lista)||[];
+    lista.push({nome:f.name,tipo:f.type.includes('pdf')?'pdf':'img',data:new Date().toLocaleDateString('pt-BR'),data64:e.target.result});
+    await setDoc(doc(db,'config','notas'),{lista});
+    toast('✓ Nota anexada');
+  };
+  rd.readAsDataURL(f); inp.value='';
+}
+window.anexarNota = anexarNota;
+
+async function delNota(idx){
+  const snap=await getDoc(doc(db,'config','notas'));
+  const lista=(snap.exists()&&snap.data().lista)||[];
+  lista.splice(idx,1);
+  await setDoc(doc(db,'config','notas'),{lista});
+  toast('Nota removida');
+}
+window.delNota = delNota;
+
+// ── Admin — Comprovantes ──────────────────────────────────────────────────────
+async function renderAdmComp(){
+  if(!semAtiva){ document.getElementById('a-comp-list').innerHTML='<div class="empty-st">Nenhuma semana ativa.</div>'; return; }
+  const snap=await getDocs(collection(db,'semanas',semAtiva,'inscritos'));
+  const comps=snap.docs.map(d=>({id:d.id,...d.data()})).filter(i=>i.comprovante);
+  document.getElementById('a-comp-list').innerHTML=comps.length
+    ?comps.map(i=>`<div class="comp-adm-row"><span style="font-size:16px">${i.comprovante.tipo==='pdf'?'📄':'🖼'}</span><div style="flex:1"><div style="font-size:13px;font-weight:600">${i.qra}</div><div style="font-size:11px;color:var(--g3)">${i.comprovante.nome}</div></div><a href="${i.comprovante.data64}" download="${i.comprovante.nome}" style="font-size:12px;color:var(--vdm);font-weight:700;text-decoration:none">Baixar</a></div>`).join('')
+    :'<div class="empty-st">Nenhum comprovante enviado.</div>';
+}
+
+// ── Relatório ─────────────────────────────────────────────────────────────────
+async function calcRelatorio(){
+  if(!semAtiva){ document.getElementById('rel-empty').style.display='block'; document.getElementById('rel-preview').style.display='none'; return; }
+  const gastos=parseFloat(document.getElementById('a-gastos').value)||0;
+  const creditoAnt=parseFloat(document.getElementById('a-credito-ant').value)||0;
+  const sem=_cacheSem;
+  const ins=_cacheIns;
+  const vlr=sem?parseFloat(sem.valor)||0:0;
+  const totalPrevisto=ins.reduce((a,i)=>a+cntD(i.dias)*vlr,0);
+  const totalArrecadado=ins.filter(i=>i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr,0);
+  const totalPendente=totalPrevisto-totalArrecadado;
+  const saldo=totalArrecadado+creditoAnt-gastos;
+  document.getElementById('rel-empty').style.display='none';
+  document.getElementById('rel-preview').style.display='block';
+  document.getElementById('rel-cards').innerHTML=[
+    {l:'Arrecadado',v:`R$${totalArrecadado.toFixed(2)}`,s:'pagamentos confirmados',cls:''},
+    {l:'Pendente',v:`R$${totalPendente.toFixed(2)}`,s:'aguardando pagamento',cls:totalPendente>0?'neg':''},
+    {l:'Total de gastos',v:`R$${gastos.toFixed(2)}`,s:'notas da semana',cls:''},
+    {l:'Crédito p/ próx. semana',v:`R$${saldo.toFixed(2)}`,s:saldo>=0?'saldo positivo':'déficit',cls:saldo>=0?'pos':'neg'},
+  ].map(c=>`<div class="rel-card"><div class="rc-l">${c.l}</div><div class="rc-v ${c.cls}">${c.v}</div><div class="rc-s">${c.s}</div></div>`).join('');
+  document.getElementById('rel-tabela').innerHTML=
+    `<div style="display:grid;grid-template-columns:1fr auto auto auto;padding:.5rem .75rem;border-bottom:1px solid var(--g4);font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:.5px"><div>Participante</div><div style="text-align:center">Dias</div><div style="text-align:right">Valor</div><div style="text-align:center">Status</div></div>`+
+    ins.map(i=>{
+      const nd=cntD(i.dias),tot=nd*vlr;
+      const dias=DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]).join(' ');
+      return`<div style="display:grid;grid-template-columns:1fr auto auto auto;padding:.55rem .75rem;border-bottom:1px solid var(--g5);align-items:center;gap:6px"><div><div style="font-size:13px;font-weight:600">${i.qra}</div><div style="font-size:10px;color:var(--g3)">${dias}</div></div><div style="text-align:center;font-size:13px;color:var(--g2)">${nd}x</div><div style="text-align:right;font-size:13px;font-weight:500">R$${tot.toFixed(2)}</div><div style="text-align:center">${i.pago?`<span class="s-pago">✓ Pago</span>`:`<span class="s-deve">Pendente</span>`}</div></div>`;
+    }).join('')+
+    `<div style="display:grid;grid-template-columns:1fr auto;padding:.6rem .75rem;background:var(--g5);font-size:12px;font-weight:700;color:var(--g1)"><div>TOTAL PREVISTO</div><div>R$${totalPrevisto.toFixed(2)}</div></div>`;
+  // Guarda para impressão
+  window._relData={sem,ins,vlr,totalArrecadado,totalPrevisto,totalPendente,saldo,gastos,creditoAnt};
+}
+window.calcRelatorio = calcRelatorio;
+
+function imprimirRelatorio(){
+  const r=window._relData; if(!r){ toast('Calcule o relatório primeiro'); return; }
+  const {sem,ins,vlr,totalArrecadado,totalPrevisto,saldo,gastos,creditoAnt}=r;
+  const dt=new Date().toLocaleDateString('pt-BR');
+  document.getElementById('print-area').innerHTML=`
+    <div style="max-width:680px;margin:0 auto;font-family:sans-serif;color:#1a1a1a">
+      <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #1a3a1f;padding-bottom:.75rem;margin-bottom:1.5rem">
+        <div><h1 style="font-size:1.4rem;color:#1a3a1f;margin:0">Rancho 37I</h1><div style="font-size:12px;color:#888">Relatório Semanal — Semana ${sem?sem.label:'—'}</div></div>
+        <div style="font-size:12px;color:#888">Gerado em ${dt}</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:1.5rem">
+        <thead><tr style="background:#e8f2ea"><th style="padding:7px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px">Participante</th><th style="padding:7px 10px;text-align:center">Dias</th><th style="padding:7px 10px;text-align:right">Valor</th><th style="padding:7px 10px;text-align:center">Status</th></tr></thead>
+        <tbody>${ins.map((i,idx)=>{
+          const nd=cntD(i.dias),tot=nd*vlr;
+          const dias=DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]).join(' ');
+          return`<tr style="border-bottom:1px solid #eee;background:${idx%2?'#fafafa':'#fff'}"><td style="padding:7px 10px;font-weight:600">${i.qra}<br><span style="font-size:11px;color:#888;font-weight:400">${dias}</span></td><td style="padding:7px 10px;text-align:center">${nd}</td><td style="padding:7px 10px;text-align:right">R$${tot.toFixed(2)}</td><td style="padding:7px 10px;text-align:center"><span style="padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;background:${i.pago?'#eaf4ee':'#fdf8ec'};color:${i.pago?'#1a6b3a':'#b8860b'}">${i.pago?'Pago':'Pendente'}</span></td></tr>`;
+        }).join('')}</tbody>
+      </table>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+        ${[['Total previsto',`R$${totalPrevisto.toFixed(2)}`,'#555'],['Total arrecadado',`R$${totalArrecadado.toFixed(2)}`,'#1a6b3a'],['Total de gastos',`R$${gastos.toFixed(2)}`,'#c0392b'],['Crédito p/ próxima semana',`R$${saldo.toFixed(2)}`,saldo>=0?'#1a6b3a':'#c0392b']].map(([l,v,c])=>`<div style="border:1px solid #e4e2dc;border-radius:8px;padding:.75rem;text-align:center"><div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">${l}</div><div style="font-size:1.2rem;font-weight:700;color:${c}">${v}</div></div>`).join('')}
+      </div>
+      ${creditoAnt>0?`<div style="font-size:12px;color:#888;margin-top:.75rem">Crédito anterior aplicado: R$${creditoAnt.toFixed(2)}</div>`:''}
+    </div>`;
+  window.print();
+}
+window.imprimirRelatorio = imprimirRelatorio;
+
+function copiarRelatorio(){
+  const r=window._relData; if(!r){ toast('Calcule o relatório primeiro'); return; }
+  const {sem,ins,vlr,totalArrecadado,totalPrevisto,saldo,gastos,creditoAnt}=r;
+  let txt=`RELATÓRIO SEMANAL — RANCHO 37I\nSemana: ${sem?sem.label:'—'} | ${new Date().toLocaleDateString('pt-BR')}\n${'─'.repeat(40)}\n\nPARTICIPANTES\n`;
+  ins.forEach(i=>{
+    const nd=cntD(i.dias),tot=nd*vlr;
+    const dias=DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]).join(' ');
+    txt+=`• ${i.qra} | ${dias} | R$${tot.toFixed(2)} | ${i.pago?'PAGO':'PENDENTE'}\n`;
+  });
+  txt+=`\n${'─'.repeat(40)}\nTotal previsto:          R$${totalPrevisto.toFixed(2)}\nTotal arrecadado:        R$${totalArrecadado.toFixed(2)}\nTotal de gastos:         R$${gastos.toFixed(2)}\n`;
+  if(creditoAnt>0) txt+=`Crédito anterior:        R$${creditoAnt.toFixed(2)}\n`;
+  txt+=`Crédito p/ próx. semana: R$${saldo.toFixed(2)}\n`;
+  navigator.clipboard.writeText(txt).then(()=>toast('✓ Copiado!')).catch(()=>toast('Erro ao copiar'));
+}
+window.copiarRelatorio = copiarRelatorio;
+
+// ── Expor funções admin extra ──────────────────────────────────────────────────
+window.preencherAdmin = preencherAdmin;
+
+// Sobrescreve aTab para incluir comprovantes async
+const _origATab = window.aTab;
+window.aTab = function(t){
+  _origATab(t);
+  if(t==='inscritos'){ renderAdmIns(_cacheSem, _cacheIns); }
+  if(t==='comprovantes') renderAdmComp();
+  if(t==='compras') renderListaCompras();
+  if(t==='sugestoes') renderAdmSugestoes();
+  if(t==='lembrete') gerarLembrete();
+  if(t==='backup') verificarUltimoBackup();
+};
+
+
+
+
+
+// ── Inserção manual de inscritos pelo admin ───────────────────────────────────
+function toggleDiaAdm(btn){
+  const ativo = btn.style.background === 'rgb(26, 58, 31)' || btn.classList.contains('ativo-adm');
+  if(ativo){
+    btn.style.background='var(--br)';
+    btn.style.color='var(--g1)';
+    btn.style.borderColor='var(--g4)';
+    btn.classList.remove('ativo-adm');
+  } else {
+    btn.style.background='var(--vd)';
+    btn.style.color='#fff';
+    btn.style.borderColor='var(--vd)';
+    btn.classList.add('ativo-adm');
+  }
+}
+window.toggleDiaAdm = toggleDiaAdm;
+
+async function admInscrever(){
+  const qra = document.getElementById('adm-ins-qra').value.trim();
+  if(!qra){ toast('Informe o QRA'); return; }
+  if(!semAtiva){ toast('Nenhuma semana ativa'); return; }
+
+  const dias = {};
+  document.querySelectorAll('.dia-adm-btn').forEach(b=>{
+    dias[b.dataset.dia] = b.classList.contains('ativo-adm') ? 1 : 0;
+  });
+  if(!Object.values(dias).some(Boolean)){ toast('Selecione ao menos um dia'); return; }
+
+  const pago = document.getElementById('adm-ins-pago').checked;
+
+  // Verificar duplicata
+  const insRef = collection(db,'semanas',semAtiva,'inscritos');
+  const snap = await getDocs(insRef);
+  const existe = snap.docs.find(d=>d.data().qra.toLowerCase()===qra.toLowerCase());
+  if(existe){ toast('QRA já inscrito nesta semana'); return; }
+
+  await addDoc(insRef, { qra, dias, pago, criadoEm: Date.now() });
+
+  // Limpar campos
+  document.getElementById('adm-ins-qra').value='';
+  document.getElementById('adm-ins-pago').checked=false;
+  document.querySelectorAll('.dia-adm-btn').forEach(b=>{
+    b.style.background='var(--br)';
+    b.style.color='var(--g1)';
+    b.style.borderColor='var(--g4)';
+    b.classList.remove('ativo-adm');
+  });
+
+  toast(`✓ ${qra} inserido!`);
+}
+window.admInscrever = admInscrever;
+
+
+// ── Backup / Restauração ───────────────────────────────────────────────────────
+function verificarUltimoBackup(){
+  const dt = localStorage.getItem('r37i_ultimo_backup');
+  const el = document.getElementById('ultimo-backup-txt');
+  if(el) el.textContent = dt ? `Último backup em arquivo: ${dt}` : 'Nenhum backup em arquivo realizado ainda neste dispositivo.';
+  // Status da cópia automática
+  const adt = localStorage.getItem('r37i_autobackup_data');
+  const ael = document.getElementById('autobackup-status');
+  if(ael){
+    if(adt){
+      try{
+        const bk = JSON.parse(localStorage.getItem('r37i_autobackup'));
+        const nSem = bk.semanas?bk.semanas.length:0;
+        const nIns = bk.semanas?bk.semanas.reduce((a,s)=>a+(s.inscritos?s.inscritos.length:0),0):0;
+        ael.innerHTML = `✓ Cópia automática de <strong>${adt}</strong><br>${nSem} semana(s), ${nIns} inscrito(s) guardados.`;
+        ael.style.color='var(--ok)';
+      }catch(e){ ael.textContent='Cópia automática disponível.'; }
+    } else {
+      ael.textContent='Ainda sem cópia automática (será criada ao entrar como admin).';
+    }
+  }
+}
+window.verificarUltimoBackup = verificarUltimoBackup;
+
+async function restaurarAutoBackup(){
+  const raw = localStorage.getItem('r37i_autobackup');
+  if(!raw){ toast('Nenhuma cópia automática disponível'); return; }
+  let backup;
+  try{ backup = JSON.parse(raw); }catch(e){ toast('Cópia corrompida'); return; }
+  const dt = localStorage.getItem('r37i_autobackup_data')||'?';
+  const nIns = backup.semanas?backup.semanas.reduce((a,s)=>a+(s.inscritos?s.inscritos.length:0),0):0;
+  if(!confirm(`Restaurar cópia automática de ${dt}?\n\n${backup.semanas.length} semana(s) e ${nIns} inscrito(s) serão restaurados (mesclados — nada é apagado).`)) return;
+  const status = document.getElementById('autobackup-status');
+  try{
+    let totSem=0, totIns=0;
+    for(const sem of backup.semanas){
+      const {id, inscritos, ...semData} = sem;
+      await setDoc(doc(db,'semanas',id), semData);
+      totSem++;
+      for(const ins of (inscritos||[])){
+        const {id:insId, ...insData} = ins;
+        await setDoc(doc(db,'semanas',id,'inscritos',insId), insData);
+        totIns++;
+      }
+    }
+    if(backup.config){
+      for(const [key,val] of Object.entries(backup.config)){
+        await setDoc(doc(db,'config',key), val);
+      }
+    }
+    if(status){ status.textContent=`✓ Restaurado: ${totSem} semana(s), ${totIns} inscrito(s).`; status.style.color='var(--ok)'; }
+    toast('✓ Cópia automática restaurada!');
+    setTimeout(()=>window.location.reload(), 1500);
+  }catch(e){
+    if(status){ status.textContent='Erro ao restaurar: '+e.message; status.style.color='var(--er)'; }
+    console.error(e);
+  }
+}
+window.restaurarAutoBackup = restaurarAutoBackup;
+
+async function fazerBackup(){
+  const btn = document.getElementById('btn-backup');
+  const status = document.getElementById('backup-status');
+  btn.disabled=true; btn.textContent='⏳ Coletando dados...';
+  status.style.display='block'; status.textContent='Buscando semanas...';
+  try{
+    const backup = { versao:'1.0', geradoEm: new Date().toISOString(), semanas:[], config:{} };
+
+    // Semanas
+    const semsSnap = await getDocs(collection(db,'semanas'));
+    status.textContent = `Coletando ${semsSnap.docs.length} semana(s)...`;
+    for(const semDoc of semsSnap.docs){
+      const semData = {id:semDoc.id, ...semDoc.data(), inscritos:[]};
+      // Inscritos de cada semana
+      const insSnap = await getDocs(collection(db,'semanas',semDoc.id,'inscritos'));
+      semData.inscritos = insSnap.docs.map(d=>({id:d.id,...d.data()}));
+      backup.semanas.push(semData);
+    }
+
+    // Config (pagamento, notas, sugestões)
+    status.textContent='Coletando configurações...';
+    for(const key of ['pagamento','notas','sugestoes']){
+      const snap = await getDoc(doc(db,'config',key));
+      if(snap.exists()) backup.config[key] = snap.data();
+    }
+
+    // Gerar arquivo JSON
+    const json = JSON.stringify(backup, null, 2);
+    const blob = new Blob([json], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dt = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
+    const hr = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}).replace(':','h');
+    a.href=url; a.download=`rancho37i-backup-${dt}-${hr}.json`;
+    a.click(); URL.revokeObjectURL(url);
+
+    const agora = new Date().toLocaleString('pt-BR');
+    localStorage.setItem('r37i_ultimo_backup', agora);
+    status.textContent=`✓ Backup concluído com ${backup.semanas.length} semana(s) e ${backup.semanas.reduce((a,s)=>a+s.inscritos.length,0)} inscrito(s).`;
+    status.style.color='var(--ok)';
+    verificarUltimoBackup();
+    toast('✓ Backup salvo com sucesso!');
+  }catch(e){
+    status.textContent='Erro ao gerar backup: '+e.message;
+    status.style.color='var(--er)';
+    console.error(e);
+  }
+  btn.disabled=false; btn.textContent='⬇️ Baixar backup completo';
+}
+window.fazerBackup = fazerBackup;
+
+async function restaurarBackup(inp){
+  const file = inp.files[0]; if(!file) return;
+  const status = document.getElementById('restore-status');
+  status.style.display='block'; status.style.color='var(--g2)';
+  status.textContent='Lendo arquivo...';
+
+  try{
+    const txt = await file.text();
+    const backup = JSON.parse(txt);
+
+    if(!backup.versao||!backup.semanas){
+      status.textContent='❌ Arquivo inválido. Use um backup gerado por este sistema.';
+      status.style.color='var(--er)'; inp.value=''; return;
+    }
+
+    if(!confirm(`Restaurar backup de ${new Date(backup.geradoEm).toLocaleString('pt-BR')}?
+
+${backup.semanas.length} semana(s) e ${backup.semanas.reduce((a,s)=>a+s.inscritos.length,0)} inscrito(s) serão importados.
+
+Dados existentes com o mesmo ID serão atualizados.`)){
+      inp.value=''; return;
+    }
+
+    let totalSem=0, totalIns=0;
+
+    // Restaurar semanas
+    for(const sem of backup.semanas){
+      status.textContent=`Restaurando semana: ${sem.label}...`;
+      const {id, inscritos, ...semData} = sem;
+      await setDoc(doc(db,'semanas',id), semData);
+      totalSem++;
+      // Restaurar inscritos
+      for(const ins of (inscritos||[])){
+        const {id:insId, ...insData} = ins;
+        await setDoc(doc(db,'semanas',id,'inscritos',insId), insData);
+        totalIns++;
+      }
+    }
+
+    // Restaurar config
+    if(backup.config){
+      for(const [key, val] of Object.entries(backup.config)){
+        status.textContent=`Restaurando configuração: ${key}...`;
+        await setDoc(doc(db,'config',key), val);
+      }
+    }
+
+    status.textContent=`✓ Restauração concluída! ${totalSem} semana(s) e ${totalIns} inscrito(s) importados.`;
+    status.style.color='var(--ok)';
+    toast('✓ Backup restaurado com sucesso!');
+    // Recarregar dados
+    setTimeout(()=>{ window.location.reload(); }, 1500);
+  }catch(e){
+    status.textContent='❌ Erro ao restaurar: '+e.message;
+    status.style.color='var(--er)';
+    console.error(e);
+  }
+  inp.value='';
+}
+window.restaurarBackup = restaurarBackup;
+
+// ── Lembrete automático ────────────────────────────────────────────────────────
+async function gerarLembrete(){
+  const el = document.getElementById('lembrete-preview');
+  if(!el) return;
+  if(!semAtiva){ el.textContent='Nenhuma semana ativa. Crie uma semana primeiro.'; return; }
+  const sem = _cacheSem;
+  if(!sem){ el.textContent='Carregando dados da semana...'; return; }
+
+  const vlr = parseFloat(sem.valor)||0;
+  const prazo = sem.prazoData
+    ? new Date(sem.prazoData+'T'+(sem.prazoHora||'23:59'))
+    : null;
+  const prazoTxt = prazo
+    ? `até *${prazo.toLocaleDateString('pt-BR')} às ${prazo.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}*`
+    : 'até *sexta-feira ao meio-dia*';
+
+  const cdp = sem.cardapio||[];
+  const cardapioTxt = DK.map((d,i)=>{
+    const r = cdp[i]||{};
+    return r.principal ? `   ${DN[i]}: ${r.principal}${r.acomp?' — '+r.acomp:''}` : null;
+  }).filter(Boolean).join('\n');
+
+  const msg =
+`🍽 *RANCHO 37I — ALMOÇO DA SEMANA ${sem.label.toUpperCase()}*
+
+Olá, pessoal! As inscrições para a semana que vem já estão abertas.
+
+📅 *Prazo para inscrição:* ${prazoTxt}
+
+💰 *Valor por refeição:* ${vlr ? `R$${vlr.toFixed(2)}` : 'a confirmar'}${sem.valorObs ? '\n   _'+sem.valorObs+'_' : ''}
+
+🥘 *Cardápio previsto:*
+${cardapioTxt||'   A definir'}
+
+📲 *Como se inscrever:*
+1️⃣ Acesse o link abaixo
+2️⃣ Digite seu QRA
+3️⃣ Marque os dias que vai almoçar
+4️⃣ Anexe o comprovante do Pix
+5️⃣ Confirme a inscrição
+
+⚠️ Inscrições fora do prazo não serão garantidas.
+
+🔗 [COLE O LINK AQUI]`;
+
+  el.textContent = msg;
+  window._lembreteMsg = msg;
+}
+window.gerarLembrete = gerarLembrete;
+
+function copiarLembrete(){
+  const msg = window._lembreteMsg;
+  if(!msg){ toast('Gere o lembrete primeiro'); return; }
+  navigator.clipboard.writeText(msg)
+    .then(()=>toast('✓ Mensagem copiada!'))
+    .catch(()=>toast('Erro ao copiar'));
+}
+window.copiarLembrete = copiarLembrete;
+
+function abrirWhatsApp(){
+  const msg = window._lembreteMsg;
+  if(!msg){ toast('Gere o lembrete primeiro'); return; }
+  const encoded = encodeURIComponent(msg);
+  window.open('https://wa.me/?text='+encoded, '_blank');
+}
+window.abrirWhatsApp = abrirWhatsApp;
+
+// ── Resumo pós-inscrição ──────────────────────────────────────────────────────
+function mostrarResumoPosInscricao(qra, dias, vlr){
+  const diasSel = DK.filter(d=>dias[d]);
+  const total = diasSel.length * vlr;
+  const el = document.getElementById('resumo-pos-content');
+  const wrap = document.getElementById('resumo-pos-inscricao');
+  if(!el||!wrap) return;
+  el.innerHTML = `
+    <strong>${qra}</strong><br>
+    Dias: ${diasSel.map(d=>DN[DK.indexOf(d)]).join(', ')}<br>
+    Refeições: ${diasSel.length}<br>
+    ${vlr ? `<strong>Total a pagar: R$${total.toFixed(2)}</strong>` : ''}
+  `;
+  wrap.style.display='block';
+  setTimeout(()=>{ wrap.style.display='none'; }, 12000);
+}
+window.mostrarResumoPosInscricao = mostrarResumoPosInscricao;
+
+// ── Prazo de inscrição ────────────────────────────────────────────────────────
+function verificarPrazo(sem){
+  const aviso = document.getElementById('prazo-aviso');
+  const formCard = document.querySelector('.sec .card .cb');
+  const btnIns = document.getElementById('btn-inscrever');
+  if(!aviso) return;
+  if(!sem||!sem.prazoData){
+    aviso.style.display='none';
+    if(btnIns) btnIns.disabled=false;
+    return;
+  }
+  const prazo = new Date(sem.prazoData+'T'+(sem.prazoHora||'23:59'));
+  const agora = new Date();
+  if(agora > prazo){
+    aviso.textContent = `⏰ Prazo de inscrição encerrado em ${prazo.toLocaleDateString('pt-BR')} às ${prazo.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}. As inscrições para a próxima semana serão abertas em breve.`;
+    aviso.style.display='block';
+    if(btnIns){ btnIns.disabled=true; btnIns.textContent='Inscrições encerradas'; }
+  } else {
+    const diff = prazo - agora;
+    const horas = Math.floor(diff/3600000);
+    const mins = Math.floor((diff%3600000)/60000);
+    const txt = horas > 24
+      ? `Inscrições até ${prazo.toLocaleDateString('pt-BR')} às ${prazo.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`
+      : `⚠️ Prazo: ${horas}h${mins}min restantes`;
+    aviso.textContent = txt;
+    aviso.style.display='block';
+    aviso.style.background='var(--wnc)';
+    aviso.style.borderColor='#e8d48a';
+    aviso.style.color='var(--wn)';
+    if(btnIns) btnIns.disabled=false;
+  }
+}
+window.verificarPrazo = verificarPrazo;
+
+// ── Aviso semana não configurada ──────────────────────────────────────────────
+function verificarSemConfig(sem){
+  const aviso = document.getElementById('aviso-sem-config');
+  if(!aviso) return;
+  aviso.style.display = (!sem || !sem.label) ? 'block' : 'none';
+}
+window.verificarSemConfig = verificarSemConfig;
+
+// ── Histórico público ─────────────────────────────────────────────────────────
+let histAberto = false;
+async function toggleHistorico(){
+  histAberto = !histAberto;
+  const sec = document.getElementById('sec-historico');
+  const btn = document.getElementById('btn-historico');
+  sec.style.display = histAberto ? 'block' : 'none';
+  btn.textContent = histAberto ? 'Ocultar histórico ▲' : 'Ver histórico de semanas ▼';
+  if(!histAberto) return;
+  const snap = await getDocs(query(collection(db,'semanas'), orderBy('criadoEm','asc')));
+  const semanas = snap.docs.map(d=>({id:d.id,...d.data()}));
+  const el = document.getElementById('hist-list');
+  if(!semanas.length){ el.innerHTML='<div class="empty-st">Nenhuma semana anterior.</div>'; return; }
+  el.innerHTML = [...semanas].reverse().map(s=>{
+    const vlr = parseFloat(s.valor)||0;
+    const prazo = s.prazoData ? `Prazo: ${new Date(s.prazoData+'T'+(s.prazoHora||'23:59')).toLocaleDateString('pt-BR')}` : '';
+    return `<div style="padding:.75rem 1rem;border-bottom:1px solid var(--g5);display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--g1)">${s.label}</div>
+        ${prazo?`<div style="font-size:11px;color:var(--g3)">${prazo}</div>`:''}
+      </div>
+      <div style="text-align:right">
+        ${vlr?`<div style="font-size:13px;font-weight:700;color:var(--vd)">R$${vlr.toFixed(2)}/ref.</div>`:''}
+        <div style="font-size:11px;color:var(--g3)">${s.id===semAtiva?'<span style="color:var(--ok);font-weight:700">Semana atual</span>':''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+window.toggleHistorico = toggleHistorico;
+
+// ── Exportar CSV ──────────────────────────────────────────────────────────────
+function exportarCSV(){
+  const r=window._relData; if(!r){ toast('Calcule o relatório primeiro'); return; }
+  const {sem,ins,vlr} = r;
+  let csv = 'QRA,Seg,Ter,Qua,Qui,Sex,Total Dias,Valor (R$),Status\n';
+  ins.forEach(i=>{
+    const nd=cntD(i.dias), tot=nd*vlr;
+    const dias=DK.map(d=>i.dias&&i.dias[d]?'Sim':'').join(',');
+    csv += `"${i.qra}",${dias},${nd},"${tot.toFixed(2)}","${i.pago?'Pago':'Pendente'}"\n`;
+  });
+  csv += `\n"TOTAL","","","","","","","${r.totalPrevisto.toFixed(2)}",""\n`;
+  csv += `"Arrecadado","","","","","","","${r.totalArrecadado.toFixed(2)}",""\n`;
+  csv += `"Gastos","","","","","","","${r.gastos.toFixed(2)}",""\n`;
+  csv += `"Crédito próx. semana","","","","","","","${r.saldo.toFixed(2)}",""\n`;
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=`rancho37i-${sem?sem.label:'semana'}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  toast('✓ CSV exportado!');
+}
+window.exportarCSV = exportarCSV;
+
+// ── Sugestões ─────────────────────────────────────────────────────────────────
+async function enviarSugestao(){
+  const txt=document.getElementById('inp-sugestao').value.trim();
+  if(!txt){ toast('Escreva uma sugestão primeiro'); return; }
+  const snap=await getDoc(doc(db,'config','sugestoes'));
+  const lista=(snap.exists()&&snap.data().lista)||[];
+  lista.push({texto:txt, data:new Date().toLocaleDateString('pt-BR'), hora:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});
+  await setDoc(doc(db,'config','sugestoes'),{lista});
+  document.getElementById('inp-sugestao').value='';
+  toast('✓ Sugestão enviada! Obrigado.');
+}
+window.enviarSugestao = enviarSugestao;
+
+async function renderAdmSugestoes(){
+  const snap=await getDoc(doc(db,'config','sugestoes'));
+  const lista=(snap.exists()&&snap.data().lista)||[];
+  const el=document.getElementById('adm-sugestoes-list');
+  if(!el) return;
+  if(!lista.length){ el.innerHTML='<div class="empty-st">Nenhuma sugestão ainda.</div>'; return; }
+  el.innerHTML=[...lista].reverse().map((s,i)=>
+    `<div style="padding:.65rem .75rem;border-bottom:1px solid var(--g5);display:flex;justify-content:space-between;align-items:start;gap:8px">
+      <div>
+        <div style="font-size:13px;color:var(--g1)">${s.texto}</div>
+        <div style="font-size:10px;color:var(--g3);margin-top:2px">${s.data} às ${s.hora}</div>
+      </div>
+      <button type="button" onclick="delSugestao(${lista.length-1-i})" style="background:none;border:none;color:var(--g3);cursor:pointer;font-size:14px;flex-shrink:0">✕</button>
+    </div>`
+  ).join('');
+}
+window.renderAdmSugestoes = renderAdmSugestoes;
+
+async function delSugestao(idx){
+  const snap=await getDoc(doc(db,'config','sugestoes'));
+  const lista=(snap.exists()&&snap.data().lista)||[];
+  lista.splice(idx,1);
+  await setDoc(doc(db,'config','sugestoes'),{lista});
+  toast('Sugestão removida');
+  renderAdmSugestoes();
+}
+window.delSugestao = delSugestao;
+
+// ── Lista de Compras ──────────────────────────────────────────────────────────
+async function renderListaCompras(){
+  const el=document.getElementById('compras-lista');
+  if(!el) return;
+  if(!semAtiva){ el.innerHTML='<div class="empty-st">Selecione uma semana primeiro.</div>'; return; }
+  const semSnap=await getDoc(doc(db,'semanas',semAtiva));
+  const sem=semSnap.exists()?semSnap.data():null;
+  const insSnap=await getDocs(collection(db,'semanas',semAtiva,'inscritos'));
+  const ins=insSnap.docs.map(d=>d.data());
+  const totalPorDia=DK.map(dk=>ins.filter(i=>i.dias&&i.dias[dk]).length);
+  const cardapio=(sem&&sem.cardapio)||[];
+
+  // Banco de preços médios e substitutos
+  const precos={
+    'bife acebolado':          {preco:'R$32–38/kg',  sub:'Iscas de frango grelhado (R$12–16/kg)'},
+    'frango grelhado':         {preco:'R$12–16/kg',  sub:'Ovo cozido ou omelete (R$0,80/un)'},
+    'frango ensopado':         {preco:'R$12–16/kg',  sub:'Sobrecoxa assada (R$10–13/kg)'},
+    'frango ao molho':         {preco:'R$12–16/kg',  sub:'Frango cozido desfiado (R$10–13/kg)'},
+    'frango xadrez':           {preco:'R$12–16/kg',  sub:'Frango ao molho simples (R$12–16/kg)'},
+    'frango assado':           {preco:'R$12–16/kg',  sub:'Coxa e sobrecoxa assada (R$10–13/kg)'},
+    'estrogonofe':             {preco:'R$32–38/kg',  sub:'Estrogonofe de frango (R$12–16/kg)'},
+    'costelinha':              {preco:'R$22–28/kg',  sub:'Lombo suíno assado (R$16–20/kg)'},
+    'bife à parmegiana':       {preco:'R$32–38/kg',  sub:'Frango à parmegiana (R$12–16/kg)'},
+    'carne assada':            {preco:'R$28–35/kg',  sub:'Frango assado (R$12–16/kg)'},
+    'almôndegas':              {preco:'R$18–24/kg',  sub:'Omelete recheada (R$0,80/ovo)'},
+    'omelete':                 {preco:'R$0,80/ovo',  sub:'Ovo mexido c/ legumes'},
+    'tilápia':                 {preco:'R$18–24/kg',  sub:'Merluza congelada (R$15–20/kg)'},
+    'merluza':                 {preco:'R$15–20/kg',  sub:'Tilápia (R$18–24/kg)'},
+    'moqueca':                 {preco:'R$18–24/kg',  sub:'Peixe grelhado simples (R$15–20/kg)'},
+    'feijoada':                {preco:'R$18–25/kg',  sub:'Feijão tropeiro simples (R$8–12/kg)'},
+    'arroz':                   {preco:'R$4–6/kg',    sub:'Arroz parboilizado (R$3–5/kg)'},
+    'feijão':                  {preco:'R$7–10/kg',   sub:'Feijão carioca a granel (R$5–8/kg)'},
+    'batata':                  {preco:'R$4–7/kg',    sub:'Mandioca cozida (R$3–5/kg)'},
+    'mandioca':                {preco:'R$3–5/kg',    sub:'Batata doce (R$3–5/kg)'},
+    'macarrão':                {preco:'R$4–6/kg',    sub:'Polenta (R$3–5/kg)'},
+    'polenta':                 {preco:'R$3–5/kg',    sub:'Fubá (R$2–4/kg)'},
+    'couve':                   {preco:'R$4–6/maço',  sub:'Repolho refogado (R$2–4/un)'},
+    'farofa':                  {preco:'R$5–8/kg',    sub:'Farinha de mandioca crua (R$3–5/kg)'},
+    'salada':                  {preco:'R$2–5/un',    sub:'Repolho cru com cenoura (R$2–4)'},
+    'tomate':                  {preco:'R$5–9/kg',    sub:'Cenoura ralada (R$3–5/kg)'},
+    'beterraba':               {preco:'R$3–5/kg',    sub:'Cenoura cozida (R$3–5/kg)'},
+  };
+
+  const itensEncontrados=[];
+  cardapio.forEach((r,i)=>{
+    if(!r||!r.principal) return;
+    const qtd=totalPorDia[i]||0;
+    const prato=r.principal.toLowerCase();
+    let found=null;
+    for(const [key,val] of Object.entries(precos)){
+      if(prato.includes(key)){ found={key,val}; break; }
+    }
+    itensEncontrados.push({
+      dia:DN[i], prato:r.principal, acomp:r.acomp||'', qtd,
+      preco:found?found.val.preco:'Consultar mercado local',
+      sub:found?found.val.sub:'—'
+    });
+  });
+
+  // Itens base sempre presentes
+  const base=[
+    {item:'Arroz (base)',preco:'R$4–6/kg',sub:'Arroz parboilizado (R$3–5/kg)'},
+    {item:'Feijão (base)',preco:'R$7–10/kg',sub:'Feijão carioca a granel (R$5–8/kg)'},
+    {item:'Óleo, sal, temperos',preco:'R$15–25/semana',sub:'Comprar em quantidade maior'},
+  ];
+
+  el.innerHTML=`
+    <div style="font-size:11px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem">Por dia — baseado nas inscrições</div>
+    ${itensEncontrados.map(it=>`
+    <div style="background:var(--br);border:1px solid var(--g4);border-radius:8px;padding:.75rem;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <div style="font-size:10px;font-weight:700;color:var(--vd);text-transform:uppercase">${it.dia} — ${it.qtd} marmita${it.qtd!==1?'s':''}</div>
+        <div style="font-size:10px;color:var(--g3)">${it.preco}</div>
+      </div>
+      <div style="font-size:13px;font-weight:600;color:var(--g1)">${it.prato}</div>
+      ${it.acomp?`<div style="font-size:11px;color:var(--g3);margin-top:1px">${it.acomp}</div>`:''}
+      <div style="margin-top:6px;padding:5px 8px;background:var(--vdx);border-radius:6px;font-size:11px;color:var(--vdm)">
+        💰 Substituto econômico: <strong>${it.sub}</strong>
+      </div>
+    </div>`).join('')}
+    <div style="font-size:11px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin:.75rem 0 .5rem">Itens base da semana</div>
+    ${base.map(b=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:.55rem .75rem;background:var(--br);border:1px solid var(--g4);border-radius:8px;margin-bottom:6px;gap:8px">
+      <div style="font-size:13px;font-weight:500">${b.item}</div>
+      <div style="text-align:right">
+        <div style="font-size:12px;color:var(--g2)">${b.preco}</div>
+        <div style="font-size:10px;color:var(--vdm)">💰 ${b.sub}</div>
+      </div>
+    </div>`).join('')}`;
+}
+window.renderListaCompras = renderListaCompras;
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+iniciarListeners();
+</script>
+</body>
+</html>
