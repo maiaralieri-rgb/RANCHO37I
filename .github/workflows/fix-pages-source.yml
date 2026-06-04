@@ -1,0 +1,22 @@
+name: Fix Pages Source
+
+on:
+  workflow_dispatch:
+
+permissions:
+  pages: write
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Pages source to gh-pages branch
+        run: |
+          curl -s -X PUT \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/${{ github.repository }}/pages \
+            -d '{"source":{"branch":"gh-pages","path":"/"}}' \
+            | python3 -c "import sys,json; d=json.load(sys.stdin); print('Source:', d.get('source',{}))"
