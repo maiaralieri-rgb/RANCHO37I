@@ -150,7 +150,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 @keyframes pulse{from{opacity:1}to{opacity:.4}}
 @media print{.topbar,.hero,.main,.toast,.ov{display:none!important}#print-area{display:block!important}}
 #print-area{display:none;padding:2rem;font-family:'DM Sans',sans-serif;color:#1a1a1a}
-@media(max-width:480px){.hero-cards{grid-template-columns:repeat(2,1fr)}.cdp-adm-row{grid-template-columns:32px 1fr}.cdp-adm-row input:last-child{display:none}}
+@media(max-width:480px){
+  .hero-cards{grid-template-columns:repeat(2,1fr)}
+  .cdp-adm-row{grid-template-columns:32px 1fr 1fr;gap:4px}
+  .cdp-adm-row input{font-size:11px;padding:6px 8px}
+  .cdp-adm-row div:first-child{font-size:9px}
+}
 </style>
 </head>
 <body>
