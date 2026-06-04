@@ -880,6 +880,19 @@ async function backupAutomatico(){
 }
 window.backupAutomatico = backupAutomatico;
 
+async function migrarNotasGlobais(){
+  try{
+    if(!semAtiva||!_cacheSem) return;
+    if(_cacheSem.notas&&_cacheSem.notas.length) return; // já migrado
+    const snap = await getDoc(doc(db,'config','notas'));
+    if(!snap.exists()) return;
+    const lista = snap.data().lista||[];
+    if(!lista.length) return;
+    await updateDoc(doc(db,'semanas',semAtiva),{notas:lista});
+    console.log('[migração] notas globais movidas para semana', semAtiva);
+  }catch(e){ console.warn('[migração] notas:', e); }
+}
+
 function aTab(t){
   const ts=['semana','inscritos','cozinheiro','relatorio','pagamento','notas','comprovantes','lembrete','sugestoes','backup'];
   document.querySelectorAll('.atab').forEach((b,i)=>b.classList.toggle('active',ts[i]===t));
@@ -1502,31 +1515,116 @@ window.verificarSemConfig = verificarSemConfig;
 let histAberto = false;
 async function toggleHistorico(){
   histAberto = !histAberto;
-  const sec = document.getElementById('sec-historico');
-  const btn = document.getElementById('btn-historico');
-  sec.style.display = histAberto ? 'block' : 'none';
-  btn.textContent = histAberto ? 'Ocultar histórico ▲' : 'Ver histórico de semanas ▼';
+  document.getElementById('sec-historico').style.display = histAberto ? 'block' : 'none';
+  document.getElementById('hist-btn-txt').textContent = histAberto ? 'Ocultar histórico ▲' : 'Ver histórico de semanas ▼';
   if(!histAberto) return;
+  await carregarHistorico();
+}
+window.toggleHistorico = toggleHistorico;
+
+async function carregarHistorico(){
+  const el = document.getElementById('hist-list');
+  el.innerHTML = '<div class="empty-st">Carregando...</div>';
   const snap = await getDocs(query(collection(db,'semanas'), orderBy('criadoEm','asc')));
   const semanas = snap.docs.map(d=>({id:d.id,...d.data()}));
-  const el = document.getElementById('hist-list');
-  if(!semanas.length){ el.innerHTML='<div class="empty-st">Nenhuma semana anterior.</div>'; return; }
+  if(!semanas.length){ el.innerHTML='<div class="empty-st">Nenhuma semana registrada.</div>'; return; }
   el.innerHTML = [...semanas].reverse().map(s=>{
     const vlr = parseFloat(s.valor)||0;
-    const prazo = s.prazoData ? `Prazo: ${new Date(s.prazoData+'T'+(s.prazoHora||'23:59')).toLocaleDateString('pt-BR')}` : '';
-    return `<div style="padding:.75rem 1rem;border-bottom:1px solid var(--g5);display:flex;align-items:center;justify-content:space-between;gap:8px">
-      <div>
-        <div style="font-size:13px;font-weight:600;color:var(--g1)">${s.label}</div>
-        ${prazo?`<div style="font-size:11px;color:var(--g3)">${prazo}</div>`:''}
+    const isAtiva = s.id === semAtiva;
+    const notas = s.notas||[];
+    return `<div style="background:var(--br);border:1px solid var(--g4);border-radius:var(--r);margin-bottom:10px;overflow:hidden">
+      <div onclick="toggleHistSem('${s.id}')" style="padding:.85rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;gap:8px">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--g1)">${s.label}</div>
+          <div style="font-size:11px;color:var(--g3);margin-top:2px">
+            ${vlr?`R$${vlr.toFixed(2)}/ref. · `:''}${isAtiva?'<span style="color:var(--ok);font-weight:700">Semana atual</span>':'Encerrada'}
+          </div>
+        </div>
+        <span id="hist-chv-${s.id}" style="color:var(--g3);font-size:14px">▼</span>
       </div>
-      <div style="text-align:right">
-        ${vlr?`<div style="font-size:13px;font-weight:700;color:var(--vd)">R$${vlr.toFixed(2)}/ref.</div>`:''}
-        <div style="font-size:11px;color:var(--g3)">${s.id===semAtiva?'<span style="color:var(--ok);font-weight:700">Semana atual</span>':''}</div>
+      <div id="hist-det-${s.id}" style="display:none;border-top:1px solid var(--g4)">
+        <div style="padding:.85rem 1rem" id="hist-cnt-${s.id}">
+          <div class="empty-st">Carregando detalhes...</div>
+        </div>
       </div>
     </div>`;
   }).join('');
 }
-window.toggleHistorico = toggleHistorico;
+window.carregarHistorico = carregarHistorico;
+
+async function toggleHistSem(id){
+  const det = document.getElementById('hist-det-'+id);
+  const chv = document.getElementById('hist-chv-'+id);
+  const cnt = document.getElementById('hist-cnt-'+id);
+  const aberto = det.style.display === 'block';
+  det.style.display = aberto ? 'none' : 'block';
+  chv.textContent = aberto ? '▼' : '▲';
+  if(aberto) return;
+
+  // Busca detalhes
+  const semSnap = await getDoc(doc(db,'semanas',id));
+  if(!semSnap.exists()){ cnt.innerHTML='<div class="empty-st">Dados não encontrados.</div>'; return; }
+  const s = {id:semSnap.id,...semSnap.data()};
+  const insSnap = await getDocs(collection(db,'semanas',id,'inscritos'));
+  const ins = insSnap.docs.map(d=>({id:d.id,...d.data()}));
+  const vlr = parseFloat(s.valor)||0;
+  const cdp = s.cardapio||[];
+  const notas = s.notas||[];
+
+  // Cardápio + marmitas
+  const cardapioHtml = DK.map((dk,i)=>{
+    const r = cdp[i]||{};
+    const qtd = ins.filter(x=>x.dias&&x.dias[dk]).length;
+    if(!r.principal && !qtd) return null;
+    return `<div style="display:grid;grid-template-columns:34px 1fr auto;gap:6px;align-items:start;padding:.4rem 0;border-bottom:1px solid var(--g5)">
+      <div style="font-size:10px;font-weight:800;color:var(--g3);padding-top:2px">${DN[i]}</div>
+      <div>
+        <div style="font-size:13px;font-weight:500">${r.principal||'—'}</div>
+        ${r.acomp?`<div style="font-size:11px;color:var(--g3)">${r.acomp}</div>`:''}
+      </div>
+      <div style="text-align:right;white-space:nowrap">
+        <span style="font-size:12px;font-weight:700;color:var(--vd)">${qtd}</span>
+        <span style="font-size:10px;color:var(--g3)"> marm.</span>
+      </div>
+    </div>`;
+  }).filter(Boolean).join('');
+
+  // Financeiro
+  const totalArrecadado = ins.filter(i=>i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr,0);
+  const totalPrevisto   = ins.reduce((a,i)=>a+cntD(i.dias)*vlr,0);
+  const totalMarmitas   = ins.reduce((a,i)=>a+cntD(i.dias),0);
+
+  // Notas fiscais
+  const notasHtml = notas.length
+    ? notas.map(n=>`<a href="${n.data64}" download="${n.nome}" style="display:flex;align-items:center;gap:6px;padding:.4rem .6rem;background:var(--g5);border-radius:6px;text-decoration:none;margin-bottom:4px">
+        <span style="font-size:15px">${n.tipo==='pdf'?'📄':'🧾'}</span>
+        <span style="font-size:12px;color:var(--vdm);font-weight:500;flex:1">${n.nome}</span>
+        <span style="font-size:10px;color:var(--g3)">${n.data}</span>
+      </a>`).join('')
+    : '<div style="font-size:12px;color:var(--g3)">Nenhuma nota fiscal anexada.</div>';
+
+  cnt.innerHTML = `
+    ${cardapioHtml ? `<div style="font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.4rem">Cardápio & Marmitas</div>${cardapioHtml}<div style="margin-bottom:.75rem"></div>` : ''}
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:.75rem">
+      <div style="background:var(--vdx);border:1px solid #c5ddc9;border-radius:8px;padding:.5rem;text-align:center">
+        <div style="font-size:9px;color:var(--g3);text-transform:uppercase;letter-spacing:.5px">Inscritos</div>
+        <div style="font-size:1.1rem;font-weight:700;color:var(--vd)">${ins.length}</div>
+      </div>
+      <div style="background:var(--vdx);border:1px solid #c5ddc9;border-radius:8px;padding:.5rem;text-align:center">
+        <div style="font-size:9px;color:var(--g3);text-transform:uppercase;letter-spacing:.5px">Marmitas</div>
+        <div style="font-size:1.1rem;font-weight:700;color:var(--vd)">${totalMarmitas}</div>
+      </div>
+      <div style="background:var(--okc);border:1px solid #aaddbf;border-radius:8px;padding:.5rem;text-align:center">
+        <div style="font-size:9px;color:var(--g3);text-transform:uppercase;letter-spacing:.5px">Arrecadado</div>
+        <div style="font-size:1.1rem;font-weight:700;color:var(--ok)">R$${totalArrecadado.toFixed(2)}</div>
+      </div>
+    </div>
+    ${vlr&&totalPrevisto!==totalArrecadado?`<div style="font-size:11px;color:var(--wn);background:var(--wnc);border-radius:6px;padding:.35rem .6rem;margin-bottom:.75rem">Previsto: R$${totalPrevisto.toFixed(2)} · Pendente: R$${(totalPrevisto-totalArrecadado).toFixed(2)}</div>`:''}
+    <div style="font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.4rem">Notas Fiscais</div>
+    ${notasHtml}
+  `;
+}
+window.toggleHistSem = toggleHistSem;
 
 // ── Exportar CSV ──────────────────────────────────────────────────────────────
 function exportarCSV(){
