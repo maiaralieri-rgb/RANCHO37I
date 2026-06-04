@@ -282,13 +282,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 
 </div>
 
-  <div class="sec" id="sec-historico" style="display:none">
-    <div class="sec-title">Histórico de semanas</div>
-    <div id="hist-list" class="card"></div>
+  <div style="max-width:680px;margin:0 auto;padding:0 1.2rem 1.5rem">
+  <button type="button" id="btn-historico" onclick="toggleHistorico()" style="width:100%;padding:10px;font-size:12px;border:1px solid var(--g4);border-radius:10px;background:var(--br);cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--g2);display:flex;align-items:center;justify-content:center;gap:6px">
+    <span id="hist-btn-txt">Ver histórico de semanas ▼</span>
+  </button>
+  <div id="sec-historico" style="display:none;margin-top:.75rem">
+    <div id="hist-list"></div>
   </div>
-  <div style="text-align:center;margin-bottom:1.5rem">
-    <button type="button" id="btn-historico" onclick="toggleHistorico()" style="padding:6px 18px;font-size:12px;border:1px solid var(--g4);border-radius:20px;background:var(--br);cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--g2)">Ver histórico de semanas ▼</button>
-  </div>
+</div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -394,6 +395,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 
     <!-- NOTAS -->
     <div class="asec" id="asec-notas">
+      <div id="notas-sem-ctx" style="font-size:11px;color:var(--g2);margin-bottom:.75rem;padding:.4rem .7rem;background:var(--vdx);border-radius:6px;border:1px solid #c5ddc9"></div>
       <div style="border:2px dashed var(--g4);border-radius:10px;padding:1rem;text-align:center;cursor:pointer;background:var(--g5);margin-bottom:.75rem" onclick="document.getElementById('inp-nota').click()">
         <div style="font-size:26px">📄</div>
         <p style="font-size:12px;color:var(--g3);margin-top:5px">Anexar nota fiscal (imagem ou PDF)</p>
@@ -719,13 +721,6 @@ async function iniciarListeners(){
     if(snap.exists()) renderPagamento(snap.data());
   }, err=>console.error('[pagamento]', err));
 
-  // Notas
-  onSnapshot(doc(db,'config','notas'), snap=>{
-    const d = snap.exists() ? snap.data() : null;
-    renderNotasPub(d&&d.lista ? d.lista : []);
-    if(isAdmin) renderAdmNotas(d&&d.lista ? d.lista : []);
-  }, err=>console.error('[notas]', err));
-
   // Semanas — listener principal
   const semanasRef = collection(db,'semanas');
   if(unsubSem) unsubSem();
@@ -772,6 +767,8 @@ async function carregarSemanaAtiva(){
     _cacheSem = {id:semSnap.id,...semSnap.data()};
     renderHero(_cacheSem, _cacheIns);
     if(isAdmin) renderAdmIns(_cacheSem, _cacheIns);
+    renderNotasPub(_cacheSem.notas||[]);
+    if(isAdmin) renderAdmNotas(_cacheSem.notas||[]);
   }, err=>{
     console.error('[semana-doc]', err);
     const c = document.getElementById('cdp-card');
@@ -854,6 +851,7 @@ function loginAdmin(){
     preencherAdmin();
     // PROTEÇÃO CONTRA PERDA DE DADOS: backup automático silencioso ao logar
     backupAutomatico();
+    migrarNotasGlobais();
   } else toast('Senha incorreta');
 }
 window.loginAdmin = loginAdmin;
@@ -910,6 +908,8 @@ async function preencherAdmin(){
     const ep=document.getElementById('cp-'+dk), ea=document.getElementById('ca-'+dk);
     if(ep) ep.value=r.principal||''; if(ea) ea.value=r.acomp||'';
   });
+  const ctxEl = document.getElementById('notas-sem-ctx');
+  if(ctxEl) ctxEl.textContent = sem ? `Notas da semana: ${sem.label}` : 'Selecione uma semana';
   // Pagamento já veio via listener — pega do DOM se já preenchido
   const pgSnap=await getDoc(doc(db,'config','pagamento'));
   if(pgSnap.exists()){
@@ -1018,13 +1018,13 @@ function renderAdmNotas(lista){
 }
 
 async function anexarNota(inp){
+  if(!semAtiva){ toast('Selecione uma semana primeiro'); return; }
   const f=inp.files[0]; if(!f) return;
   const rd=new FileReader();
   rd.onload=async e=>{
-    const snap=await getDoc(doc(db,'config','notas'));
-    const lista=(snap.exists()&&snap.data().lista)||[];
+    const lista=[...(_cacheSem?_cacheSem.notas||[]:[])] ;
     lista.push({nome:f.name,tipo:f.type.includes('pdf')?'pdf':'img',data:new Date().toLocaleDateString('pt-BR'),data64:e.target.result});
-    await setDoc(doc(db,'config','notas'),{lista});
+    await updateDoc(doc(db,'semanas',semAtiva),{notas:lista});
     toast('✓ Nota anexada');
   };
   rd.readAsDataURL(f); inp.value='';
@@ -1032,10 +1032,10 @@ async function anexarNota(inp){
 window.anexarNota = anexarNota;
 
 async function delNota(idx){
-  const snap=await getDoc(doc(db,'config','notas'));
-  const lista=(snap.exists()&&snap.data().lista)||[];
+  if(!semAtiva) return;
+  const lista=[...(_cacheSem?_cacheSem.notas||[]:[])] ;
   lista.splice(idx,1);
-  await setDoc(doc(db,'config','notas'),{lista});
+  await updateDoc(doc(db,'semanas',semAtiva),{notas:lista});
   toast('Nota removida');
 }
 window.delNota = delNota;
@@ -1134,6 +1134,7 @@ const _origATab = window.aTab;
 window.aTab = function(t){
   _origATab(t);
   if(t==='inscritos'){ renderAdmIns(_cacheSem, _cacheIns); }
+  if(t==='notas'){ renderAdmNotas(_cacheSem?_cacheSem.notas||[]:[]);}
   if(t==='comprovantes') renderAdmComp();
   if(t==='compras') renderListaCompras();
   if(t==='sugestoes') renderAdmSugestoes();
