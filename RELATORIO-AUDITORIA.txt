@@ -1,0 +1,68 @@
+═══════════════════════════════════════════════════════════════
+  RANCHO 37I — RELATÓRIO DE AUDITORIA E CORREÇÃO
+  Data: 04/06/2026
+═══════════════════════════════════════════════════════════════
+
+CAUSA-RAIZ DO PROBLEMA "CARREGANDO..." (corrigida)
+───────────────────────────────────────────────────────────────
+As variáveis _cacheSem e _cacheIns eram usadas e atribuídas no
+código, mas NUNCA foram declaradas. Como o app roda em módulo
+ES (strict mode), atribuir a uma variável não declarada lança
+ReferenceError, que interrompia silenciosamente todo o
+carregamento de dados — daí a tela ficar presa em "Carregando...".
+
+BUGS CORRIGIDOS
+───────────────────────────────────────────────────────────────
+[BUG 1 - CRÍTICO] _cacheSem / _cacheIns / _semCarregada não
+   declaradas → ReferenceError travava carregamento.
+   CORREÇÃO: declaradas com 'let' no topo do escopo.
+
+[BUG 2] Listener do documento da semana (onSnapshot) era
+   recriado a cada atualização sem cancelar o anterior →
+   vazamento e múltiplos listeners acumulados.
+   CORREÇÃO: unsubSemDoc + guarda _semCarregada para só recriar
+   listeners quando a semana realmente muda.
+
+[BUG 3] Listeners sem callback de erro → falhas silenciosas
+   deixavam a tela travada sem aviso.
+   CORREÇÃO: callback de erro em todos os onSnapshot + mensagem
+   de erro visível na interface.
+
+[BUG 4 - OCULTO] renderNotasPub() acessava elemento removido
+   (notas-pub) sem verificação → TypeError no listener de notas
+   logo no carregamento.
+   CORREÇÃO: guarda if(!el) return.
+
+[BUG 5 - OCULTO] Abas "Compras" e "Sugestões" existiam no menu
+   mas as seções HTML (asec-compras, asec-sugestoes) não
+   existiam → clicar quebrava o painel.
+   CORREÇÃO: seções HTML criadas + aTab() protegido contra
+   seção inexistente.
+
+PROTEÇÃO CONTRA PERDA DE DADOS (nova)
+───────────────────────────────────────────────────────────────
+- Backup automático silencioso ao entrar como admin (cópia
+  local no navegador, recuperável a qualquer momento).
+- Botão "Restaurar cópia automática" na aba Backup.
+- Backup manual em arquivo .json (exportar/restaurar) mantido.
+- Restauração sempre MESCLA (nunca apaga dados existentes).
+
+BATERIAS DE TESTE (executar com: node testes/<arquivo>.mjs)
+───────────────────────────────────────────────────────────────
+1. teste-funcional.mjs ......... 22 testes — lógica de negócio
+2. teste-integracao.mjs ........ 11 testes — fluxo de dados/sync
+3. teste-antiregressao.mjs ..... 20 testes — impede bugs voltarem
+4. teste-integridade-dom.mjs ...  2 testes — IDs e funções
+
+TOTAL: 55 verificações, 0 falhas.
+
+Os testes anti-regressão analisam o código-fonte e FALHAM
+automaticamente se qualquer um dos 5 bugs acima reaparecer
+numa futura edição.
+
+REGRA DE OURO (evitar repetição do incidente)
+───────────────────────────────────────────────────────────────
+NUNCA deletar o projeto no Firebase. Se for desativado por
+inatividade, apenas RESTAURAR (nunca excluir). Fazer backup em
+arquivo toda sexta-feira (aba Backup → Baixar backup completo).
+═══════════════════════════════════════════════════════════════
