@@ -307,18 +307,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
     </div>
   </div>
   <div id="adm-painel" style="display:none">
-    <div class="atabs">
+    <div class="atabs" style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px">
       <button type="button" class="atab active" onclick="aTab('semana')">Semana</button>
       <button type="button" class="atab" onclick="aTab('inscritos')">Inscritos</button>
+      <button type="button" class="atab" onclick="aTab('cozinheiro')">🍳 Cozinheiro</button>
+      <button type="button" class="atab" onclick="aTab('relatorio')">Relatório</button>
       <button type="button" class="atab" onclick="aTab('pagamento')">Pagamento</button>
       <button type="button" class="atab" onclick="aTab('notas')">Notas</button>
       <button type="button" class="atab" onclick="aTab('comprovantes')">Comprov.</button>
-      <button type="button" class="atab" onclick="aTab('relatorio')">Relatório</button>
+      <button type="button" class="atab" onclick="aTab('lembrete')">Lembrete</button>
       <button type="button" class="atab" onclick="aTab('compras')">Compras</button>
       <button type="button" class="atab" onclick="aTab('sugestoes')">Sugestões</button>
-      <button type="button" class="atab" onclick="aTab('lembrete')">Lembrete</button>
       <button type="button" class="atab" onclick="aTab('backup')">💾 Backup</button>
-      <button type="button" class="atab" onclick="aTab('cozinheiro')">👨‍🍳 Cozinheiro</button>
+      <button type="button" class="atab" onclick="aTab('dummy')" style="visibility:hidden;pointer-events:none"></button>
     </div>
 
     <!-- SEMANA -->
