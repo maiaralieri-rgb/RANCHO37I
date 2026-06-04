@@ -305,79 +305,103 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
     </div>
   </div>
   <div id="adm-painel" style="display:none">
-    <div class="atabs" style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px">
-      <button type="button" class="atab active" onclick="aTab('semana')">Semana</button>
-      <button type="button" class="atab" onclick="aTab('inscritos')">Inscritos</button>
-      <button type="button" class="atab" onclick="aTab('cozinheiro')">Cozinheiro</button>
-      <button type="button" class="atab" onclick="aTab('relatorio')">Relatório</button>
-      <button type="button" class="atab" onclick="aTab('pagamento')">Pagamento</button>
-      <button type="button" class="atab" onclick="aTab('notas')">Notas</button>
-      <button type="button" class="atab" onclick="aTab('comprovantes')">Comprov.</button>
-      <button type="button" class="atab" onclick="aTab('lembrete')">Lembrete</button>
-      <button type="button" class="atab" onclick="aTab('sugestoes')">Sugestões</button>
-      <button type="button" class="atab" onclick="aTab('backup')">Backup</button>
+    <!-- Status da semana ativa -->
+    <div id="adm-status-bar" style="background:var(--vdx);border:1px solid #c5ddc9;border-radius:8px;padding:.55rem .9rem;margin-bottom:.85rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block"></span>
+        <span id="adm-sem-nome" style="font-size:13px;font-weight:700;color:var(--vd)">Nenhuma semana</span>
+      </div>
+      <div style="display:flex;gap:10px">
+        <span style="font-size:11px;color:var(--g2)">Inscritos: <strong id="adm-stat-ins">0</strong></span>
+        <span style="font-size:11px;color:var(--g2)">Arrecadado: <strong id="adm-stat-arr">R$0</strong></span>
+        <span id="adm-stat-prazo" style="font-size:11px;color:var(--g3)"></span>
+      </div>
+    </div>
+    <!-- Grupos de abas -->
+    <div style="margin-bottom:.75rem">
+      <div style="font-size:9px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Semana</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-bottom:8px">
+        <button type="button" class="atab active" onclick="aTab('semana')">Configurar</button>
+        <button type="button" class="atab" onclick="aTab('inscritos')">Inscritos</button>
+        <button type="button" class="atab" onclick="aTab('cozinheiro')">Cozinheiro</button>
+      </div>
+      <div style="font-size:9px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Financeiro</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-bottom:8px">
+        <button type="button" class="atab" onclick="aTab('pagamento')">Pagamento</button>
+        <button type="button" class="atab" onclick="aTab('comprovantes')">Comprov.</button>
+        <button type="button" class="atab" onclick="aTab('relatorio')">Relatório</button>
+      </div>
+      <div style="font-size:9px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Outros</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px">
+        <button type="button" class="atab" onclick="aTab('notas')">Notas</button>
+        <button type="button" class="atab" onclick="aTab('lembrete')">Lembrete</button>
+        <button type="button" class="atab" onclick="aTab('sugestoes')">Sugestões</button>
+        <button type="button" class="atab" onclick="aTab('backup')">Backup</button>
+      </div>
     </div>
 
     <!-- SEMANA -->
     <div class="asec active" id="asec-semana">
-      <div class="afield">
-        <label>Nova semana</label>
-        <div style="display:flex;gap:6px">
-          <input type="text" id="a-sem-nova" placeholder="Ex: 08 a 12/07">
-          <button type="button" onclick="novaSemana()" style="padding:0 14px;border:1px solid var(--g4);border-radius:8px;background:var(--br);cursor:pointer;font-size:12px;white-space:nowrap;font-family:'DM Sans',sans-serif">+ Criar</button>
+      <!-- Gerenciar semanas -->
+      <div style="background:var(--g5);border-radius:var(--r);padding:.85rem;margin-bottom:.85rem">
+        <div style="font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.65rem">Semanas cadastradas</div>
+        <div style="display:flex;gap:6px;margin-bottom:.65rem">
+          <input type="text" id="a-sem-nova" placeholder="Ex: 08 a 12/07" style="flex:1;padding:8px 10px;border:1px solid var(--g4);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--br);color:var(--g1)">
+          <button type="button" onclick="novaSemana()" style="padding:0 16px;border:none;border-radius:8px;background:var(--vd);color:#fff;cursor:pointer;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;white-space:nowrap">+ Nova</button>
         </div>
+        <div id="a-sem-lista"></div>
       </div>
-      <div id="a-sem-lista" style="margin-bottom:.85rem"></div>
-      <div class="afield"><label>Prazo para inscrição</label>
-        <div style="display:flex;gap:6px">
-          <input type="date" id="a-prazo-data" style="flex:1">
-          <input type="time" id="a-prazo-hora" value="12:00" style="width:100px">
+      <!-- Configurações da semana ativa -->
+      <div style="background:var(--g5);border-radius:var(--r);padding:.85rem;margin-bottom:.85rem">
+        <div style="font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.65rem">Configurações da semana</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.65rem">
+          <div class="afield" style="margin:0"><label>Valor (R$)</label><input type="number" id="a-valor" step="0.50" min="0" placeholder="0,00"></div>
+          <div class="afield" style="margin:0"><label>Prazo hora</label><input type="time" id="a-prazo-hora" value="12:00"></div>
         </div>
-        <div style="font-size:11px;color:var(--g3);margin-top:4px">Após este prazo o formulário fecha automaticamente</div>
+        <div class="afield"><label>Prazo data</label><input type="date" id="a-prazo-data"></div>
+        <div class="afield"><label>Observação do valor</label><input type="text" id="a-valor-obs" placeholder="Ex: Inclui prato, acompanhamento e salada"></div>
       </div>
-      <div class="afield"><label>Valor por refeição (R$)</label><input type="number" id="a-valor" step="0.50" min="0" placeholder="0,00"></div>
-      <div class="afield"><label>Observação sobre o valor</label><input type="text" id="a-valor-obs" placeholder="Ex: Inclui prato, acompanhamento e salada"></div>
-      <div class="afield">
-        <label>Cardápio da semana</label>
+      <!-- Cardápio -->
+      <div style="background:var(--g5);border-radius:var(--r);padding:.85rem;margin-bottom:.85rem">
+        <div style="font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.65rem">Cardápio da semana</div>
         <div class="cdp-adm">
-          <div class="cdp-adm-row" style="margin-bottom:2px">
+          <div class="cdp-adm-row" style="margin-bottom:4px">
             <div></div>
             <div style="font-size:10px;color:var(--g3);font-weight:700">PRATO PRINCIPAL</div>
             <div style="font-size:10px;color:var(--g3);font-weight:700">ACOMPANHAMENTO</div>
           </div>
-          <div class="cdp-adm-row"><div class="cdp-adm-lbl">SEG</div><input type="text" id="cp-seg" placeholder="Prato principal"><input type="text" id="ca-seg" placeholder="Acompanhamento"></div>
-          <div class="cdp-adm-row"><div class="cdp-adm-lbl">TER</div><input type="text" id="cp-ter" placeholder="Prato principal"><input type="text" id="ca-ter" placeholder="Acompanhamento"></div>
-          <div class="cdp-adm-row"><div class="cdp-adm-lbl">QUA</div><input type="text" id="cp-qua" placeholder="Prato principal"><input type="text" id="ca-qua" placeholder="Acompanhamento"></div>
-          <div class="cdp-adm-row"><div class="cdp-adm-lbl">QUI</div><input type="text" id="cp-qui" placeholder="Prato principal"><input type="text" id="ca-qui" placeholder="Acompanhamento"></div>
-          <div class="cdp-adm-row"><div class="cdp-adm-lbl">SEX</div><input type="text" id="cp-sex" placeholder="Prato principal"><input type="text" id="ca-sex" placeholder="Acompanhamento"></div>
+          <div class="cdp-adm-row"><div class="cdp-adm-lbl">SEG</div><input type="text" id="cp-seg" placeholder="Prato principal"><input type="text" id="ca-seg" placeholder="Acomp."></div>
+          <div class="cdp-adm-row"><div class="cdp-adm-lbl">TER</div><input type="text" id="cp-ter" placeholder="Prato principal"><input type="text" id="ca-ter" placeholder="Acomp."></div>
+          <div class="cdp-adm-row"><div class="cdp-adm-lbl">QUA</div><input type="text" id="cp-qua" placeholder="Prato principal"><input type="text" id="ca-qua" placeholder="Acomp."></div>
+          <div class="cdp-adm-row"><div class="cdp-adm-lbl">QUI</div><input type="text" id="cp-qui" placeholder="Prato principal"><input type="text" id="ca-qui" placeholder="Acomp."></div>
+          <div class="cdp-adm-row"><div class="cdp-adm-lbl">SEX</div><input type="text" id="cp-sex" placeholder="Prato principal"><input type="text" id="ca-sex" placeholder="Acomp."></div>
         </div>
       </div>
-      <button type="button" class="btn-sv" onclick="salvarSemana()">💾 Salvar semana</button>
+      <button type="button" class="btn-sv" onclick="salvarSemana()">Salvar semana</button>
     </div>
 
     <!-- INSCRITOS -->
     <div class="asec" id="asec-inscritos">
-      <!-- Inserção manual pelo admin -->
-      <div style="background:var(--wnc);border:1px solid #e8d48a;border-radius:var(--r);padding:.9rem 1rem;margin-bottom:.85rem">
-        <div style="font-size:11px;font-weight:700;color:var(--wn);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.65rem">➕ Inserir inscrito manualmente</div>
-        <div style="display:flex;flex-direction:column;gap:.5rem">
-          <input type="text" id="adm-ins-qra" placeholder="QRA (ex: Sd PM Silva)" style="padding:8px 10px;border:1px solid var(--g4);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;width:100%">
-          <div style="display:flex;gap:6px">
-            <button type="button" class="dia-adm-btn" data-dia="seg" onclick="toggleDiaAdm(this)" style="flex:1;padding:8px 4px;border:2px solid var(--g4);border-radius:8px;background:var(--br);cursor:pointer;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif">SEG</button>
-            <button type="button" class="dia-adm-btn" data-dia="ter" onclick="toggleDiaAdm(this)" style="flex:1;padding:8px 4px;border:2px solid var(--g4);border-radius:8px;background:var(--br);cursor:pointer;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif">TER</button>
-            <button type="button" class="dia-adm-btn" data-dia="qua" onclick="toggleDiaAdm(this)" style="flex:1;padding:8px 4px;border:2px solid var(--g4);border-radius:8px;background:var(--br);cursor:pointer;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif">QUA</button>
-            <button type="button" class="dia-adm-btn" data-dia="qui" onclick="toggleDiaAdm(this)" style="flex:1;padding:8px 4px;border:2px solid var(--g4);border-radius:8px;background:var(--br);cursor:pointer;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif">QUI</button>
-            <button type="button" class="dia-adm-btn" data-dia="sex" onclick="toggleDiaAdm(this)" style="flex:1;padding:8px 4px;border:2px solid var(--g4);border-radius:8px;background:var(--br);cursor:pointer;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif">SEX</button>
-          </div>
-          <div style="display:flex;gap:6px;align-items:center">
-            <label style="font-size:12px;color:var(--g2);display:flex;align-items:center;gap:5px;cursor:pointer">
-              <input type="checkbox" id="adm-ins-pago"> Já pagou
-            </label>
-            <button type="button" onclick="admInscrever()" style="flex:1;padding:8px;background:var(--vd);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Inserir</button>
-          </div>
+      <!-- Inserção manual -->
+      <div style="background:var(--g5);border-radius:var(--r);padding:.85rem;margin-bottom:.85rem">
+        <div style="font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.65rem">Inserir manualmente</div>
+        <input type="text" id="adm-ins-qra" placeholder="QRA (ex: Sd PM Silva)" style="width:100%;padding:8px 10px;border:1px solid var(--g4);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--br);color:var(--g1);margin-bottom:.5rem">
+        <div style="display:flex;gap:5px;margin-bottom:.5rem">
+          <button type="button" class="dia-adm-btn" data-dia="seg" onclick="toggleDiaAdm(this)" style="flex:1;padding:7px 2px;border:2px solid var(--g4);border-radius:7px;background:var(--br);cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif">SEG</button>
+          <button type="button" class="dia-adm-btn" data-dia="ter" onclick="toggleDiaAdm(this)" style="flex:1;padding:7px 2px;border:2px solid var(--g4);border-radius:7px;background:var(--br);cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif">TER</button>
+          <button type="button" class="dia-adm-btn" data-dia="qua" onclick="toggleDiaAdm(this)" style="flex:1;padding:7px 2px;border:2px solid var(--g4);border-radius:7px;background:var(--br);cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif">QUA</button>
+          <button type="button" class="dia-adm-btn" data-dia="qui" onclick="toggleDiaAdm(this)" style="flex:1;padding:7px 2px;border:2px solid var(--g4);border-radius:7px;background:var(--br);cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif">QUI</button>
+          <button type="button" class="dia-adm-btn" data-dia="sex" onclick="toggleDiaAdm(this)" style="flex:1;padding:7px 2px;border:2px solid var(--g4);border-radius:7px;background:var(--br);cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif">SEX</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <label style="font-size:12px;color:var(--g2);display:flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap">
+            <input type="checkbox" id="adm-ins-pago"> Já pagou
+          </label>
+          <button type="button" onclick="admInscrever()" style="flex:1;padding:8px;background:var(--vd);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Inserir</button>
         </div>
       </div>
-      <div style="font-size:12px;color:var(--g2);margin-bottom:.5rem">Inscritos cadastrados</div>
+      <!-- Lista -->
+      <div style="font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem">Inscritos</div>
       <div class="card"><div id="a-ins-list"><div class="empty-st">Carregando...</div></div></div>
       <div class="totd" id="a-totd"></div>
     </div>
@@ -642,6 +666,8 @@ function renderHero(sem, ins){
     : '<div class="empty-st">Cardápio não definido.</div>';
   // Inscritos
   renderInscritos(ins, vlr);
+  // Atualiza status bar do admin
+  atualizarAdminStatusBar(sem, ins, vlr);
 }
 
 function renderInscritos(ins, vlr){
@@ -891,8 +917,11 @@ async function migrarNotasGlobais(){
 }
 
 function aTab(t){
-  const ts=['semana','inscritos','cozinheiro','relatorio','pagamento','notas','comprovantes','lembrete','sugestoes','backup'];
-  document.querySelectorAll('.atab').forEach((b,i)=>b.classList.toggle('active',ts[i]===t));
+  // Marca aba ativa por onclick (não por índice, pois agora são grupos separados)
+  document.querySelectorAll('.atab').forEach(b=>{
+    const oc = b.getAttribute('onclick')||'';
+    b.classList.toggle('active', oc.includes(`'${t}'`));
+  });
   document.querySelectorAll('.asec').forEach(s=>s.classList.remove('active'));
   const sec=document.getElementById('asec-'+t);
   if(sec) sec.classList.add('active');
@@ -900,6 +929,27 @@ function aTab(t){
   if(t==='cozinheiro') gerarRelatorioCozinheiro();
 }
 window.aTab = aTab;
+
+function atualizarAdminStatusBar(sem, ins, vlr){
+  const nome = document.getElementById('adm-sem-nome');
+  const statIns = document.getElementById('adm-stat-ins');
+  const statArr = document.getElementById('adm-stat-arr');
+  const statPrazo = document.getElementById('adm-stat-prazo');
+  if(!nome) return;
+  nome.textContent = sem ? `Semana ${sem.label}` : 'Nenhuma semana';
+  if(statIns) statIns.textContent = ins.length;
+  if(statArr){
+    const arr = ins.filter(i=>i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr,0);
+    statArr.textContent = `R$${arr.toFixed(2)}`;
+  }
+  if(statPrazo && sem && sem.prazoData){
+    const prazo = new Date(sem.prazoData+'T'+(sem.prazoHora||'23:59'));
+    const fechou = Date.now() >= prazo.getTime();
+    statPrazo.textContent = fechou ? 'Encerrado' : `Prazo: ${prazo.toLocaleDateString('pt-BR')}`;
+    statPrazo.style.color = fechou ? 'var(--er)' : 'var(--wn)';
+  } else if(statPrazo) statPrazo.textContent = '';
+}
+window.atualizarAdminStatusBar = atualizarAdminStatusBar;
 
 async function preencherAdmin(){
   // Usa cache local para evitar buscas redundantes ao Firestore
