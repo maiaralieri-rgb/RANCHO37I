@@ -1,0 +1,54 @@
+name: Netlify — Rename e Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'manifest.json'
+      - 'icon.png'
+
+jobs:
+  netlify-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli@latest --silent
+
+      - name: Encontrar Site ID e Renomear
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: |
+          SITE_ID=$(curl -s -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+            "https://api.netlify.com/api/v1/sites?filter=all&per_page=100" | \
+            python3 -c "
+import sys, json
+sites = json.load(sys.stdin)
+match = [s for s in sites if s.get('subdomain') in ('eclectic-llama-536f94','previsaoderancho37bpmi-bymlr') or s.get('name') in ('eclectic-llama-536f94','previsaoderancho37bpmi-bymlr')]
+print(match[0]['id'] if match else '')
+")
+          echo "Site ID: $SITE_ID"
+          if [ -z "$SITE_ID" ]; then
+            echo "ERRO: Site nao encontrado. Verifique NETLIFY_AUTH_TOKEN."; exit 1
+          fi
+          echo "NETLIFY_SITE_ID=$SITE_ID" >> $GITHUB_ENV
+          RENAME=$(curl -s -X PATCH \
+            -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"name":"previsaoderancho37bpmi-bymlr"}' \
+            "https://api.netlify.com/api/v1/sites/$SITE_ID")
+          echo "Rename: $(echo $RENAME | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get("url",d.get("errors","?")))' 2>/dev/null || echo $RENAME)"
+
+      - name: Deploy no Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: |
+          netlify deploy \
+            --prod \
+            --dir . \
+            --auth "$NETLIFY_AUTH_TOKEN" \
+            --site "$NETLIFY_SITE_ID" \
+            --message "v9: lista diaria, ovos fritos, saldo estruturado"
