@@ -135,9 +135,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .adm-stat-card.green{border-color:#c5ddc9;background:var(--vdx)}
 .adm-stat-card.green .asc-v{color:var(--vd)}
 .dia-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
-.ovo-btn{display:none;font-size:10px;font-weight:700;padding:5px 6px;width:100%;border:1.5px solid var(--ou);border-radius:6px;background:rgba(201,168,76,.1);color:var(--ou);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;text-align:center;line-height:1.3;white-space:normal}
-.ovo-btn.on{background:var(--ou);color:#fff;border-color:var(--ou)}
-.ovo-btn.show{display:block}
 .sug-box{margin-top:1rem;padding:1rem;background:linear-gradient(135deg,#fffbec,#fff8e1);border:2px solid var(--ou);border-radius:12px;position:relative}
 .sug-box::before{content:'💡';position:absolute;top:-12px;left:12px;font-size:20px;background:#fff;padding:0 4px}
 .asec{display:none}.asec.active{display:block}
@@ -256,23 +253,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
         <div class="dias-wrap">
           <div class="dia-col">
             <button type="button" class="dia-btn" data-dia="seg" onclick="toggleDia(this)"><span class="db-nome">SEG</span><span class="db-chk">○</span></button>
-            <button type="button" class="ovo-btn" id="ovo-seg" onclick="toggleOvo('seg',this)">PREFIRO SUBSTITUIR A MISTURA POR 2 OVOS FRITOS</button>
           </div>
           <div class="dia-col">
             <button type="button" class="dia-btn" data-dia="ter" onclick="toggleDia(this)"><span class="db-nome">TER</span><span class="db-chk">○</span></button>
-            <button type="button" class="ovo-btn" id="ovo-ter" onclick="toggleOvo('ter',this)">PREFIRO SUBSTITUIR A MISTURA POR 2 OVOS FRITOS</button>
           </div>
           <div class="dia-col">
             <button type="button" class="dia-btn" data-dia="qua" onclick="toggleDia(this)"><span class="db-nome">QUA</span><span class="db-chk">○</span></button>
-            <button type="button" class="ovo-btn" id="ovo-qua" onclick="toggleOvo('qua',this)">PREFIRO SUBSTITUIR A MISTURA POR 2 OVOS FRITOS</button>
           </div>
           <div class="dia-col">
             <button type="button" class="dia-btn" data-dia="qui" onclick="toggleDia(this)"><span class="db-nome">QUI</span><span class="db-chk">○</span></button>
-            <button type="button" class="ovo-btn" id="ovo-qui" onclick="toggleOvo('qui',this)">PREFIRO SUBSTITUIR A MISTURA POR 2 OVOS FRITOS</button>
           </div>
           <div class="dia-col">
             <button type="button" class="dia-btn" data-dia="sex" onclick="toggleDia(this)"><span class="db-nome">SEX</span><span class="db-chk">○</span></button>
-            <button type="button" class="ovo-btn" id="ovo-sex" onclick="toggleOvo('sex',this)">PREFIRO SUBSTITUIR A MISTURA POR 2 OVOS FRITOS</button>
           </div>
         </div>
         <div id="total-resumo" style="display:none;margin-top:10px;padding:10px 12px;background:var(--vdx);border:1px solid #c5ddc9;border-radius:8px;align-items:center;justify-content:space-between">
@@ -681,39 +673,14 @@ function toggleDia(btn){
   btn.classList.toggle('ativo');
   const ativo = btn.classList.contains('ativo');
   btn.querySelector('.db-chk').textContent = ativo ? '●' : '○';
-  const dk = btn.dataset.dia;
-  const ovoBtn = document.getElementById('ovo-'+dk);
-  if(ovoBtn){
-    if(ativo){ ovoBtn.classList.add('show'); }
-    else { ovoBtn.classList.remove('show','on'); }
-  }
   atualizarTotalDias();
 }
 window.toggleDia = toggleDia;
 
-function toggleOvo(dk, btn){
-  btn.classList.toggle('on');
-  const on = btn.classList.contains('on');
-  btn.textContent = on ? '✓ 2 OVOS FRITOS' : 'PREFIRO SUBSTITUIR A MISTURA POR 2 OVOS FRITOS';
-}
-window.toggleOvo = toggleOvo;
-
-function getOvos(){
-  const r={};
-  DK.forEach(dk=>{
-    const b=document.getElementById('ovo-'+dk);
-    r[dk]=b&&b.classList.contains('on')?1:0;
-  });
-  return r;
-}
+function getOvos(){ return {}; }
 window.getOvos=getOvos;
 
-function resetOvos(){
-  DK.forEach(dk=>{
-    const b=document.getElementById('ovo-'+dk);
-    if(b){ b.classList.remove('show','on'); b.textContent='PREFIRO SUBSTITUIR A MISTURA POR 2 OVOS FRITOS'; }
-  });
-}
+function resetOvos(){}
 window.resetOvos=resetOvos;
 
 function atualizarTotalDias(){
@@ -971,13 +938,12 @@ async function inscrever(){
     const snap=await getDocs(insRef);
     const existe=snap.docs.find(d=>d.data().qra.toLowerCase()===qra.toLowerCase());
     if(existe){ toast('QRA já inscrito. Fale com o admin.'); btn.disabled=false; btn.textContent='Confirmar inscrição'; return; }
-    const ovos=getOvos();
-    const entry={qra, dias, ovos, pago:false, criadoEm:Date.now()};
+    const entry={qra, dias, pago:false, criadoEm:Date.now()};
     if(compSel) entry.comprovante=compSel;
     await addDoc(insRef, entry);
     const vlrAtual = _cacheSem ? parseFloat(_cacheSem.valor)||0 : 0;
-    mostrarResumoPosInscricao(qra, dias, vlrAtual, ovos);
-    resetDias(); resetOvos(); removerComp();
+    mostrarResumoPosInscricao(qra, dias, vlrAtual);
+    resetDias(); removerComp();
     document.getElementById('inp-qra').value='';
   }catch(e){ toast('Erro ao salvar. Tente novamente.'); console.error(e); }
   btn.disabled=false; btn.textContent='Confirmar inscrição';
@@ -1232,9 +1198,8 @@ function renderAdmIns(sem, ins){
   const vlr=sem?parseFloat(sem.valor)||0:0;
   el.innerHTML=ins.map(i=>{
     const dias=DK.filter(d=>i.dias&&i.dias[d]), tot=dias.length*vlr;
-    const ovosDias=dias.filter(d=>i.ovos&&i.ovos[d]).map(d=>DN[DK.indexOf(d)]);
     const comp=i.comprovante?`<a href="${i.comprovante.data64}" download="${i.comprovante.nome}" style="font-size:10px;color:var(--vdm);font-weight:700;text-decoration:none">📎</a>`:'';
-    return`<div class="mgmt-row"><div><div class="mgmt-nome">${escHTML(i.qra)}</div><div class="mgmt-sub">${dias.map(d=>DN[DK.indexOf(d)]).join(', ')}${vlr?` · R$${tot.toFixed(2)}`:''}${ovosDias.length?` · 🥚 ${ovosDias.join(',')}`:''}</div></div><div style="display:flex;gap:6px;align-items:center">${comp}<button type="button" class="btn-pg ${i.pago?'pago':'deve'}" onclick="tglPago('${i.id}',${!i.pago})">${i.pago?'✓ Pago':'Pendente'}</button><button type="button" class="btn-dl" onclick="delIns('${i.id}')">✕</button></div></div>`;
+    return`<div class="mgmt-row"><div><div class="mgmt-nome">${escHTML(i.qra)}</div><div class="mgmt-sub">${dias.map(d=>DN[DK.indexOf(d)]).join(', ')}${vlr?` · R$${tot.toFixed(2)}`:''}</div></div><div style="display:flex;gap:6px;align-items:center">${comp}<button type="button" class="btn-pg ${i.pago?'pago':'deve'}" onclick="tglPago('${i.id}',${!i.pago})">${i.pago?'✓ Pago':'Pendente'}</button><button type="button" class="btn-dl" onclick="delIns('${i.id}')">✕</button></div></div>`;
   }).join('');
   td.innerHTML='<div style="font-size:10px;color:var(--g3);font-weight:700;width:100%;margin-bottom:4px">MARMITAS POR DIA</div>'+
     DK.map((dk,i)=>`<div class="totd-item"><div class="totd-l">${DN[i]}</div><div class="totd-n">${ins.filter(x=>x.dias&&x.dias[dk]).length}</div></div>`).join('');
@@ -1290,14 +1255,12 @@ function gerarListaDia(dk, btn){
 
   if(tbl) tbl.innerHTML=
     `<div style="display:grid;grid-template-columns:2rem 1fr 1fr 1.8rem;padding:.5rem .75rem;border-bottom:1.5px solid var(--g4);font-size:10px;font-weight:800;color:var(--g3);text-transform:uppercase;letter-spacing:.5px">
-      <div>#</div><div>Nome (QRA)</div><div>Observação</div><div>Ass.</div>
+      <div>#</div><div>Nome (QRA)</div><div>Ass.</div>
     </div>`+
     insDodia.map((i,idx)=>{
-      const obs=i.ovos&&i.ovos[dk]?'✓ 2 ovos fritos':'';
-      return`<div style="display:grid;grid-template-columns:2rem 1fr 1fr 1.8rem;padding:.65rem .75rem;border-bottom:1px solid var(--g5);align-items:center;font-size:13px">
+      return`<div style="display:grid;grid-template-columns:2rem 1fr 1.8rem;padding:.65rem .75rem;border-bottom:1px solid var(--g5);align-items:center;font-size:13px">
         <div style="font-weight:700;color:var(--g3)">${idx+1}</div>
         <div style="font-weight:600;color:var(--g1)">${escHTML(i.qra)}</div>
-        <div style="font-size:11px;color:${obs?'var(--ou)':'var(--g3)'};font-weight:${obs?700:400}">${obs||'—'}</div>
         <div style="border-bottom:1.5px solid var(--g2);height:22px;margin-right:4px"></div>
       </div>`;
     }).join('');
@@ -1310,11 +1273,9 @@ function imprimirListaDia(){
   const d = _listaDiaAtual; if(!d){ toast('Selecione um dia primeiro'); return; }
   const dt = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
   const rows = d.ins.map((i,idx)=>{
-    const obs = i.ovos&&i.ovos[d.dk] ? '2 ovos fritos' : '';
     return`<tr style="border-bottom:1px solid #ddd">
       <td style="padding:10px 8px;font-size:13px;color:#888;text-align:center">${idx+1}</td>
       <td style="padding:10px 8px;font-size:14px;font-weight:600">${i.qra}</td>
-      <td style="padding:10px 8px;font-size:12px;color:${obs?'#b8860b':'#aaa'};font-style:${obs?'normal':'italic'}">${obs||'—'}</td>
       <td style="padding:10px 8px;min-width:120px"><div style="border-bottom:1.5px solid #333;margin-top:18px"></div></td>
     </tr>`;
   }).join('');
@@ -1337,7 +1298,6 @@ function imprimirListaDia(){
           <tr style="background:#e8f2ea;border-bottom:2px solid #1a3a1f">
             <th style="padding:8px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.5px;width:36px">#</th>
             <th style="padding:8px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px">Nome (QRA)</th>
-            <th style="padding:8px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;width:130px">Observação</th>
             <th style="padding:8px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.5px;width:140px">Assinatura</th>
           </tr>
         </thead>
@@ -1484,8 +1444,7 @@ async function calcRelatorio(){
     ins.map(i=>{
       const nd=cntD(i.dias),tot=nd*vlr;
       const dias=DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]).join(' ');
-      const ovSub=i.ovos?DK.filter(d=>i.dias&&i.dias[d]&&i.ovos[d]).map(d=>DN[DK.indexOf(d)]).join(','):'';
-      return`<div style="display:grid;grid-template-columns:1fr auto auto auto;padding:.55rem .75rem;border-bottom:1px solid var(--g5);align-items:center;gap:6px"><div><div style="font-size:13px;font-weight:600">${i.qra}</div><div style="font-size:10px;color:var(--g3)">${dias}${ovSub?` · 🥚 ${ovSub}`:''}</div></div><div style="text-align:center;font-size:13px;color:var(--g2)">${nd}x</div><div style="text-align:right;font-size:13px;font-weight:500">R$${tot.toFixed(2)}</div><div style="text-align:center">${i.pago?`<span class="s-pago">✓ Pago</span>`:`<span class="s-deve">Pendente</span>`}</div></div>`;
+      return`<div style="display:grid;grid-template-columns:1fr auto auto auto;padding:.55rem .75rem;border-bottom:1px solid var(--g5);align-items:center;gap:6px"><div><div style="font-size:13px;font-weight:600">${i.qra}</div><div style="font-size:10px;color:var(--g3)">${dias}</div></div><div style="text-align:center;font-size:13px;color:var(--g2)">${nd}x</div><div style="text-align:right;font-size:13px;font-weight:500">R$${tot.toFixed(2)}</div><div style="text-align:center">${i.pago?`<span class="s-pago">✓ Pago</span>`:`<span class="s-deve">Pendente</span>`}</div></div>`;
     }).join('')+
     `<div style="display:grid;grid-template-columns:1fr auto;padding:.6rem .75rem;background:var(--g5);font-size:12px;font-weight:700;color:var(--g1)"><div>TOTAL PREVISTO</div><div>R$${totalPrevisto.toFixed(2)}</div></div>`;
   // Guarda para impressão
@@ -1859,7 +1818,7 @@ function abrirWhatsApp(){
 window.abrirWhatsApp = abrirWhatsApp;
 
 // ── Resumo pós-inscrição ──────────────────────────────────────────────────────
-function mostrarResumoPosInscricao(qra, dias, vlr, ovos){
+function mostrarResumoPosInscricao(qra, dias, vlr){
   const diasSel = DK.filter(d=>dias[d]);
   const total = diasSel.length * vlr;
   const el = document.getElementById('resumo-pos-content');
@@ -1869,7 +1828,6 @@ function mostrarResumoPosInscricao(qra, dias, vlr, ovos){
     <strong>${qra}</strong><br>
     Dias: ${diasSel.map(d=>DN[DK.indexOf(d)]).join(', ')}<br>
     Refeições: ${diasSel.length}<br>
-    ${ovos&&diasSel.some(d=>ovos[d])?`<span style="font-size:11px;color:var(--ou)">🥚 Substituição por 2 ovos fritos: ${diasSel.filter(d=>ovos&&ovos[d]).map(d=>DN[DK.indexOf(d)]).join(', ')}</span><br>`:''}
     ${vlr ? `<strong>Total a pagar: R$${total.toFixed(2)}</strong>` : ''}
   `;
   wrap.style.display='block';
