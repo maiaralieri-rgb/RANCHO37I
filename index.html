@@ -1135,7 +1135,7 @@ window.delSemana = delSemana;
 async function salvarSemana(){
   if(!semAtiva){ toast('Selecione uma semana primeiro'); return; }
   const data={
-    valor: document.getElementById('a-valor').value,
+    valor: parseFloat(document.getElementById('a-valor').value)||0,
     valorObs: document.getElementById('a-valor-obs').value,
     prazoData: document.getElementById('a-prazo-data').value,
     prazoHora: document.getElementById('a-prazo-hora').value,
@@ -1144,9 +1144,11 @@ async function salvarSemana(){
       acomp:(document.getElementById('ca-'+dk)||{value:''}).value
     }))
   };
-  await updateDoc(doc(db,'semanas',semAtiva), data);
-  toast('✓ Semana salva');
-  await carregarSemanaAtiva();
+  try{
+    await updateDoc(doc(db,'semanas',semAtiva), data);
+    toast('✓ Semana salva');
+    await carregarSemanaAtiva();
+  }catch(e){ toast('Erro ao salvar: '+e.message); console.error(e); }
 }
 window.salvarSemana = salvarSemana;
 
@@ -1172,8 +1174,10 @@ async function salvarPagamento(){
     inf: document.getElementById('a-pg-inf').value,
     obs: document.getElementById('a-pg-obs').value
   };
-  await updateDoc(doc(db,'semanas',semAtiva),{pagamento:pg});
-  toast('✓ Pagamento salvo');
+  try{
+    await updateDoc(doc(db,'semanas',semAtiva),{pagamento:pg});
+    toast('✓ Pagamento salvo');
+  }catch(e){ toast('Erro ao salvar pagamento: '+e.message); console.error(e); }
 }
 window.salvarPagamento = salvarPagamento;
 
@@ -1382,7 +1386,9 @@ async function salvarGastos(){
   if(!semAtiva) return;
   const gastos=parseFloat(document.getElementById('a-gastos').value)||0;
   const creditoAnt=parseFloat(document.getElementById('a-credito-ant').value)||0;
-  await updateDoc(doc(db,'semanas',semAtiva),{gastos,creditoAnt});
+  try{
+    await updateDoc(doc(db,'semanas',semAtiva),{gastos,creditoAnt});
+  }catch(e){ toast('Erro ao salvar gastos: '+e.message); console.error(e); }
 }
 window.salvarGastos=salvarGastos;
 
