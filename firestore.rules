@@ -2,67 +2,16 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Funções auxiliares ────────────────────────────────────────────────────
-    function strOk(val, maxLen) {
-      return val is string && val.size() <= maxLen;
-    }
-    function numOk(val) {
-      return val is number && val >= 0 && val <= 9999;
-    }
-    function diasOk(dias) {
-      return dias is map
-        && dias.keys().hasOnly(['seg','ter','qua','qui','sex'])
-        && dias.values().hasOnly([0, 1, true, false]);
-    }
-
-    // ── Semanas ───────────────────────────────────────────────────────────────
-    // Leitura pública (cardápio, valor, etc. são dados abertos do batalhão)
-    // Escrita restrita por validação de schema — sem auth, mas impede injeção
+    // Semanas e inscritos: leitura e escrita livres
+    // (segurança via restrição de domínio da API key no Google Cloud Console)
     match /semanas/{semId} {
-      allow read: if true;
-
-      allow create, update: if
-        request.resource.data.keys().hasAny(['label','valor','cardapio','gastos','creditoAnt','notas','prazo','pagamento','valorObs','lembrete'])
-        && (!('label' in request.resource.data) || strOk(request.resource.data.label, 60))
-        && (!('valor' in request.resource.data) || numOk(request.resource.data.valor))
-        && (!('gastos' in request.resource.data) || numOk(request.resource.data.gastos))
-        && (!('creditoAnt' in request.resource.data) || numOk(request.resource.data.creditoAnt))
-        && (!('valorObs' in request.resource.data) || strOk(request.resource.data.valorObs, 300))
-        && (!('lembrete' in request.resource.data) || strOk(request.resource.data.lembrete, 500))
-        && (!('notas' in request.resource.data) || request.resource.data.notas is list);
-
-      allow delete: if false; // exclusão via app usa campo, não delete direto
-
-      // ── Inscritos ─────────────────────────────────────────────────────────
+      allow read, write: if true;
       match /inscritos/{inscId} {
-        allow read: if true;
-
-        allow create: if
-          request.resource.data.keys().hasAll(['qra', 'dias'])
-          && strOk(request.resource.data.qra, 80)
-          && diasOk(request.resource.data.dias)
-          && (!('pago' in request.resource.data) || request.resource.data.pago is bool)
-          && (!('ovos' in request.resource.data) || request.resource.data.ovos is map)
-          && (!('comprovante' in request.resource.data) || request.resource.data.comprovante is map);
-
-        allow update: if
-          request.resource.data.keys().hasAll(['qra', 'dias'])
-          && strOk(request.resource.data.qra, 80)
-          && diasOk(request.resource.data.dias);
-
-        allow delete: if true; // admin pode excluir inscrições
+        allow read, write: if true;
       }
     }
 
-    // ── Config (pagamento, notas, sugestoes, lembrete) ───────────────────────
-    match /config/{docId} {
-      allow read: if true;
-      allow write: if
-        docId in ['pagamento','notas','sugestoes','lembrete','backup']
-        && request.resource.data.size() <= 50;
-    }
-
-    // ── Bloqueia qualquer outra coleção ──────────────────────────────────────
+    // Bloqueia qualquer outra coleção
     match /{document=**} {
       allow read, write: if false;
     }
