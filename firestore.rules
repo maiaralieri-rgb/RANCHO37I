@@ -54,6 +54,14 @@ service cloud.firestore {
       }
     }
 
+    // ── Config (pagamento, notas, sugestoes, lembrete) ───────────────────────
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if
+        docId in ['pagamento','notas','sugestoes','lembrete','backup']
+        && request.resource.data.size() <= 50;
+    }
+
     // ── Bloqueia qualquer outra coleção ──────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;
