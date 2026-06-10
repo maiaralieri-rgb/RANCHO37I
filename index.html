@@ -778,7 +778,7 @@ function renderHero(sem, ins){
     : '<div class="empty-st">Cardápio não definido.</div>';
   // Inscritos
   renderInscritos(ins, vlr);
-  // Atualiza status bar do admin
+  renderPagamento(sem.pagamento||null);
   atualizarAdminStatusBar(sem, ins, vlr);
 }
 
@@ -852,11 +852,6 @@ function renderSemNav(semanas){
 // ── Firestore listeners ──────────────────────────────────────────────────────
 async function iniciarListeners(){
   loading(true);
-
-  // Pagamento
-  onSnapshot(doc(db,'config','pagamento'), snap=>{
-    if(snap.exists()) renderPagamento(snap.data());
-  }, err=>console.error('[pagamento]', err));
 
   // Semanas — listener principal
   const semanasRef = collection(db,'semanas');
@@ -1005,10 +1000,7 @@ async function backupAutomatico(){
       semData.inscritos = insSnap.docs.map(d=>({id:d.id,...d.data()}));
       backup.semanas.push(semData);
     }
-    for(const key of ['pagamento','notas','sugestoes']){
-      const snap = await getDoc(doc(db,'config',key));
-      if(snap.exists()) backup.config[key] = snap.data();
-    }
+    // config migrado para dentro de semanas
     // Mantém as 3 cópias mais recentes em localStorage
     localStorage.setItem('r37i_autobackup', JSON.stringify(backup));
     localStorage.setItem('r37i_autobackup_data', new Date().toLocaleString('pt-BR'));
@@ -1021,12 +1013,7 @@ async function migrarNotasGlobais(){
   try{
     if(!semAtiva||!_cacheSem) return;
     if(_cacheSem.notas&&_cacheSem.notas.length) return; // já migrado
-    const snap = await getDoc(doc(db,'config','notas'));
-    if(!snap.exists()) return;
-    const lista = snap.data().lista||[];
-    if(!lista.length) return;
-    await updateDoc(doc(db,'semanas',semAtiva),{notas:lista});
-    console.log('[migração] notas globais movidas para semana', semAtiva);
+    // migração concluída — config/notas já não é mais usado
   }catch(e){ console.warn('[migração] notas:', e); }
 }
 
@@ -1098,14 +1085,11 @@ async function preencherAdmin(){
   if(caEl) caEl.value=sem.creditoAnt||'';
   const ctxEl = document.getElementById('notas-sem-ctx');
   if(ctxEl) ctxEl.textContent = sem ? `Notas da semana: ${sem.label}` : 'Selecione uma semana';
-  // Pagamento já veio via listener — pega do DOM se já preenchido
-  const pgSnap=await getDoc(doc(db,'config','pagamento'));
-  if(pgSnap.exists()){
-    const pg=pgSnap.data();
-    document.getElementById('a-pg-tit').value=pg.titulo||'';
-    document.getElementById('a-pg-inf').value=pg.inf||'';
-    document.getElementById('a-pg-obs').value=pg.obs||'';
-  }
+  // Pagamento — lê do documento da semana
+  const pg = sem.pagamento||{};
+  document.getElementById('a-pg-tit').value=pg.titulo||'';
+  document.getElementById('a-pg-inf').value=pg.inf||'';
+  document.getElementById('a-pg-obs').value=pg.obs||'';
 }
 
 function preencherAdminSemanas(semanas){
@@ -1182,11 +1166,13 @@ function sugerirCardapio(){
 window.sugerirCardapio=sugerirCardapio;
 
 async function salvarPagamento(){
-  await setDoc(doc(db,'config','pagamento'),{
+  if(!semAtiva){ toast('Selecione uma semana primeiro'); return; }
+  const pg = {
     titulo: document.getElementById('a-pg-tit').value,
     inf: document.getElementById('a-pg-inf').value,
     obs: document.getElementById('a-pg-obs').value
-  });
+  };
+  await updateDoc(doc(db,'semanas',semAtiva),{pagamento:pg});
   toast('✓ Pagamento salvo');
 }
 window.salvarPagamento = salvarPagamento;
@@ -1623,11 +1609,7 @@ async function restaurarAutoBackup(){
         totIns++;
       }
     }
-    if(backup.config){
-      for(const [key,val] of Object.entries(backup.config)){
-        await setDoc(doc(db,'config',key), val, {merge:true});
-      }
-    }
+    // config migrado para semanas — skip
     if(status){ status.textContent=`✓ Restaurado: ${totSem} semana(s), ${totIns} inscrito(s).`; status.style.color='var(--ok)'; }
     toast('✓ Cópia automática restaurada!');
     setTimeout(()=>window.location.reload(), 1500);
@@ -1659,10 +1641,7 @@ async function fazerBackup(){
 
     // Config (pagamento, notas, sugestões)
     status.textContent='Coletando configurações...';
-    for(const key of ['pagamento','notas','sugestoes']){
-      const snap = await getDoc(doc(db,'config',key));
-      if(snap.exists()) backup.config[key] = snap.data();
-    }
+    // config migrado para dentro de semanas
 
     // Gerar arquivo JSON
     const json = JSON.stringify(backup, null, 2);
@@ -1729,12 +1708,7 @@ Dados existentes com o mesmo ID serão atualizados.`)){
     }
 
     // Restaurar config
-    if(backup.config){
-      for(const [key, val] of Object.entries(backup.config)){
-        status.textContent=`Restaurando configuração: ${key}...`;
-        await setDoc(doc(db,'config',key), val, {merge:true});
-      }
-    }
+    // config migrado para dentro de semanas — skip restore de config
 
     status.textContent=`✓ Restauração concluída! ${totalSem} semana(s) e ${totalIns} inscrito(s) importados.`;
     status.style.color='var(--ok)';
@@ -2069,20 +2043,19 @@ window.exportarCSV = exportarCSV;
 
 // ── Sugestões ─────────────────────────────────────────────────────────────────
 async function enviarSugestao(){
+  if(!semAtiva){ toast('Nenhuma semana ativa'); return; }
   const txt=document.getElementById('inp-sugestao').value.trim();
   if(!txt){ toast('Escreva uma sugestão primeiro'); return; }
-  const snap=await getDoc(doc(db,'config','sugestoes'));
-  const lista=(snap.exists()&&snap.data().lista)||[];
+  const lista=[...(_cacheSem&&_cacheSem.sugestoes||[])];
   lista.push({texto:txt, data:new Date().toLocaleDateString('pt-BR'), hora:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});
-  await setDoc(doc(db,'config','sugestoes'),{lista});
+  await updateDoc(doc(db,'semanas',semAtiva),{sugestoes:lista});
   document.getElementById('inp-sugestao').value='';
   toast('✓ Sugestão enviada! Obrigado.');
 }
 window.enviarSugestao = enviarSugestao;
 
 async function renderAdmSugestoes(){
-  const snap=await getDoc(doc(db,'config','sugestoes'));
-  const lista=(snap.exists()&&snap.data().lista)||[];
+  const lista=(_cacheSem&&_cacheSem.sugestoes)||[];
   const el=document.getElementById('adm-sugestoes-list');
   if(!el) return;
   if(!lista.length){ el.innerHTML='<div class="empty-st">Nenhuma sugestão ainda.</div>'; return; }
@@ -2099,10 +2072,10 @@ async function renderAdmSugestoes(){
 window.renderAdmSugestoes = renderAdmSugestoes;
 
 async function delSugestao(idx){
-  const snap=await getDoc(doc(db,'config','sugestoes'));
-  const lista=(snap.exists()&&snap.data().lista)||[];
+  if(!semAtiva) return;
+  const lista=[...(_cacheSem&&_cacheSem.sugestoes||[])];
   lista.splice(idx,1);
-  await setDoc(doc(db,'config','sugestoes'),{lista});
+  await updateDoc(doc(db,'semanas',semAtiva),{sugestoes:lista});
   toast('Sugestão removida');
   renderAdmSugestoes();
 }
