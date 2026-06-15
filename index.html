@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260615-v12-card-pendente-fix -->
+<meta charset="UTF-8"><!-- deploy:20260615-v13-logout-admin -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -25,7 +25,8 @@
   --wn:#b8860b;--wnc:#fdf8ec;--r:10px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-height:100vh}
+html,body{max-width:100%;overflow-x:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-height:100vh;-webkit-text-size-adjust:100%}
 .topbar{background:var(--vd);padding:0 1.2rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100}
 .tb-brand{display:flex;align-items:center;gap:10px}
 .tb-ico{width:32px;height:32px;border-radius:50%;background:var(--ou);display:flex;align-items:center;justify-content:center;font-size:15px}
@@ -41,10 +42,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .hero h2{font-family:'DM Serif Display',serif;font-size:1.6rem;margin-bottom:.4rem}
 .hero-sub{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:1rem}
 .hero-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
-.hc{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.65rem .6rem}
-.hc-l{font-size:9px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
-.hc-v{font-size:1.25rem;font-weight:700}
-.hc-s{font-size:10px;color:rgba(255,255,255,.4)}
+.hc{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.65rem .6rem;min-width:0;overflow:hidden}
+.hc-l{font-size:9px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hc-v{font-size:clamp(.95rem,4.6vw,1.25rem);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.hc-s{font-size:10px;color:rgba(255,255,255,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .main{max-width:680px;margin:0 auto;padding:1.2rem}
 .sec{margin-bottom:1.4rem}
 .sec-title{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--g3);font-weight:700;margin-bottom:.65rem;display:flex;align-items:center;gap:8px}
@@ -105,7 +106,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .sem-nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
 .sc{padding:4px 13px;font-size:11px;border:1px solid var(--g4);border-radius:20px;cursor:pointer;background:var(--br);color:var(--g2);font-family:'DM Sans',sans-serif;transition:all .15s}
 .sc.ativa{background:var(--vd);color:#fff;border-color:var(--vd);font-weight:600}
-.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--g1);color:#fff;padding:9px 20px;border-radius:20px;font-size:13px;z-index:400;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--g1);color:#fff;padding:9px 20px;border-radius:14px;font-size:13px;z-index:400;opacity:0;transition:opacity .3s;pointer-events:none;max-width:calc(100vw - 2rem);width:max-content;text-align:center;line-height:1.4}
 .toast.show{opacity:1}
 .loading-bar{position:fixed;top:0;left:0;height:3px;background:var(--ou);width:0;transition:width .3s;z-index:500}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.52);display:none;align-items:flex-end;justify-content:center;z-index:200}
@@ -121,17 +122,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .adm-nav-label{font-size:9px;font-weight:800;color:var(--g3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:5px;padding:0 2px;display:flex;align-items:center;gap:5px}
 .adm-nav-label::after{content:'';flex:1;height:1px;background:var(--g5)}
 .adm-nav-btns{display:grid;gap:4px;margin-bottom:0}
-.adm-nav-btn{display:flex;align-items:center;justify-content:center;padding:9px 6px;border:1.5px solid var(--g5);border-radius:9px;background:var(--br);cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--g2);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;transition:all .15s;text-align:center;width:100%}
+.adm-nav-btn{display:flex;align-items:center;justify-content:center;padding:9px 4px;border:1.5px solid var(--g5);border-radius:9px;background:var(--br);cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--g2);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;transition:all .15s;text-align:center;width:100%;min-width:0;min-height:38px;line-height:1.15}
 .adm-nav-btn:hover{border-color:var(--g4);color:var(--g1)}
 .adm-nav-btn.active{border-color:var(--vdl);background:var(--vdx);color:var(--vd);font-weight:800}
 .adm-nav-btn .nb-ico{display:none}
-.adm-nav-btn .nb-lbl{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.adm-nav-btn .nb-lbl{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;overflow-wrap:anywhere}
 .adm-nav-btn .nb-badge{font-size:9px;background:var(--vd);color:#fff;border-radius:20px;padding:1px 6px;display:none}
 .adm-nav-btn.active .nb-badge{display:inline}
 .adm-stat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:1rem}
-.adm-stat-card{background:var(--br);border:1px solid var(--g5);border-radius:10px;padding:.5rem .6rem;text-align:center}
-.adm-stat-card .asc-l{font-size:9px;color:var(--g3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
-.adm-stat-card .asc-v{font-size:1.05rem;font-weight:700;color:var(--g1)}
+.adm-stat-card{background:var(--br);border:1px solid var(--g5);border-radius:10px;padding:.5rem .6rem;text-align:center;min-width:0;overflow:hidden}
+.adm-stat-card .asc-l{font-size:9px;color:var(--g3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;line-height:1.25}
+.adm-stat-card .asc-v{font-size:clamp(.85rem,4vw,1.05rem);font-weight:700;color:var(--g1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .adm-stat-card.green{border-color:#c5ddc9;background:var(--vdx)}
 .adm-stat-card.green .asc-v{color:var(--vd)}
 .dia-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
@@ -184,11 +185,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .upload-badge-req{display:inline-block;background:var(--er);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-top:4px;letter-spacing:.5px}
 @media print{.topbar,.hero,.main,.toast,.ov{display:none!important}#print-area{display:block!important}}
 #print-area{display:none;padding:2rem;font-family:'DM Sans',sans-serif;color:#1a1a1a}
+@media(max-width:560px){
+  .hero-cards{grid-template-columns:repeat(2,1fr);gap:6px}
+}
 @media(max-width:480px){
-  .hero-cards{grid-template-columns:repeat(2,1fr)}
+  .topbar{padding:0 .8rem}
+  .hero{padding:1.2rem .9rem 1rem}
+  .hero h2{font-size:1.35rem}
+  .main{padding:1rem .9rem}
+  .ash{padding:1.1rem .9rem}
+  .adm-stat-cards{gap:5px}
+  .adm-nav-btn,.adm-nav-btn .nb-lbl{font-size:11px;letter-spacing:.2px}
   .cdp-adm-row{grid-template-columns:32px 1fr 1fr;gap:4px}
   .cdp-adm-row input{font-size:11px;padding:6px 8px}
   .cdp-adm-row div:first-child{font-size:9px}
+  .dia-btn{padding:12px 2px 10px}
+  .dia-btn .db-nome{font-size:12px;letter-spacing:0}
+}
+@media(max-width:360px){
+  .adm-stat-cards{grid-template-columns:repeat(2,1fr)}
+  .adm-nav-btn,.adm-nav-btn .nb-lbl{font-size:10px}
 }
 </style>
 </head>
@@ -206,6 +222,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
   </div>
   <div style="display:flex;align-items:center;gap:8px">
     <span class="badge-adm" id="badge-adm">Admin</span>
+    <button class="btn-adm" id="btn-logout" onclick="logoutAdmin()" style="display:none;background:rgba(220,80,80,.25);border-color:rgba(220,80,80,.4)">Sair</button>
     <button class="btn-adm" onclick="abrirAdmin()">⚙ Admin</button>
   </div>
 </div>
@@ -1074,6 +1091,7 @@ function loginAdmin(){
     document.getElementById('adm-login').style.display='none';
     document.getElementById('adm-painel').style.display='block';
     document.getElementById('badge-adm').style.display='inline';
+    document.getElementById('btn-logout').style.display='inline';
     // hc-arr-card já visível para todos
     preencherAdmin();
     // PROTEÇÃO CONTRA PERDA DE DADOS: backup automático silencioso ao logar
@@ -1082,6 +1100,14 @@ function loginAdmin(){
   } else toast('Senha incorreta');
 }
 window.loginAdmin = loginAdmin;
+function logoutAdmin(){
+  isAdmin=false;
+  document.getElementById('badge-adm').style.display='none';
+  document.getElementById('btn-logout').style.display='none';
+  fecharAdmin();
+  if(_cacheSem) renderHero(_cacheSem, _cacheIns);
+}
+window.logoutAdmin = logoutAdmin;
 
 // Backup automático silencioso — salva cópia local no navegador toda vez que o admin entra.
 // Não substitui o backup manual em arquivo, mas garante uma rede de segurança recuperável.
@@ -2420,6 +2446,6 @@ function iniciarListenersUmaVez(){
 }
 iniciarListenersUmaVez();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v12</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v13</div>
 </body>
 </html>
