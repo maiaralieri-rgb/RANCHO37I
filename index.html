@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260608-v9-lista-dia -->
+<meta charset="UTF-8"><!-- deploy:20260615-v10-saldo-validado -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1275,7 +1275,9 @@ function renderAdmIns(sem, ins){
   el.innerHTML=ins.map(i=>{
     const dias=DK.filter(d=>i.dias&&i.dias[d]), tot=dias.length*vlr;
     const comp=i.comprovante?`<a href="${i.comprovante.data64}" download="${i.comprovante.nome}" style="font-size:10px;color:var(--vdm);font-weight:700;text-decoration:none">📎</a>`:'';
-    return`<div class="mgmt-row"><div><div class="mgmt-nome">${escHTML(i.qra)}</div><div class="mgmt-sub">${dias.map(d=>DN[DK.indexOf(d)]).join(', ')}${vlr?` · R$${tot.toFixed(2)}`:''}</div></div><div style="display:flex;gap:6px;align-items:center">${comp}<button type="button" class="btn-pg ${i.pago?'pago':'deve'}" onclick="tglPago('${i.id}',${!i.pago})">${i.pago?'✓ Pago':'Pendente'}</button><button type="button" class="btn-dl" onclick="delIns('${i.id}')">✕</button></div></div>`;
+    // Valor monetário só aparece quando o pagamento está validado
+    const valTxt = vlr ? (i.pago ? ` · <span style="color:var(--ok);font-weight:700">R$${tot.toFixed(2)} ✓</span>` : ` · <span style="color:var(--g3)">a validar</span>`) : '';
+    return`<div class="mgmt-row"><div><div class="mgmt-nome">${escHTML(i.qra)}</div><div class="mgmt-sub">${dias.map(d=>DN[DK.indexOf(d)]).join(', ')}${valTxt}</div></div><div style="display:flex;gap:6px;align-items:center">${comp}<button type="button" class="btn-pg ${i.pago?'pago':'deve'}" onclick="tglPago('${i.id}',${!i.pago})">${i.pago?'✓ Validado':'Validar'}</button><button type="button" class="btn-dl" onclick="delIns('${i.id}')">✕</button></div></div>`;
   }).join('');
   td.innerHTML='<div style="font-size:10px;color:var(--g3);font-weight:700;width:100%;margin-bottom:4px">MARMITAS POR DIA</div>'+
     DK.map((dk,i)=>`<div class="totd-item"><div class="totd-l">${DN[i]}</div><div class="totd-n">${ins.filter(x=>x.dias&&x.dias[dk]).length}</div></div>`).join('');
@@ -1283,7 +1285,18 @@ function renderAdmIns(sem, ins){
 
 async function tglPago(id, val){
   if(!semAtiva) return;
-  await updateDoc(doc(db,'semanas',semAtiva,'inscritos',id),{pago:val});
+  // Validar pagamento exige comprovante anexado (conferência), quando a semana o exige
+  if(val){
+    const insc = _cacheIns.find(x=>x.id===id);
+    const exige = _cacheSem && _cacheSem.exigirComprovante;
+    if(exige && insc && !insc.comprovante){
+      toast('⚠️ Comprovante não anexado. Confira o comprovante antes de validar o pagamento.');
+      return;
+    }
+  }
+  try{
+    await updateDoc(doc(db,'semanas',semAtiva,'inscritos',id),{pago:val});
+  }catch(e){ toast('Erro ao validar: '+e.message); console.error(e); }
 }
 window.tglPago = tglPago;
 
@@ -2073,7 +2086,7 @@ async function toggleHistSem(id){
         <div style="font-size:1.1rem;font-weight:700;color:var(--ok)">R$${totalArrecadado.toFixed(2)}</div>
       </div>
     </div>
-    ${vlr&&totalPrevisto!==totalArrecadado?`<div style="font-size:11px;color:var(--wn);background:var(--wnc);border-radius:6px;padding:.35rem .6rem;margin-bottom:.75rem">Previsto: R$${totalPrevisto.toFixed(2)} · Pendente: R$${(totalPrevisto-totalArrecadado).toFixed(2)}</div>`:''}
+    ${vlr&&totalPrevisto!==totalArrecadado?`<div style="font-size:11px;color:var(--wn);background:var(--wnc);border-radius:6px;padding:.35rem .6rem;margin-bottom:.75rem">Aguardando validação de pagamentos pelo admin. O valor arrecadado sobe conforme cada pagamento é validado.</div>`:''}
     ${gastosSem>0?`<div style="background:${saldo>=0?'var(--vdx)':'var(--erc)'};border:1px solid ${saldo>=0?'#c5ddc9':'#f1a9a0'};border-radius:8px;padding:.55rem .75rem;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center"><div style="font-size:11px;font-weight:700;color:var(--g2)">Gastos: <strong>R$${gastosSem.toFixed(2)}</strong>${credAntSem>0?` · Crédito ant.: R$${credAntSem.toFixed(2)}`:''}</div><div style="font-size:13px;font-weight:800;color:${saldo>=0?'var(--vd)':'var(--er)'}">Saldo: R$${saldo.toFixed(2)}</div></div>`:''}
     <div style="font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.4rem">Notas Fiscais</div>
     ${notasAdminHtml}
@@ -2395,6 +2408,6 @@ function iniciarListenersUmaVez(){
 }
 iniciarListenersUmaVez();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v9</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v10</div>
 </body>
 </html>
