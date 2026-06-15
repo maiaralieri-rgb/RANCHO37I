@@ -218,7 +218,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
     <div class="hero-cards">
       <div class="hc"><div class="hc-l">Valor/dia</div><div class="hc-v" id="hc-val">—</div><div class="hc-s">por refeição</div></div>
       <div class="hc"><div class="hc-l">Inscritos</div><div class="hc-v" id="hc-ins">0</div><div class="hc-s"> </div></div>
-      <div class="hc" id="hc-arr-card"><div class="hc-l">Arrecadado</div><div class="hc-v" id="hc-arr">R$0</div><div class="hc-s">confirmado</div></div>
+      <div class="hc" id="hc-arr-card"><div class="hc-l">Arrecadado</div><div class="hc-v" id="hc-arr">R$0</div><div class="hc-s">validado</div></div>
+      <div class="hc" id="hc-pend-card" style="display:none"><div class="hc-l">Pendente</div><div class="hc-v" id="hc-pend" style="color:#ffd27a">R$0</div><div class="hc-s">aguarda aprovação</div></div>
       <div class="hc" id="hc-saldo-card" style="display:none"><div class="hc-l">Saldo</div><div class="hc-v" id="hc-saldo">R$0</div><div class="hc-s">próx. semana</div></div>
     </div>
   </div>
@@ -358,8 +359,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
         <div class="asc-v" id="adm-stat-ins">0</div>
       </div>
       <div class="adm-stat-card green">
-        <div class="asc-l">Arrecadado semana</div>
+        <div class="asc-l">Arrecadado (validado)</div>
         <div class="asc-v" id="adm-stat-arr">R$0</div>
+      </div>
+      <div class="adm-stat-card" style="border-color:#e8d48a;background:var(--wnc)">
+        <div class="asc-l">Pendente aprovação</div>
+        <div class="asc-v" id="adm-stat-pend" style="color:var(--wn)">R$0</div>
       </div>
       <div class="adm-stat-card" style="border-color:#c5ddc9">
         <div class="asc-l">Saldo anterior</div>
@@ -815,6 +820,13 @@ function renderHero(sem, ins){
   document.getElementById('hc-ins').textContent=ins.length;
   const {saldoAnt, arrAtual, saldo, gastosAtual} = calcSaldoCumulativo(sem.id, ins, vlr);
   document.getElementById('hc-arr').textContent=`R$${arrAtual.toFixed(2)}`;
+  // Pendente de aprovação = inscritos ainda não validados pelo admin
+  const pend = ins.filter(i=>!i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr, 0);
+  const pendCard=document.getElementById('hc-pend-card'), pendEl=document.getElementById('hc-pend');
+  if(pendCard && pendEl){
+    if(pend>0){ pendEl.textContent=`R$${pend.toFixed(2)}`; pendCard.style.display='block'; }
+    else pendCard.style.display='none';
+  }
   // Saldo cumulativo
   const saldoCard=document.getElementById('hc-saldo-card');
   const saldoEl=document.getElementById('hc-saldo');
@@ -1126,6 +1138,9 @@ function atualizarAdminStatusBar(sem, ins, vlr){
   if(statIns) statIns.textContent = ins.length;
   const {saldoAnt, arrAtual, saldo, gastosAtual} = sem ? calcSaldoCumulativo(sem.id, ins, vlr) : {saldoAnt:0,arrAtual:0,saldo:0,gastosAtual:0};
   if(statArr) statArr.textContent = `R$${arrAtual.toFixed(2)}`;
+  const pend = ins.filter(i=>!i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr, 0);
+  const pendEl = document.getElementById('adm-stat-pend');
+  if(pendEl) pendEl.textContent = `R$${pend.toFixed(2)}`;
   const credEl  = document.getElementById('adm-stat-credant');
   const saldoEl = document.getElementById('adm-stat-saldo');
   const formulaEl = document.getElementById('adm-stat-saldo-formula');
