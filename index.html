@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260615-v11-card-pendente -->
+<meta charset="UTF-8"><!-- deploy:20260615-v12-card-pendente-fix -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -219,7 +219,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
       <div class="hc"><div class="hc-l">Valor/dia</div><div class="hc-v" id="hc-val">—</div><div class="hc-s">por refeição</div></div>
       <div class="hc"><div class="hc-l">Inscritos</div><div class="hc-v" id="hc-ins">0</div><div class="hc-s"> </div></div>
       <div class="hc" id="hc-arr-card"><div class="hc-l">Arrecadado</div><div class="hc-v" id="hc-arr">R$0</div><div class="hc-s">validado</div></div>
-      <div class="hc" id="hc-pend-card" style="display:none"><div class="hc-l">Pendente</div><div class="hc-v" id="hc-pend" style="color:#ffd27a">R$0</div><div class="hc-s">aguarda aprovação</div></div>
+      <div class="hc" id="hc-pend-card"><div class="hc-l">Pendente</div><div class="hc-v" id="hc-pend" style="color:#ffd27a">R$0</div><div class="hc-s">aguarda aprovação</div></div>
       <div class="hc" id="hc-saldo-card" style="display:none"><div class="hc-l">Saldo</div><div class="hc-v" id="hc-saldo">R$0</div><div class="hc-s">próx. semana</div></div>
     </div>
   </div>
@@ -822,11 +822,8 @@ function renderHero(sem, ins){
   document.getElementById('hc-arr').textContent=`R$${arrAtual.toFixed(2)}`;
   // Pendente de aprovação = inscritos ainda não validados pelo admin
   const pend = ins.filter(i=>!i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr, 0);
-  const pendCard=document.getElementById('hc-pend-card'), pendEl=document.getElementById('hc-pend');
-  if(pendCard && pendEl){
-    if(pend>0){ pendEl.textContent=`R$${pend.toFixed(2)}`; pendCard.style.display='block'; }
-    else pendCard.style.display='none';
-  }
+  const pendEl=document.getElementById('hc-pend');
+  if(pendEl) pendEl.textContent=`R$${pend.toFixed(2)}`;
   // Saldo cumulativo
   const saldoCard=document.getElementById('hc-saldo-card');
   const saldoEl=document.getElementById('hc-saldo');
@@ -2423,6 +2420,6 @@ function iniciarListenersUmaVez(){
 }
 iniciarListenersUmaVez();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v12</div>
 </body>
 </html>
