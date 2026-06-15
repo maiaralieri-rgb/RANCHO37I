@@ -179,6 +179,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .rel-card .rc-s{font-size:10px;color:var(--g3);margin-top:2px}
 .sync-badge{font-size:10px;color:var(--ok);background:var(--okc);padding:2px 8px;border-radius:20px;margin-left:6px;display:none}
 @keyframes pulse{from{opacity:1}to{opacity:.4}}
+.upload-req{border-color:var(--er)!important;background:var(--erc)!important;animation:pulse-req 0.6s ease 3}
+@keyframes pulse-req{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
 @media print{.topbar,.hero,.main,.toast,.ov{display:none!important}#print-area{display:block!important}}
 #print-area{display:none;padding:2rem;font-family:'DM Sans',sans-serif;color:#1a1a1a}
 @media(max-width:480px){
@@ -439,6 +441,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
           <div class="cdp-adm-row"><div class="cdp-adm-lbl">SEX</div><input type="text" id="cp-sex" placeholder="Prato principal"><input type="text" id="ca-sex" placeholder="Acomp."></div>
         </div>
       </div>
+      <div style="background:var(--g5);border-radius:var(--r);padding:.85rem;margin-bottom:.85rem">
+        <div class="afield" style="margin-top:.5rem">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:600;color:var(--g2);text-transform:uppercase;letter-spacing:.5px">
+            <input type="checkbox" id="a-exigir-comp" style="width:16px;height:16px;cursor:pointer;accent-color:var(--vd)">
+            Exigir comprovante de pagamento na inscrição
+          </label>
+        </div>
+      </div>
       <button type="button" class="btn-sv" onclick="salvarSemana()">Salvar semana</button>
     </div>
 
@@ -653,6 +663,7 @@ let unsubSemDoc = null;        // FIX: listener do doc da semana (antes vazava e
 let _cacheSem = null;          // FIX BUG CRÍTICO: usado sem declaração -> ReferenceError travava o carregamento
 let _cacheIns = [];            // FIX BUG CRÍTICO: idem
 let _semCarregada = null;      // controla qual semana já tem listeners ativos (evita duplicação)
+let _cacheSemanas = [];
 
 // ── UI helpers ──────────────────────────────────────────────────────────────
 function loading(on){
@@ -735,6 +746,19 @@ function removerComp(){
 }
 window.removerComp = removerComp;
 
+// ── Saldo cumulativo ─────────────────────────────────────────────────────────
+function calcSaldoCumulativo(semId, insAtivos, vlr){
+  const sem = _cacheSemanas.find(s=>s.id===semId);
+  if(!sem) return {saldoAnt:0, arrAtual:0, saldo:0, gastosAtual:0};
+  const arrAtual = insAtivos.filter(i=>i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr, 0);
+  const gastosAtual = parseFloat(sem.gastos)||0;
+  const saldoAnt = _cacheSemanas
+    .filter(s=>s.criadoEm < sem.criadoEm)
+    .reduce((a,s)=>a+(parseFloat(s.saldoRemanescente)||0), 0);
+  const saldo = saldoAnt + arrAtual - gastosAtual;
+  return {saldoAnt, arrAtual, saldo, gastosAtual};
+}
+
 // ── Render tela principal ────────────────────────────────────────────────────
 function renderHero(sem, ins){
   if(!sem){
@@ -758,19 +782,18 @@ function renderHero(sem, ins){
   document.getElementById('val-num').textContent=vlr?vlr.toFixed(2):'—';
   document.getElementById('val-obs').textContent=sem.valorObs||'Inclui prato completo com guarnição, acompanhamento e salada.';
   document.getElementById('hc-ins').textContent=ins.length;
-  const arr=ins.filter(i=>i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr,0);
-  document.getElementById('hc-arr').textContent=`R$${arr.toFixed(2)}`;
-  // Saldo restante (se gastos registrados)
-  const gastos=parseFloat(sem.gastos)||0;
-  const credAnt=parseFloat(sem.creditoAnt)||0;
+  const {saldoAnt, arrAtual, saldo, gastosAtual} = calcSaldoCumulativo(sem.id, ins, vlr);
+  document.getElementById('hc-arr').textContent=`R$${arrAtual.toFixed(2)}`;
+  // Saldo cumulativo
   const saldoCard=document.getElementById('hc-saldo-card');
   const saldoEl=document.getElementById('hc-saldo');
-  if(gastos>0 && saldoCard && saldoEl){
-    const saldo=arr+credAnt-gastos;
+  if(saldoCard && saldoEl && saldo!==0){
     saldoEl.textContent=`R$${saldo.toFixed(2)}`;
     saldoEl.style.color=saldo>=0?'#6ee08a':'#ff9980';
     saldoCard.style.display='block';
   } else if(saldoCard){ saldoCard.style.display='none'; }
+  // atualizarUploadArea
+  atualizarUploadArea(sem);
   // Cardápio
   const cdp=sem.cardapio||[];
   document.getElementById('cdp-card').innerHTML=cdp.some(r=>r&&r.principal)
@@ -780,6 +803,24 @@ function renderHero(sem, ins){
   renderInscritos(ins, vlr);
   renderPagamento(sem.pagamento||null);
   atualizarAdminStatusBar(sem, ins, vlr);
+}
+
+function atualizarUploadArea(sem){
+  const uploadEl = document.getElementById('upload-comp');
+  if(!uploadEl) return;
+  const badgeId = 'upload-obrig-badge';
+  let badge = document.getElementById(badgeId);
+  if(sem && sem.exigirComprovante){
+    if(!badge){
+      badge = document.createElement('div');
+      badge.id = badgeId;
+      badge.style.cssText = 'display:inline-block;margin-top:4px;background:var(--er);color:#fff;font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;letter-spacing:.5px';
+      badge.textContent = 'OBRIGATÓRIO';
+      uploadEl.appendChild(badge);
+    }
+  } else {
+    if(badge) badge.remove();
+  }
 }
 
 function renderInscritos(ins, vlr){
@@ -858,6 +899,7 @@ async function iniciarListeners(){
   if(unsubSem) unsubSem();
   unsubSem = onSnapshot(query(semanasRef, orderBy('criadoEm','asc')), snap=>{
     const semanas = snap.docs.map(d=>({id:d.id,...d.data()}));
+    _cacheSemanas = semanas;
     // Define semana ativa só na primeira vez
     if(!semAtiva && semanas.length) semAtiva = semanas[semanas.length-1].id;
     renderSemNav(semanas);
@@ -918,6 +960,16 @@ async function carregarSemanaAtiva(){
   });
 }
 
+function mostrarErroComprovante(){
+  const el = document.getElementById('upload-comp');
+  if(el){
+    el.classList.add('upload-req');
+    setTimeout(()=>el.classList.remove('upload-req'), 3000);
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+  toast('⚠️ Comprovante de pagamento obrigatório. Anexe antes de confirmar.');
+}
+
 // ── Inscrição ─────────────────────────────────────────────────────────────────
 async function inscrever(){
   const qra=document.getElementById('inp-qra').value.trim();
@@ -925,6 +977,7 @@ async function inscrever(){
   const dias=getDias();
   if(!Object.values(dias).some(Boolean)){ toast('Selecione ao menos um dia'); return; }
   if(!semAtiva){ toast('Nenhuma semana ativa'); return; }
+  if(_cacheSem && _cacheSem.exigirComprovante && !compSel){ mostrarErroComprovante(); return; }
   const btn=document.getElementById('btn-inscrever');
   btn.disabled=true; btn.textContent='Salvando...';
   try{
@@ -1038,21 +1091,17 @@ function atualizarAdminStatusBar(sem, ins, vlr){
   nome.textContent = sem ? `Semana ${sem.label}` : 'Nenhuma semana';
   if(statSem) statSem.textContent = sem ? sem.label : '—';
   if(statIns) statIns.textContent = ins.length;
-  const arr = ins.filter(i=>i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr,0);
-  if(statArr) statArr.textContent = `R$${arr.toFixed(2)}`;
-  // Saldo anterior e saldo total
-  const credAnt = parseFloat(sem&&sem.creditoAnt)||0;
-  const gastos  = parseFloat(sem&&sem.gastos)||0;
-  const saldo   = credAnt + arr - gastos;
+  const {saldoAnt, arrAtual, saldo, gastosAtual} = sem ? calcSaldoCumulativo(sem.id, ins, vlr) : {saldoAnt:0,arrAtual:0,saldo:0,gastosAtual:0};
+  if(statArr) statArr.textContent = `R$${arrAtual.toFixed(2)}`;
   const credEl  = document.getElementById('adm-stat-credant');
   const saldoEl = document.getElementById('adm-stat-saldo');
   const formulaEl = document.getElementById('adm-stat-saldo-formula');
-  if(credEl) credEl.textContent = `R$${credAnt.toFixed(2)}`;
+  if(credEl) credEl.textContent = `R$${saldoAnt.toFixed(2)}`;
   if(saldoEl){
     saldoEl.textContent = `R$${saldo.toFixed(2)}`;
     saldoEl.style.color = saldo >= 0 ? 'var(--vd)' : 'var(--er)';
   }
-  if(formulaEl) formulaEl.textContent = `R$${credAnt.toFixed(2)} + R$${arr.toFixed(2)}${gastos?` − R$${gastos.toFixed(2)}`:''}`;
+  if(formulaEl) formulaEl.textContent = `R$${saldoAnt.toFixed(2)} + R$${arrAtual.toFixed(2)}${gastosAtual?` − R$${gastosAtual.toFixed(2)}`:''}`;
 
   if(statPrazo && sem && sem.prazoData){
     const prazo = new Date(sem.prazoData+'T'+(sem.prazoHora||'23:59'));
@@ -1083,6 +1132,8 @@ async function preencherAdmin(){
   const gEl=document.getElementById('a-gastos'), caEl=document.getElementById('a-credito-ant');
   if(gEl) gEl.value=sem.gastos||'';
   if(caEl) caEl.value=sem.creditoAnt||'';
+  const exigirEl=document.getElementById('a-exigir-comp');
+  if(exigirEl) exigirEl.checked=sem.exigirComprovante||false;
   const ctxEl = document.getElementById('notas-sem-ctx');
   if(ctxEl) ctxEl.textContent = sem ? `Notas da semana: ${sem.label}` : 'Selecione uma semana';
   // Pagamento — lê do documento da semana
@@ -1107,7 +1158,7 @@ function preencherAdminSemanas(semanas){
 async function novaSemana(){
   const lb=document.getElementById('a-sem-nova').value.trim();
   if(!lb){ toast('Informe o nome da semana'); return; }
-  const ref=await addDoc(collection(db,'semanas'),{label:lb,valor:0,valorObs:'',cardapio:DK.map(()=>({principal:'',acomp:''})),criadoEm:Date.now()});
+  const ref=await addDoc(collection(db,'semanas'),{label:lb,valor:0,valorObs:'',cardapio:DK.map(()=>({principal:'',acomp:''})),criadoEm:Date.now(),exigirComprovante:true});
   semAtiva=ref.id;
   document.getElementById('a-sem-nova').value='';
   toast('✓ Semana criada');
@@ -1142,7 +1193,8 @@ async function salvarSemana(){
     cardapio: DK.map(dk=>({
       principal:(document.getElementById('cp-'+dk)||{value:''}).value,
       acomp:(document.getElementById('ca-'+dk)||{value:''}).value
-    }))
+    })),
+    exigirComprovante: document.getElementById('a-exigir-comp')?document.getElementById('a-exigir-comp').checked:false
   };
   try{
     await updateDoc(doc(db,'semanas',semAtiva), data);
@@ -1356,7 +1408,10 @@ async function recalcGastosDeNotas(semId, notas){
   if(total>0){
     const el=document.getElementById('a-gastos');
     if(el){ el.value=total.toFixed(2); }
-    await updateDoc(doc(db,'semanas',semId),{gastos:total,creditoAnt:parseFloat(document.getElementById('a-credito-ant')?document.getElementById('a-credito-ant').value:0)||0});
+    const vlr = _cacheSem ? parseFloat(_cacheSem.valor)||0 : 0;
+    const arr = _cacheIns.filter(i=>i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr, 0);
+    const saldoRemanescente = arr - total;
+    await updateDoc(doc(db,'semanas',semId),{gastos:total, creditoAnt:0, saldoRemanescente});
     calcRelatorio();
   }
 }
@@ -1387,7 +1442,10 @@ async function salvarGastos(){
   const gastos=parseFloat(document.getElementById('a-gastos').value)||0;
   const creditoAnt=parseFloat(document.getElementById('a-credito-ant').value)||0;
   try{
-    await updateDoc(doc(db,'semanas',semAtiva),{gastos,creditoAnt});
+    const vlr = _cacheSem ? parseFloat(_cacheSem.valor)||0 : 0;
+    const arr = _cacheIns.filter(i=>i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr, 0);
+    const saldoRemanescente = arr - gastos;
+    await updateDoc(doc(db,'semanas',semAtiva),{gastos, creditoAnt:0, saldoRemanescente});
   }catch(e){ toast('Erro ao salvar gastos: '+e.message); console.error(e); }
 }
 window.salvarGastos=salvarGastos;
