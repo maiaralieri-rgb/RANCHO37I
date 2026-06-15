@@ -613,7 +613,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 
     <div class="asec" id="asec-relatorio">
       <div class="afield"><label>Total de gastos da semana (R$)</label><input type="number" id="a-gastos" step="0.01" min="0" placeholder="0,00" oninput="calcRelatorio()"></div>
-      <div class="afield"><label>Crédito acumulado semana anterior (R$)</label><input type="number" id="a-credito-ant" step="0.01" min="0" placeholder="0,00" oninput="calcRelatorio()"></div>
+      <div class="afield"><label>Crédito acumulado semana anterior (R$) — automático</label><input type="number" id="a-credito-ant" step="0.01" readonly style="background:var(--g5);color:var(--g2)" placeholder="0,00"><div style="font-size:10px;color:var(--g3);margin-top:3px">Calculado automaticamente: sobra de todas as semanas anteriores.</div></div>
       <button type="button" class="btn-sv" style="background:var(--vdm);margin-bottom:.75rem" onclick="salvarGastos().then(()=>toast('✓ Gastos salvos!'))">💾 Salvar gastos e crédito</button>
       <div id="rel-preview" style="display:none;margin-top:.5rem">
         <div style="background:var(--vdx);border:1px solid #c5ddc9;border-radius:var(--r);padding:1rem;margin-bottom:.75rem">
@@ -747,14 +747,45 @@ function removerComp(){
 window.removerComp = removerComp;
 
 // ── Saldo cumulativo ─────────────────────────────────────────────────────────
+// Cache de arrecadado (pagos) por semana, calculado AO VIVO dos inscritos reais.
+let _cacheArrPorSemana = {};
+
+// Busca os inscritos de TODAS as semanas e calcula o arrecadado de cada uma.
+// Isso garante que a sobra de semanas anteriores seja contabilizada mesmo que
+// o campo saldoRemanescente nunca tenha sido gravado.
+async function recalcArrecadadoSemanas(){
+  const result = {};
+  for(const s of _cacheSemanas){
+    try{
+      const snap = await getDocs(collection(db,'semanas',s.id,'inscritos'));
+      const vlr = parseFloat(s.valor)||0;
+      const arr = snap.docs.map(d=>d.data())
+        .filter(i=>i.pago)
+        .reduce((a,i)=>a+cntD(i.dias)*vlr, 0);
+      result[s.id] = arr;
+    }catch(e){ console.warn('[arr-semana]', s.id, e); }
+  }
+  _cacheArrPorSemana = result;
+  // Re-renderiza com os valores atualizados de semanas anteriores
+  if(_cacheSem) renderHero(_cacheSem, _cacheIns);
+}
+window.recalcArrecadadoSemanas = recalcArrecadadoSemanas;
+
 function calcSaldoCumulativo(semId, insAtivos, vlr){
   const sem = _cacheSemanas.find(s=>s.id===semId);
   if(!sem) return {saldoAnt:0, arrAtual:0, saldo:0, gastosAtual:0};
   const arrAtual = insAtivos.filter(i=>i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr, 0);
   const gastosAtual = parseFloat(sem.gastos)||0;
+  // Sobra de cada semana anterior = arrecadado real − gastos da semana.
+  // Usa o arrecadado ao vivo (cache); se ainda não carregou, cai para o campo gravado.
   const saldoAnt = _cacheSemanas
     .filter(s=>s.criadoEm < sem.criadoEm)
-    .reduce((a,s)=>a+(parseFloat(s.saldoRemanescente)||0), 0);
+    .reduce((a,s)=>{
+      const arrS = _cacheArrPorSemana[s.id];
+      const gastosS = parseFloat(s.gastos)||0;
+      const sobra = (arrS!==undefined) ? (arrS - gastosS) : (parseFloat(s.saldoRemanescente)||0);
+      return a + sobra;
+    }, 0);
   const saldo = saldoAnt + arrAtual - gastosAtual;
   return {saldoAnt, arrAtual, saldo, gastosAtual};
 }
@@ -900,6 +931,8 @@ async function iniciarListeners(){
   unsubSem = onSnapshot(query(semanasRef, orderBy('criadoEm','asc')), snap=>{
     const semanas = snap.docs.map(d=>({id:d.id,...d.data()}));
     _cacheSemanas = semanas;
+    // Recalcula o arrecadado real de cada semana (para saldo cumulativo correto)
+    recalcArrecadadoSemanas();
     // Define semana ativa só na primeira vez
     if(!semAtiva && semanas.length) semAtiva = semanas[semanas.length-1].id;
     renderSemNav(semanas);
@@ -1131,7 +1164,8 @@ async function preencherAdmin(){
   });
   const gEl=document.getElementById('a-gastos'), caEl=document.getElementById('a-credito-ant');
   if(gEl) gEl.value=sem.gastos||'';
-  if(caEl) caEl.value=sem.creditoAnt||'';
+  // Crédito anterior é automático: sobra cumulativa das semanas anteriores
+  if(caEl){ const vlrSem=parseFloat(sem.valor)||0; caEl.value=calcSaldoCumulativo(sem.id, _cacheIns, vlrSem).saldoAnt.toFixed(2); }
   const exigirEl=document.getElementById('a-exigir-comp');
   if(exigirEl) exigirEl.checked=sem.exigirComprovante||false;
   const ctxEl = document.getElementById('notas-sem-ctx');
@@ -1453,13 +1487,15 @@ window.salvarGastos=salvarGastos;
 async function calcRelatorio(){
   if(!semAtiva){ document.getElementById('rel-empty').style.display='block'; document.getElementById('rel-preview').style.display='none'; return; }
   const gastos=parseFloat(document.getElementById('a-gastos').value)||0;
-  const creditoAnt=parseFloat(document.getElementById('a-credito-ant').value)||0;
   const sem=_cacheSem;
   const ins=_cacheIns;
   const vlr=sem?parseFloat(sem.valor)||0:0;
   const totalPrevisto=ins.reduce((a,i)=>a+cntD(i.dias)*vlr,0);
   const totalArrecadado=ins.filter(i=>i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr,0);
   const totalPendente=totalPrevisto-totalArrecadado;
+  // Saldo anterior = sobra cumulativa das semanas anteriores (automático, cronológico)
+  const creditoAnt = sem ? calcSaldoCumulativo(sem.id, ins, vlr).saldoAnt : 0;
+  const caEl=document.getElementById('a-credito-ant'); if(caEl) caEl.value=creditoAnt.toFixed(2);
   const saldo=creditoAnt+totalArrecadado-gastos;
   document.getElementById('rel-empty').style.display='none';
   document.getElementById('rel-preview').style.display='block';
