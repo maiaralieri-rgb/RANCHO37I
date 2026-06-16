@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v11.9-stat-cards-admin-clicaveis -->
+<meta charset="UTF-8"><!-- deploy:20260616-v11.10-cards-clicaveis-somente-admin -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -267,10 +267,10 @@ a[onclick]:active{transform:scale(.93)}
     <div class="hero-sub">Confirme sua presença para a semana</div>
     <div class="hero-cards">
       <div class="hc"><div class="hc-l">Valor/dia</div><div class="hc-v" id="hc-val">—</div><div class="hc-s">por refeição</div></div>
-      <div class="hc" id="hc-ins-card" onclick="abrirModalInscritos()" style="cursor:pointer;position:relative"><div class="hc-l">Inscritos</div><div class="hc-v" id="hc-ins">0</div><div class="hc-s">▶ ver lista</div></div>
-      <div class="hc" id="hc-arr-card" onclick="abrirModalPagantes()" style="cursor:pointer"><div class="hc-l">Arrecadado</div><div class="hc-v" id="hc-arr">R$0</div><div class="hc-s">▶ validados</div></div>
+      <div class="hc" id="hc-ins-card"><div class="hc-l">Inscritos</div><div class="hc-v" id="hc-ins">0</div><div class="hc-s"> </div></div>
+      <div class="hc" id="hc-arr-card"><div class="hc-l">Arrecadado</div><div class="hc-v" id="hc-arr">R$0</div><div class="hc-s">validado</div></div>
       <div class="hc" id="hc-pend-card"><div class="hc-l">Pendente</div><div class="hc-v" id="hc-pend" style="color:#ffd27a">R$0</div><div class="hc-s">aguarda aprovação</div></div>
-      <div class="hc" id="hc-saldo-card" onclick="abrirModalGrafico()" style="display:none;cursor:pointer"><div class="hc-l">Saldo ant.</div><div class="hc-v" id="hc-saldo">R$0</div><div class="hc-s">▶ histórico</div></div>
+      <div class="hc" id="hc-saldo-card" style="display:none"><div class="hc-l">Saldo ant.</div><div class="hc-v" id="hc-saldo">R$0</div><div class="hc-s"> </div></div>
     </div>
   </div>
 </div>
@@ -3195,6 +3195,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.9</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.10</div>
 </body>
 </html>
