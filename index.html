@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v15-fix-logout-real -->
+<meta charset="UTF-8"><!-- deploy:20260616-v16-audit-fix-comp-lembrete-abrirAdmin -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1015,7 +1015,12 @@ async function carregarSemanaAtiva(){
     if(semAtiva !== semIdLocal) return;
     _cacheIns = snap.docs.map(d=>({id:d.id,...d.data()}));
     renderHero(_cacheSem, _cacheIns);
-    if(isAdmin) renderAdmIns(_cacheSem, _cacheIns);
+    if(isAdmin){
+      renderAdmIns(_cacheSem, _cacheIns);
+      // Atualiza comprovantes se a aba estiver visível
+      const abaComp = document.getElementById('asec-comprovantes');
+      if(abaComp && abaComp.classList.contains('active')) renderAdmComp();
+    }
   }, err=>{
     console.error('[inscritos]', err);
   });
@@ -1075,10 +1080,12 @@ function abrirAdmin(){
   if(isAdmin){
     document.getElementById('adm-login').style.display='none';
     document.getElementById('adm-painel').style.display='block';
-    // Renderiza inscritos instantaneamente do cache
     renderAdmIns(_cacheSem, _cacheIns);
-    // Preenche resto de forma assíncrona
     preencherAdmin();
+  } else {
+    // Garante estado correto do painel independente do histórico de navegação
+    document.getElementById('adm-login').style.display='block';
+    document.getElementById('adm-painel').style.display='none';
   }
 }
 window.abrirAdmin = abrirAdmin;
@@ -1521,13 +1528,32 @@ async function delNota(idx){
 window.delNota = delNota;
 
 // ── Admin — Comprovantes ──────────────────────────────────────────────────────
-async function renderAdmComp(){
-  if(!semAtiva){ document.getElementById('a-comp-list').innerHTML='<div class="empty-st">Nenhuma semana ativa.</div>'; return; }
-  const snap=await getDocs(collection(db,'semanas',semAtiva,'inscritos'));
-  const comps=snap.docs.map(d=>({id:d.id,...d.data()})).filter(i=>i.comprovante);
-  document.getElementById('a-comp-list').innerHTML=comps.length
-    ?comps.map(i=>`<div class="comp-adm-row"><span style="font-size:16px">${i.comprovante.tipo==='pdf'?'📄':'🖼'}</span><div style="flex:1"><div style="font-size:13px;font-weight:600">${i.qra}</div><div style="font-size:11px;color:var(--g3)">${i.comprovante.nome}</div></div><a href="${i.comprovante.data64}" download="${i.comprovante.nome}" style="font-size:12px;color:var(--vdm);font-weight:700;text-decoration:none">Baixar</a></div>`).join('')
-    :'<div class="empty-st">Nenhum comprovante enviado.</div>';
+function renderAdmComp(){
+  const el = document.getElementById('a-comp-list');
+  if(!semAtiva){ el.innerHTML='<div class="empty-st">Nenhuma semana ativa.</div>'; return; }
+  // Usa o cache live em vez de getDocs avulso — instantâneo e sempre atualizado
+  const comps = _cacheIns.filter(i=>i.comprovante);
+  if(!comps.length){ el.innerHTML='<div class="empty-st">Nenhum comprovante enviado.</div>'; return; }
+  el.innerHTML = comps.map(i=>{
+    const c = i.comprovante;
+    const isPdf = c.tipo==='pdf';
+    const preview = !isPdf
+      ? `<img src="${c.data64}" alt="comprovante" style="width:100%;max-height:160px;object-fit:contain;border-radius:6px;border:1px solid var(--g4);margin:.4rem 0;cursor:pointer" onclick="window.open('${c.data64}','_blank')">`
+      : `<div style="padding:.5rem;background:var(--g5);border-radius:6px;text-align:center;font-size:12px;color:var(--g2);margin:.4rem 0">📄 PDF — clique em Baixar para visualizar</div>`;
+    return `<div style="background:var(--br);border:1px solid var(--g4);border-radius:var(--r);padding:.75rem;margin-bottom:.6rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:.35rem">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--g1)">${escHTML(i.qra)}</div>
+          <div style="font-size:10px;color:var(--g3)">${escHTML(c.nome)}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+          <a href="${c.data64}" download="${c.nome}" style="font-size:11px;color:var(--vdm);font-weight:700;text-decoration:none;padding:3px 9px;border:1px solid #c5ddc9;border-radius:20px;background:var(--vdx)">⬇ Baixar</a>
+          <button type="button" class="btn-pg ${i.pago?'pago':'deve'}" onclick="tglPago('${i.id}',${!i.pago})">${i.pago?'✓ Validado':'Validar'}</button>
+        </div>
+      </div>
+      ${preview}
+    </div>`;
+  }).join('');
 }
 
 // ── Relatório ─────────────────────────────────────────────────────────────────
@@ -1927,7 +1953,7 @@ ${cardapioTxt||'   A definir'}
 
 ⚠️ Inscrições fora do prazo não serão garantidas.
 
-🔗 [COLE O LINK AQUI]`;
+🔗 https://previsaoderancho37bpmi-bymlr.netlify.app`;
 
   el.textContent = msg;
   window._lembreteMsg = msg;
@@ -2455,6 +2481,6 @@ function iniciarListenersUmaVez(){
 }
 iniciarListenersUmaVez();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v15</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v16</div>
 </body>
 </html>
