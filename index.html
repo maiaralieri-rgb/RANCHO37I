@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v11.6-comp-viewer-safe-area-botao-fechar -->
+<meta charset="UTF-8"><!-- deploy:20260616-v11.7-auditoria-tripla-xss-try-catch-safe-area -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -254,7 +254,7 @@ a[onclick]:active{transform:scale(.93)}
   <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
     <div style="display:flex;align-items:center;gap:8px">
       <span class="badge-adm" id="badge-adm">Admin</span>
-      <button class="btn-adm" onclick="abrirAdmin()">⚙ Admin</button>
+      <button type="button" class="btn-adm" onclick="abrirAdmin()">⚙ Admin</button>
     </div>
     <button class="btn-adm" id="btn-logout" onclick="logoutAdmin()" style="display:none;background:rgba(220,80,80,.25);border-color:rgba(220,80,80,.4)">Sair</button>
   </div>
@@ -467,7 +467,7 @@ a[onclick]:active{transform:scale(.93)}
 </div>
 
 <!-- Aviso flutuante para usuários -->
-<div id="aviso-modal" style="display:none;position:fixed;inset:0;z-index:550;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:1.2rem">
+<div id="aviso-modal" style="display:none;position:fixed;inset:0;z-index:550;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:1.2rem;padding-top:calc(1.2rem + env(safe-area-inset-top))">
   <div class="aviso-inner" style="background:var(--br);border-radius:20px;width:100%;max-width:460px;padding:1.4rem;box-shadow:0 12px 48px rgba(0,0,0,.35);position:relative">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
       <div style="display:flex;align-items:center;gap:10px">
@@ -1066,9 +1066,9 @@ window.selecionarComp = selecionarComp;
 
 function mostrarBloqueioComp(msg){
   const box = document.getElementById('upload-comp');
-  // Exibe erro no lugar do upload por 5 segundos
   const prev = box ? box.innerHTML : '';
-  if(box) box.innerHTML=`<div style="font-size:22px">⛔</div><p style="font-size:12px;color:var(--er);font-weight:700;line-height:1.5">${msg}</p>`;
+  const safeMsg = escHTML(String(msg||''));
+  if(box) box.innerHTML=`<div style="font-size:22px">⛔</div><p style="font-size:12px;color:var(--er);font-weight:700;line-height:1.5">${safeMsg}</p>`;
   setTimeout(()=>{ if(box) box.innerHTML=prev; }, 6000);
 }
 
@@ -1477,6 +1477,7 @@ function mostrarBannerAviso(d){
     const rest = Math.max(0, Math.ceil((d.criadoEm + d.dias*86400000 - Date.now())/86400000));
     prazo.textContent = `Válido até ${exp.toLocaleDateString('pt-BR')} · ${rest} dia(s) restante(s)`;
   }
+  if(m.style.display==='flex') return; // já visível, não acumula lock
   m.style.display='flex';
   lockScroll();
   // reset animation
@@ -1877,8 +1878,8 @@ function gerarListaDia(dk, btn){
   }
 
   if(tbl) tbl.innerHTML=
-    `<div style="display:grid;grid-template-columns:2rem 1fr 1fr 1.8rem;padding:.5rem .75rem;border-bottom:1.5px solid var(--g4);font-size:10px;font-weight:800;color:var(--g3);text-transform:uppercase;letter-spacing:.5px">
-      <div>#</div><div>Nome (QRA)</div><div>Ass.</div>
+    `<div style="display:grid;grid-template-columns:2rem 1fr 1.8rem;padding:.5rem .75rem;border-bottom:1.5px solid var(--g4);font-size:10px;font-weight:800;color:var(--g3);text-transform:uppercase;letter-spacing:.5px">
+      <div>#</div><div>Nome (QRA)</div><div style="text-align:center">Ass.</div>
     </div>`+
     insDodia.map((i,idx)=>{
       return`<div style="display:grid;grid-template-columns:2rem 1fr 1.8rem;padding:.65rem .75rem;border-bottom:1px solid var(--g5);align-items:center;font-size:13px">
@@ -1898,7 +1899,7 @@ function imprimirListaDia(){
   const rows = d.ins.map((i,idx)=>{
     return`<tr style="border-bottom:1px solid #ddd">
       <td style="padding:10px 8px;font-size:13px;color:#888;text-align:center">${idx+1}</td>
-      <td style="padding:10px 8px;font-size:14px;font-weight:600">${i.qra}</td>
+      <td style="padding:10px 8px;font-size:14px;font-weight:600">${escHTML(i.qra)}</td>
       <td style="padding:10px 8px;min-width:120px"><div style="border-bottom:1.5px solid #333;margin-top:18px"></div></td>
     </tr>`;
   }).join('');
@@ -2051,6 +2052,13 @@ function fecharCompViewer(e){
 }
 window.fecharCompViewer=fecharCompViewer;
 
+const _compViewerReg = {};
+function abrirCompViewerById(key){
+  const d=_compViewerReg[key]; if(!d) return;
+  abrirCompViewer(d.data64, d.nome, d.insId, d.isPago);
+}
+window.abrirCompViewerById = abrirCompViewerById;
+
 function renderAdmComp(){
   const el = document.getElementById('a-comp-list');
   if(!semAtiva){ el.innerHTML='<div class="empty-st">Nenhuma semana ativa.</div>'; return; }
@@ -2061,9 +2069,11 @@ function renderAdmComp(){
   const cardHTML = (i)=>{
     const c = i.comprovante;
     const isPdf = c.tipo==='pdf';
+    const regKey = `cv_${i.id}`;
+    _compViewerReg[regKey] = {data64:c.data64, nome:c.nome, insId:i.id, isPago:!!i.pago};
     const thumb = !isPdf
-      ? `<img src="${c.data64}" alt="comprovante" style="width:100%;max-height:140px;object-fit:contain;border-radius:6px;border:1px solid var(--g4);margin:.4rem 0;cursor:zoom-in" onclick="abrirCompViewer('${c.data64}','${escHTML(c.nome)}','${i.id}',${!!i.pago})">`
-      : `<div onclick="abrirCompViewer('${c.data64}','${escHTML(c.nome)}','${i.id}',${!!i.pago})" style="padding:.6rem;background:var(--g5);border-radius:6px;text-align:center;font-size:12px;color:var(--vdm);font-weight:700;margin:.4rem 0;cursor:pointer;border:1px dashed var(--g4)">📄 PDF — toque para visualizar</div>`;
+      ? `<img src="${c.data64}" alt="comprovante" style="width:100%;max-height:140px;object-fit:contain;border-radius:6px;border:1px solid var(--g4);margin:.4rem 0;cursor:zoom-in" onclick="abrirCompViewerById('${regKey}')">`
+      : `<div onclick="abrirCompViewerById('${regKey}')" style="padding:.6rem;background:var(--g5);border-radius:6px;text-align:center;font-size:12px;color:var(--vdm);font-weight:700;margin:.4rem 0;cursor:pointer;border:1px dashed var(--g4)">📄 PDF — toque para visualizar</div>`;
     return `<div style="background:var(--br);border:1px solid var(--g4);border-radius:var(--r);padding:.75rem;margin-bottom:.6rem">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:.35rem">
         <div style="min-width:0">
@@ -2164,7 +2174,7 @@ function imprimirRelatorio(){
         <tbody>${ins.map((i,idx)=>{
           const nd=cntD(i.dias),tot=nd*vlr;
           const dias=DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]).join(' ');
-          return`<tr style="border-bottom:1px solid #eee;background:${idx%2?'#fafafa':'#fff'}"><td style="padding:7px 10px;font-weight:600">${i.qra}<br><span style="font-size:11px;color:#888;font-weight:400">${dias}</span></td><td style="padding:7px 10px;text-align:center">${nd}</td><td style="padding:7px 10px;text-align:right">R$${tot.toFixed(2)}</td><td style="padding:7px 10px;text-align:center"><span style="padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;background:${i.pago?'#eaf4ee':'#fdf8ec'};color:${i.pago?'#1a6b3a':'#b8860b'}">${i.pago?'Pago':'Pendente'}</span></td></tr>`;
+          return`<tr style="border-bottom:1px solid #eee;background:${idx%2?'#fafafa':'#fff'}"><td style="padding:7px 10px;font-weight:600">${escHTML(i.qra)}<br><span style="font-size:11px;color:#888;font-weight:400">${escHTML(dias)}</span></td><td style="padding:7px 10px;text-align:center">${nd}</td><td style="padding:7px 10px;text-align:right">R$${tot.toFixed(2)}</td><td style="padding:7px 10px;text-align:center"><span style="padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;background:${i.pago?'#eaf4ee':'#fdf8ec'};color:${i.pago?'#1a6b3a':'#b8860b'}">${i.pago?'Pago':'Pendente'}</span></td></tr>`;
         }).join('')}</tbody>
       </table>
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
@@ -2252,25 +2262,20 @@ async function admInscrever(){
 
   const pago = document.getElementById('adm-ins-pago').checked;
 
-  // Verificar duplicata
-  const insRef = collection(db,'semanas',semAtiva,'inscritos');
-  const snap = await getDocs(insRef);
-  const existe = snap.docs.find(d=>d.data().qra.toLowerCase()===qra.toLowerCase());
-  if(existe){ toast('QRA já inscrito nesta semana'); return; }
-
-  await addDoc(insRef, { qra, dias, pago, criadoEm: Date.now() });
-
-  // Limpar campos
-  document.getElementById('adm-ins-qra').value='';
-  document.getElementById('adm-ins-pago').checked=false;
-  document.querySelectorAll('.dia-adm-btn').forEach(b=>{
-    b.style.background='var(--br)';
-    b.style.color='var(--g1)';
-    b.style.borderColor='var(--g4)';
-    b.classList.remove('ativo-adm');
-  });
-
-  toast(`✓ ${qra} inserido!`);
+  try{
+    const insRef = collection(db,'semanas',semAtiva,'inscritos');
+    const snap = await getDocs(insRef);
+    const existe = snap.docs.find(d=>d.data().qra.toLowerCase()===qra.toLowerCase());
+    if(existe){ toast('QRA já inscrito nesta semana'); return; }
+    await addDoc(insRef, { qra, dias, pago, criadoEm: Date.now() });
+    document.getElementById('adm-ins-qra').value='';
+    document.getElementById('adm-ins-pago').checked=false;
+    document.querySelectorAll('.dia-adm-btn').forEach(b=>{
+      b.style.background='var(--br)'; b.style.color='var(--g1)';
+      b.style.borderColor='var(--g4)'; b.classList.remove('ativo-adm');
+    });
+    toast(`✓ ${qra} inserido!`);
+  }catch(e){ toast('Erro ao inserir: '+e.message); console.error('[admInscrever]',e); }
 }
 window.admInscrever = admInscrever;
 
@@ -2765,13 +2770,16 @@ window.exportarCSV = exportarCSV;
 // ── Sugestões ─────────────────────────────────────────────────────────────────
 async function enviarSugestao(){
   if(!semAtiva){ toast('Nenhuma semana ativa'); return; }
+  if(!_cacheSem){ toast('Aguarde o carregamento da semana'); return; }
   const txt=document.getElementById('inp-sugestao').value.trim();
   if(!txt){ toast('Escreva uma sugestão primeiro'); return; }
-  const lista=[...(_cacheSem&&_cacheSem.sugestoes||[])];
+  const lista=[...(_cacheSem.sugestoes||[])];
   lista.push({texto:txt, data:new Date().toLocaleDateString('pt-BR'), hora:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});
-  await updateDoc(doc(db,'semanas',semAtiva),{sugestoes:lista});
-  document.getElementById('inp-sugestao').value='';
-  toast('✓ Sugestão enviada! Obrigado.');
+  try{
+    await updateDoc(doc(db,'semanas',semAtiva),{sugestoes:lista});
+    document.getElementById('inp-sugestao').value='';
+    toast('✓ Sugestão enviada! Obrigado.');
+  }catch(e){ toast('Erro ao enviar sugestão'); console.error('[enviarSugestao]',e); }
 }
 window.enviarSugestao = enviarSugestao;
 
@@ -2796,9 +2804,10 @@ async function delSugestao(idx){
   if(!semAtiva) return;
   const lista=[...(_cacheSem&&_cacheSem.sugestoes||[])];
   lista.splice(idx,1);
-  await updateDoc(doc(db,'semanas',semAtiva),{sugestoes:lista});
-  toast('Sugestão removida');
-  renderAdmSugestoes();
+  try{
+    await updateDoc(doc(db,'semanas',semAtiva),{sugestoes:lista});
+    toast('Sugestão removida');
+  }catch(e){ toast('Erro ao remover sugestão'); console.error('[delSugestao]',e); }
 }
 window.delSugestao = delSugestao;
 
@@ -3017,6 +3026,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.6</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.7</div>
 </body>
 </html>
