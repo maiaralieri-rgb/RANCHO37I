@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v11.21-chef-pm-canto-limpo -->
+<meta charset="UTF-8"><!-- deploy:20260616-v11.22-restaura-bloco-pix-config-pagamento -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1191,7 +1191,6 @@ function renderHero(sem, ins){
     : '<div class="empty-st">Cardápio não definido.</div>';
   // Inscritos
   renderInscritos(ins, vlr);
-  renderPagamento(sem.pagamento||null);
   atualizarAdminStatusBar(sem, ins, vlr);
 }
 
@@ -1340,6 +1339,12 @@ async function carregarSemanaAtiva(){
     const c = document.getElementById('cdp-card');
     if(c) c.innerHTML='<div class="empty-st">Erro ao carregar cardápio. Recarregue.</div>';
   });
+
+  // Listener de pagamento (global — config/pagamento)
+  onSnapshot(doc(db,'config','pagamento'), snap=>{
+    if(snap.exists()) renderPagamento(snap.data());
+    else renderPagamento(null);
+  }, err=>console.error('[pagamento]', err));
 
   // Listener de inscritos
   unsubIns = onSnapshot(insRef, snap=>{
@@ -1810,11 +1815,14 @@ async function preencherAdmin(){
   if(tgl){ tgl.classList.toggle('on', !!(sem.exigirComprovante)); }
   const ctxEl = document.getElementById('notas-sem-ctx');
   if(ctxEl) ctxEl.textContent = sem ? `Notas da semana: ${sem.label}` : 'Selecione uma semana';
-  // Pagamento — lê do documento da semana
-  const pg = sem.pagamento||{};
-  document.getElementById('a-pg-tit').value=pg.titulo||'';
-  document.getElementById('a-pg-inf').value=pg.inf||'';
-  document.getElementById('a-pg-obs').value=pg.obs||'';
+  // Pagamento — lê de config/pagamento (global)
+  try{
+    const pgSnap=await getDoc(doc(db,'config','pagamento'));
+    const pg=pgSnap.exists()?pgSnap.data():{};
+    document.getElementById('a-pg-tit').value=pg.titulo||'';
+    document.getElementById('a-pg-inf').value=pg.inf||'';
+    document.getElementById('a-pg-obs').value=pg.obs||'';
+  }catch(e){ console.error('[preencherAdmin pagamento]',e); }
 }
 
 function preencherAdminSemanas(semanas){
@@ -1942,14 +1950,13 @@ function sugerirCardapio(){
 window.sugerirCardapio=sugerirCardapio;
 
 async function salvarPagamento(){
-  if(!semAtiva){ toast('Selecione uma semana primeiro'); return; }
   const pg = {
     titulo: document.getElementById('a-pg-tit').value,
     inf: document.getElementById('a-pg-inf').value,
     obs: document.getElementById('a-pg-obs').value
   };
   try{
-    await updateDoc(doc(db,'semanas',semAtiva),{pagamento:pg});
+    await setDoc(doc(db,'config','pagamento'), pg);
     toast('✓ Pagamento salvo');
   }catch(e){ toast('Erro ao salvar pagamento: '+e.message); console.error(e); }
 }
@@ -3197,6 +3204,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.21</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.22</div>
 </body>
 </html>
