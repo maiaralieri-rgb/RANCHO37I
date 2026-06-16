@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v10.7-antifraude-hash-comprovante -->
+<meta charset="UTF-8"><!-- deploy:20260616-v10.8-antifraude-ocr-multicamada -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -841,44 +841,123 @@ function resetDias(){
   if(resumo) resumo.style.display='none';
 }
 
-// ── Comprovante ──────────────────────────────────────────────────────────────
+// ── Comprovante — sistema antifraude multicamada ──────────────────────────────
+// Camada 1: hash SHA-256 do arquivo (mesmo arquivo = bloqueado)
+// Camada 2: OCR — ID E2E do Pix (mesmo comprovante screenshot = bloqueado)
+// Camada 3: OCR — data+hora+valor (mesmo comprovante, campos idênticos = bloqueado)
+// As camadas se somam: cada uma cobre lacunas que a anterior não alcança.
+
 async function sha256hex(file){
   const buf = await file.arrayBuffer();
   const hashBuf = await crypto.subtle.digest('SHA-256', buf);
   return Array.from(new Uint8Array(hashBuf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 
+async function loadTesseract(){
+  if(window.Tesseract) return;
+  await new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    s.onload=res; s.onerror=rej;
+    document.head.appendChild(s);
+  });
+}
+
+async function extrairDadosTiquete(file){
+  if(!file.type.startsWith('image/')) return null;
+  try{
+    await loadTesseract();
+    const result = await Tesseract.recognize(file, 'por', { logger:()=>{} });
+    const txt = result.data.text;
+    // ID E2E do Pix: começa com E, 32 chars alfanuméricos
+    const e2e = (txt.match(/E\d{2}[A-Z0-9]{28,32}/i)||[])[0]?.toUpperCase()||null;
+    // Data no formato DD/MM/AAAA
+    const data = (txt.match(/\d{2}\/\d{2}\/\d{4}/))||[null]; const dtStr=data[0];
+    // Hora HH:MM ou HH:MM:SS
+    const hora = (txt.match(/\d{2}:\d{2}(:\d{2})?/)||[])[0]||null;
+    // Valor R$ X,XX ou X.XXX,XX
+    const valorM = txt.match(/R\$\s*([\d.,]+)/);
+    const valor = valorM ? valorM[1].replace(/\./g,'').replace(',','.') : null;
+    return { e2e, data:dtStr, hora, valor };
+  }catch(e){ console.warn('[ocr]', e); return null; }
+}
+
 let _compHash = null;
+let _compOcr  = null;
 
 async function selecionarComp(inp){
   const f=inp.files[0]; if(!f) return;
-  // Calcula hash antes de ler como base64
+  const uploadEl = document.getElementById('upload-comp');
+  const prevTxt  = uploadEl ? uploadEl.querySelector('p') : null;
+  if(prevTxt) prevTxt.textContent='🔍 Verificando comprovante...';
+
+  // ── Camada 1: hash do arquivo ─────────────────────────────────────────────
   let hash = null;
-  try{ hash = await sha256hex(f); } catch(e){ console.warn('[hash]', e); }
-  // Verifica duplicata no Firestore
-  if(hash){
-    try{
-      const snap = await getDoc(doc(db,'config','comprovantes'));
-      const hashes = snap.exists() ? (snap.data().hashes||{}) : {};
-      if(hashes[hash]){
-        const reg = hashes[hash];
-        toast(`⛔ Comprovante já registrado (${reg.qra} · ${reg.semana}). Não é possível reutilizar o mesmo comprovante.`);
-        inp.value='';
+  try{ hash = await sha256hex(f); }catch(e){ console.warn('[hash]',e); }
+
+  let storedData = {};
+  try{
+    const snap = await getDoc(doc(db,'config','comprovantes'));
+    storedData = snap.exists() ? snap.data() : {};
+  }catch(e){ console.warn('[comp-fetch]',e); }
+
+  if(hash && (storedData.hashes||{})[hash]){
+    const reg = storedData.hashes[hash];
+    if(prevTxt) prevTxt.textContent='Anexe o comprovante do Pix';
+    inp.value='';
+    mostrarBloqueioComp(`Arquivo idêntico já registrado por ${reg.qra} (semana ${reg.semana}). Cada comprovante só pode ser usado uma vez.`);
+    return;
+  }
+
+  // ── Camada 2+3: OCR — E2E ID e fingerprint data+hora+valor ───────────────
+  let ocr = null;
+  if(f.type.startsWith('image/')){
+    if(prevTxt) prevTxt.textContent='🔍 Lendo dados do comprovante...';
+    ocr = await extrairDadosTiquete(f);
+    if(ocr){
+      // Camada 2: ID E2E único por transação Pix
+      if(ocr.e2e && (storedData.e2eIds||{})[ocr.e2e]){
+        const reg = storedData.e2eIds[ocr.e2e];
+        if(prevTxt) prevTxt.textContent='Anexe o comprovante do Pix';
+        inp.value=''; _compHash=null; _compOcr=null;
+        mostrarBloqueioComp(`ID de transação Pix já registrado por ${reg.qra} (semana ${reg.semana}). Comprovante inválido.`);
         return;
       }
-    }catch(e){ console.warn('[hash-check]', e); }
+      // Camada 3: fingerprint data+hora+valor (mesmo Pix, arquivo diferente)
+      const fp = [ocr.data,ocr.hora,ocr.valor].filter(Boolean).join('|');
+      if(fp.length > 4 && (storedData.fingerprints||{})[fp]){
+        const reg = storedData.fingerprints[fp];
+        if(prevTxt) prevTxt.textContent='Anexe o comprovante do Pix';
+        inp.value=''; _compHash=null; _compOcr=null;
+        mostrarBloqueioComp(`Dados do comprovante (data, hora e valor) já registrados por ${reg.qra} (semana ${reg.semana}).`);
+        return;
+      }
+    }
   }
+
   _compHash = hash;
+  _compOcr  = ocr;
+  if(prevTxt) prevTxt.textContent='Anexe o comprovante do Pix';
+
   const rd=new FileReader();
   rd.onload=e=>{
     compSel={nome:f.name, data64:e.target.result, tipo:f.type.includes('pdf')?'pdf':'img'};
     document.getElementById('comp-nome').textContent=f.name;
     document.getElementById('comp-prev').style.display='flex';
-    document.getElementById('upload-comp').style.display='none';
+    uploadEl.style.display='none';
   };
   rd.readAsDataURL(f); inp.value='';
 }
 window.selecionarComp = selecionarComp;
+
+function mostrarBloqueioComp(msg){
+  const box = document.getElementById('upload-comp');
+  // Exibe erro no lugar do upload por 5 segundos
+  const prev = box ? box.innerHTML : '';
+  if(box) box.innerHTML=`<div style="font-size:22px">⛔</div><p style="font-size:12px;color:var(--er);font-weight:700;line-height:1.5">${msg}</p>`;
+  setTimeout(()=>{ if(box) box.innerHTML=prev; }, 6000);
+}
+
 
 function removerComp(){
   compSel=null;
@@ -1172,15 +1251,24 @@ async function inscrever(){
     const entry={qra, dias, pago:false, criadoEm:Date.now()};
     if(compSel) entry.comprovante=compSel;
     const docRef = await addDoc(insRef, entry);
-    // Registra hash do comprovante para detectar reutilização futura
-    if(_compHash && compSel){
+    // Registra todas as camadas antifraude do comprovante
+    if(compSel){
       try{
         const label = _cacheSem ? _cacheSem.label : semAtiva;
-        await setDoc(doc(db,'config','comprovantes'),
-          { hashes: { [_compHash]: { qra, semana:label, semId:semAtiva, inscId:docRef.id, data:Date.now() } } },
-          { merge:true });
-      }catch(e){ console.warn('[hash-save]', e); }
-      _compHash = null;
+        const meta = { qra, semana:label, semId:semAtiva, inscId:docRef.id, data:Date.now() };
+        const upd = {};
+        if(_compHash) upd[`hashes.${_compHash}`] = meta;
+        if(_compOcr?.e2e) upd[`e2eIds.${_compOcr.e2e}`] = meta;
+        const fp = _compOcr ? [_compOcr.data,_compOcr.hora,_compOcr.valor].filter(Boolean).join('|') : '';
+        if(fp.length > 4) upd[`fingerprints.${fp}`] = meta;
+        if(Object.keys(upd).length){
+          const merged = Object.entries(upd).reduce((o,[k,v])=>{
+            const [sec,key]=k.split('.'); if(!o[sec])o[sec]={}; o[sec][key]=v; return o;
+          }, {});
+          await setDoc(doc(db,'config','comprovantes'), merged, { merge:true });
+        }
+      }catch(e){ console.warn('[comp-save]', e); }
+      _compHash=null; _compOcr=null;
     }
     const vlrAtual = _cacheSem ? parseFloat(_cacheSem.valor)||0 : 0;
     mostrarResumoPosInscricao(qra, dias, vlrAtual);
@@ -1621,20 +1709,20 @@ window.tglPago = tglPago;
 async function delIns(id){
   if(!confirm('Remover inscrito?')) return;
   if(!semAtiva) return;
-  // Remove hash do comprovante para liberar reutilização legítima
+  // Remove todas as camadas antifraude do comprovante para liberar reutilização legítima
   const insc = _cacheIns.find(x=>x.id===id);
   if(insc && insc.comprovante){
     try{
       const snap = await getDoc(doc(db,'config','comprovantes'));
       if(snap.exists()){
-        const hashes = snap.data().hashes||{};
-        const entry = Object.entries(hashes).find(([,v])=>v.inscId===id);
-        if(entry){
-          const upd = {...hashes}; delete upd[entry[0]];
-          await setDoc(doc(db,'config','comprovantes'), {hashes:upd});
-        }
+        const d = snap.data();
+        const nova = { hashes:{...d.hashes||{}}, e2eIds:{...d.e2eIds||{}}, fingerprints:{...d.fingerprints||{}} };
+        ['hashes','e2eIds','fingerprints'].forEach(sec=>{
+          Object.keys(nova[sec]).forEach(k=>{ if(nova[sec][k].inscId===id) delete nova[sec][k]; });
+        });
+        await setDoc(doc(db,'config','comprovantes'), nova);
       }
-    }catch(e){ console.warn('[hash-del]', e); }
+    }catch(e){ console.warn('[comp-del]', e); }
   }
   await deleteDoc(doc(db,'semanas',semAtiva,'inscritos',id));
   toast('Inscrito removido');
@@ -2797,6 +2885,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v10.7</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v10.8</div>
 </body>
 </html>
