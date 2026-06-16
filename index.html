@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v10.5-aviso-sem-botao-fechar -->
+<meta charset="UTF-8"><!-- deploy:20260616-v10.6-trava-scroll-modais -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1194,6 +1194,8 @@ function fecharSecModal(){
   if(sm) sm.classList.remove('open');
   document.querySelectorAll('.asec').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.adm-nav-btn').forEach(b=>b.classList.remove('active'));
+  // Só libera scroll se o painel admin também estiver fechado
+  if(!document.getElementById('ov').classList.contains('open')) document.body.style.overflow='';
 }
 window.fecharSecModal = fecharSecModal;
 
@@ -1240,6 +1242,7 @@ function mostrarBannerAviso(d){
     prazo.textContent = `Válido até ${exp.toLocaleDateString('pt-BR')} · ${rest} dia(s) restante(s)`;
   }
   m.style.display='flex';
+  document.body.style.overflow='hidden';
   // reset animation
   const inner = m.querySelector('.aviso-inner');
   if(inner){ inner.style.animation='none'; requestAnimationFrame(()=>{ inner.style.animation=''; }); }
@@ -1248,6 +1251,7 @@ function mostrarBannerAviso(d){
 function fecharAvisoModal(){
   const m = document.getElementById('aviso-modal');
   if(m) m.style.display='none';
+  document.body.style.overflow='';
 }
 window.fecharAvisoModal = fecharAvisoModal;
 
@@ -1377,7 +1381,7 @@ function aTab(t,btn){
   if(sec) sec.classList.add('active');
   const sm=document.getElementById('sec-modal');
   const smTitle=document.getElementById('sec-modal-title');
-  if(sm){ sm.classList.add('open'); if(smTitle) smTitle.textContent=SECTION_TITLES[t]||t; }
+  if(sm){ sm.classList.add('open'); if(smTitle) smTitle.textContent=SECTION_TITLES[t]||t; document.body.style.overflow='hidden'; }
   const body=document.getElementById('sec-modal-body');
   if(body) body.scrollTop=0;
   if(t==='relatorio') calcRelatorio();
@@ -2743,6 +2747,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v10.5</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v10.6</div>
 </body>
 </html>
