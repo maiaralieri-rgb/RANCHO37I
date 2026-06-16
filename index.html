@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v10.1-topbar-layout-online-sair -->
+<meta charset="UTF-8"><!-- deploy:20260616-v10.2-comprovante-obrigatorio-pendentes -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -315,7 +315,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
         </div>
       </div>
       <div class="field">
-        <label>Comprovante de pagamento</label>
+        <label>Comprovante de pagamento <span style="color:var(--er);font-weight:700">*obrigatório</span></label>
         <div class="upload-comp" id="upload-comp" onclick="document.getElementById('inp-comp').click()">
           <div style="font-size:28px">📎</div>
           <p>Anexe o comprovante do Pix</p>
@@ -396,8 +396,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
         <div class="asc-l">Arrecadado (validado)</div>
         <div class="asc-v" id="adm-stat-arr">R$0</div>
       </div>
-      <div class="adm-stat-card" style="border-color:#e8d48a;background:var(--wnc)">
-        <div class="asc-l">Pendente aprovação</div>
+      <div class="adm-stat-card" style="border-color:#e8d48a;background:var(--wnc);cursor:pointer" onclick="aTab('comprovantes',null)" title="Ver pendentes">
+        <div class="asc-l">Pendente aprovação <span style="font-size:9px;opacity:.7">▶ ver</span></div>
         <div class="asc-v" id="adm-stat-pend" style="color:var(--wn)">R$0</div>
       </div>
       <div class="adm-stat-card" style="border-color:#c5ddc9">
@@ -590,7 +590,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 
     <!-- COMPROVANTES -->
     <div class="asec" id="asec-comprovantes">
-      <div style="font-size:12px;color:var(--g2);margin-bottom:.75rem">Comprovantes enviados pelos participantes</div>
+      <div style="font-size:12px;color:var(--g2);margin-bottom:.75rem">Comprovantes enviados — validação manual obrigatória pelo admin.</div>
       <div class="card"><div id="a-comp-list"><div class="empty-st">Nenhum comprovante enviado.</div></div></div>
     </div>
 
@@ -1081,7 +1081,7 @@ async function inscrever(){
   const dias=getDias();
   if(!Object.values(dias).some(Boolean)){ toast('Selecione ao menos um dia'); return; }
   if(!semAtiva){ toast('Nenhuma semana ativa'); return; }
-  if(_cacheSem && _cacheSem.exigirComprovante && !compSel){ mostrarErroComprovante(); return; }
+  if(!compSel){ mostrarErroComprovante(); return; }
   const btn=document.getElementById('btn-inscrever');
   btn.disabled=true; btn.textContent='Salvando...';
   try{
@@ -1624,7 +1624,9 @@ function renderAdmComp(){
   if(!semAtiva){ el.innerHTML='<div class="empty-st">Nenhuma semana ativa.</div>'; return; }
   const comps = _cacheIns.filter(i=>i.comprovante);
   if(!comps.length){ el.innerHTML='<div class="empty-st">Nenhum comprovante enviado.</div>'; return; }
-  el.innerHTML = comps.map(i=>{
+  const pendentes = comps.filter(i=>!i.pago);
+  const validados = comps.filter(i=>i.pago);
+  const cardHTML = (i)=>{
     const c = i.comprovante;
     const isPdf = c.tipo==='pdf';
     const thumb = !isPdf
@@ -1640,7 +1642,11 @@ function renderAdmComp(){
       </div>
       ${thumb}
     </div>`;
-  }).join('');
+  };
+  const secLabel = (txt, cor) => `<div style="font-size:10px;font-weight:800;color:${cor};text-transform:uppercase;letter-spacing:1px;margin:.75rem 0 .4rem">${txt}</div>`;
+  el.innerHTML =
+    (pendentes.length ? secLabel(`⏳ Aguardando validação (${pendentes.length})`, 'var(--wn)') + pendentes.map(cardHTML).join('') : '<div class="empty-st" style="margin-bottom:.5rem">Nenhum pendente.</div>') +
+    (validados.length ? secLabel(`✓ Validados (${validados.length})`, 'var(--ok)') + validados.map(cardHTML).join('') : '');
 }
 
 // ── Relatório ─────────────────────────────────────────────────────────────────
@@ -2578,6 +2584,6 @@ function iniciarListenersUmaVez(){
 }
 iniciarListenersUmaVez();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v10.1</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v10.2</div>
 </body>
 </html>
