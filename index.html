@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v10.8-antifraude-ocr-multicamada -->
+<meta charset="UTF-8"><!-- deploy:20260616-v10.9-antifraude-retroativo-fix-remover -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -935,6 +935,19 @@ async function selecionarComp(inp){
     }
   }
 
+  // Camada 4: data retroativa — bloqueia comprovantes com mais de 30 dias
+  if(ocr?.data){
+    const [d,m,a] = ocr.data.split('/').map(Number);
+    const dtComp = new Date(a,m-1,d);
+    const diffDias = (Date.now() - dtComp.getTime()) / 86400000;
+    if(diffDias > 30){
+      if(prevTxt) prevTxt.textContent='Anexe o comprovante do Pix';
+      inp.value=''; _compHash=null; _compOcr=null;
+      mostrarBloqueioComp(`Comprovante retroativo detectado (data: ${ocr.data}). Apenas comprovantes dos últimos 30 dias são aceitos.`);
+      return;
+    }
+  }
+
   _compHash = hash;
   _compOcr  = ocr;
   if(prevTxt) prevTxt.textContent='Anexe o comprovante do Pix';
@@ -960,7 +973,7 @@ function mostrarBloqueioComp(msg){
 
 
 function removerComp(){
-  compSel=null;
+  compSel=null; _compHash=null; _compOcr=null;
   document.getElementById('comp-prev').style.display='none';
   document.getElementById('upload-comp').style.display='block';
 }
@@ -2885,6 +2898,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v10.8</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v10.9</div>
 </body>
 </html>
