@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v11.3-antifraude-controlado-toggle-suporte-pdf -->
+<meta charset="UTF-8"><!-- deploy:20260616-v11.4-suporte-word-doc-docx-comprovante -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -338,7 +338,7 @@ a[onclick]:active{transform:scale(.93)}
         <div class="upload-comp" id="upload-comp" onclick="document.getElementById('inp-comp').click()">
           <div style="font-size:28px">📎</div>
           <p>Anexe o comprovante do Pix</p>
-          <input type="file" id="inp-comp" accept="image/*,application/pdf" style="display:none" onchange="selecionarComp(this)">
+          <input type="file" id="inp-comp" accept="image/*,application/pdf,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword,.docx,.doc" style="display:none" onchange="selecionarComp(this)">
         </div>
         <div class="comp-prev" id="comp-prev" style="display:none">
           <span id="comp-nome">—</span>
@@ -900,11 +900,42 @@ async function pdfToCanvas(file){
   }catch(e){ console.warn('[pdf2canvas]',e); return null; }
 }
 
+async function loadMammoth(){
+  if(window.mammoth) return;
+  await new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/mammoth/mammoth.browser.min.js';
+    s.onload=res; s.onerror=rej;
+    document.head.appendChild(s);
+  });
+}
+
+function _parseTxt(txt){
+  const e2e = (txt.match(/E\d{2}[A-Z0-9]{28,32}/i)||[])[0]?.toUpperCase()||null;
+  const dtStr = (txt.match(/\d{2}\/\d{2}\/\d{4}/)||[null])[0];
+  const hora = (txt.match(/\d{2}:\d{2}(:\d{2})?/)||[])[0]||null;
+  const valorM = txt.match(/R\$\s*([\d.,]+)/);
+  const valor = valorM ? valorM[1].replace(/\./g,'').replace(',','.') : null;
+  return { e2e, data:dtStr, hora, valor };
+}
+
 async function extrairDadosTiquete(file){
   const isImg = file.type.startsWith('image/');
   const isPdf = file.type === 'application/pdf';
-  if(!isImg && !isPdf) return null;
+  const isDoc = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+             || file.type === 'application/msword'
+             || file.name?.endsWith('.docx') || file.name?.endsWith('.doc');
+  if(!isImg && !isPdf && !isDoc) return null;
   try{
+    // Word: extrai texto com mammoth.js
+    if(isDoc){
+      await loadMammoth();
+      if(!window.mammoth) return null;
+      const buf = await file.arrayBuffer();
+      const res = await mammoth.extractRawText({arrayBuffer: buf});
+      return _parseTxt(res.value||'');
+    }
+    // PDF: renderiza primeira página em canvas via PDF.js
     await loadTesseract();
     let ocrInput = file;
     if(isPdf){
@@ -913,17 +944,7 @@ async function extrairDadosTiquete(file){
       ocrInput = await new Promise(res => canvas.toBlob(res, 'image/png'));
     }
     const result = await Tesseract.recognize(ocrInput, 'por', { logger:()=>{} });
-    const txt = result.data.text;
-    // ID E2E do Pix: começa com E, 32 chars alfanuméricos
-    const e2e = (txt.match(/E\d{2}[A-Z0-9]{28,32}/i)||[])[0]?.toUpperCase()||null;
-    // Data no formato DD/MM/AAAA
-    const data = (txt.match(/\d{2}\/\d{2}\/\d{4}/))||[null]; const dtStr=data[0];
-    // Hora HH:MM ou HH:MM:SS
-    const hora = (txt.match(/\d{2}:\d{2}(:\d{2})?/)||[])[0]||null;
-    // Valor R$ X,XX ou X.XXX,XX
-    const valorM = txt.match(/R\$\s*([\d.,]+)/);
-    const valor = valorM ? valorM[1].replace(/\./g,'').replace(',','.') : null;
-    return { e2e, data:dtStr, hora, valor };
+    return _parseTxt(result.data.text);
   }catch(e){ console.warn('[ocr]', e); return null; }
 }
 
@@ -936,9 +957,12 @@ async function selecionarComp(inp){
 
   const isImg = f.type.startsWith('image/');
   const isPdf = f.type === 'application/pdf';
+  const isDoc = f.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+             || f.type === 'application/msword'
+             || f.name?.endsWith('.docx') || f.name?.endsWith('.doc');
   const antifraude = !!(_cacheSem?.exigirComprovante);
 
-  if(!isImg && !isPdf){
+  if(!isImg && !isPdf && !isDoc){
     if(antifraude){
       mostrarBloqueioComp('Arquivo inválido. Envie somente uma imagem ou PDF do comprovante de pagamento Pix.');
     } else {
@@ -1011,7 +1035,7 @@ async function selecionarComp(inp){
 
   const rd=new FileReader();
   rd.onload=e=>{
-    compSel={nome:f.name, data64:e.target.result, tipo:isPdf?'pdf':'img'};
+    compSel={nome:f.name, data64:e.target.result, tipo:isPdf?'pdf':isDoc?'doc':'img'};
     document.getElementById('comp-nome').textContent=f.name;
     document.getElementById('comp-prev').style.display='flex';
     uploadEl.style.display='none';
@@ -2955,6 +2979,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.3</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.4</div>
 </body>
 </html>
