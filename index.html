@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v20-visualizador-comprovante-fullscreen -->
+<meta charset="UTF-8"><!-- deploy:20260616-v21-topbar-layout-online-sair -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -27,7 +27,7 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{max-width:100%;overflow-x:hidden}
 body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-height:100vh;-webkit-text-size-adjust:100%}
-.topbar{background:var(--vd);padding:0 1.2rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100}
+.topbar{background:var(--vd);padding:.45rem 1.2rem;display:flex;align-items:center;justify-content:space-between;min-height:52px;position:sticky;top:0;z-index:100}
 .tb-brand{display:flex;align-items:center;gap:10px}
 .tb-ico{width:32px;height:32px;border-radius:50%;background:var(--ou);display:flex;align-items:center;justify-content:center;font-size:15px}
 .tb-title{font-family:'DM Serif Display',serif;font-size:1.05rem;color:#fff}
@@ -228,13 +228,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
   <div class="tb-brand">
     <div class="tb-ico">🍽</div>
     <div>
-      <div class="tb-title">Rancho 37I <span class="sync-badge" id="sync-badge">● online</span></div>
+      <div class="tb-title">Rancho 37I</div>
+      <span class="sync-badge" id="sync-badge" style="display:block;text-align:center;margin-top:1px">● online</span>
     </div>
   </div>
-  <div style="display:flex;align-items:center;gap:8px">
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
     <span class="badge-adm" id="badge-adm">Admin</span>
-    <button class="btn-adm" id="btn-logout" onclick="logoutAdmin()" style="display:none;background:rgba(220,80,80,.25);border-color:rgba(220,80,80,.4)">Sair</button>
     <button class="btn-adm" onclick="abrirAdmin()">⚙ Admin</button>
+    <button class="btn-adm" id="btn-logout" onclick="logoutAdmin()" style="display:none;background:rgba(220,80,80,.25);border-color:rgba(220,80,80,.4)">Sair</button>
   </div>
 </div>
 
@@ -2575,6 +2576,6 @@ function iniciarListenersUmaVez(){
 }
 iniciarListenersUmaVez();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v20</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v21</div>
 </body>
 </html>
