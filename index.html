@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v10.9-antifraude-retroativo-fix-remover -->
+<meta charset="UTF-8"><!-- deploy:20260616-v11.0-fix-viewport-ios-zoom -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,7 +13,7 @@
 <meta property="og:image" content="https://maiaralieri-rgb.github.io/RANCHO37I/icon.png">
 <meta property="og:url" content="https://maiaralieri-rgb.github.io/RANCHO37I/">
 <meta property="og:type" content="website">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Rancho 37I</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -25,7 +25,11 @@
   --wn:#b8860b;--wnc:#fdf8ec;--r:10px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{max-width:100%;overflow-x:hidden}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{max-width:100vw;overflow-x:hidden;width:100%}
+/* Impede iOS auto-zoom ao focar inputs — font-size < 16px dispara zoom no Safari */
+input,textarea,select{font-size:16px!important;touch-action:manipulation}
+button,a{touch-action:manipulation}
 body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-height:100vh;-webkit-text-size-adjust:100%}
 .topbar{background:var(--vd);padding:.45rem 1.2rem;display:flex;align-items:center;justify-content:space-between;min-height:52px;position:sticky;top:0;z-index:100}
 .tb-brand{display:flex;align-items:center;gap:10px}
@@ -2898,6 +2902,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v10.9</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.0</div>
 </body>
 </html>
