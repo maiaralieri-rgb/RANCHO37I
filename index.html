@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v11.1-remove-prazo-aviso-modal -->
+<meta charset="UTF-8"><!-- deploy:20260616-v11.2-safe-area-bloqueio-upload-nao-imagem -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -110,12 +110,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .sem-nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
 .sc{padding:4px 13px;font-size:11px;border:1px solid var(--g4);border-radius:20px;cursor:pointer;background:var(--br);color:var(--g2);font-family:'DM Sans',sans-serif;transition:all .15s}
 .sc.ativa{background:var(--vd);color:#fff;border-color:var(--vd);font-weight:600}
-.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--g1);color:#fff;padding:9px 20px;border-radius:14px;font-size:13px;z-index:400;opacity:0;transition:opacity .3s;pointer-events:none;max-width:calc(100vw - 2rem);width:max-content;text-align:center;line-height:1.4}
+.toast{position:fixed;bottom:calc(1.5rem + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--g1);color:#fff;padding:9px 20px;border-radius:14px;font-size:13px;z-index:400;opacity:0;transition:opacity .3s;pointer-events:none;max-width:calc(100vw - 2rem);width:max-content;text-align:center;line-height:1.4}
 .toast.show{opacity:1}
-.loading-bar{position:fixed;top:0;left:0;height:3px;background:var(--ou);width:0;transition:width .3s;z-index:500}
+.loading-bar{position:fixed;top:env(safe-area-inset-top);left:0;height:3px;background:var(--ou);width:0;transition:width .3s;z-index:500}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.52);display:none;align-items:flex-end;justify-content:center;z-index:200}
 .ov.open{display:flex}
-.ash{background:var(--br);border-radius:16px 16px 0 0;width:100%;max-width:680px;max-height:88vh;overflow-y:auto;overflow-x:hidden;padding:1.4rem}
+.ash{background:var(--br);border-radius:16px 16px 0 0;width:100%;max-width:680px;max-height:88vh;overflow-y:auto;overflow-x:hidden;padding:1.4rem;padding-bottom:calc(1.4rem + env(safe-area-inset-bottom))}
 .ash-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem}
 .ash-hd h3{font-family:'DM Serif Display',serif;font-size:1.15rem}
 .btn-cl{background:var(--g5);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
@@ -190,9 +190,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .upload-badge-req{display:inline-block;background:var(--er);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-top:4px;letter-spacing:.5px}
 .sec-modal{position:fixed;inset:0;background:var(--cr);z-index:300;display:none;flex-direction:column;overflow:hidden}
 .sec-modal.open{display:flex}
-.sec-modal-hd{background:var(--br);border-bottom:1px solid var(--g4);padding:.85rem 1rem;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.sec-modal-hd{background:var(--br);border-bottom:1px solid var(--g4);padding:.85rem 1rem;padding-top:calc(.85rem + env(safe-area-inset-top));display:flex;align-items:center;gap:10px;flex-shrink:0}
+.sec-modal-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1.1rem;padding-bottom:calc(1.1rem + env(safe-area-inset-bottom))}
 .sec-modal-title{flex:1;font-size:1rem;font-weight:700;color:var(--g1);font-family:'DM Serif Display',serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sec-modal-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1.1rem}
 .btn-back{background:var(--vdx);border:1.5px solid #c5ddc9;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;color:var(--vd);cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0}
 .btn-back:hover{background:#d4ecda}
 .toggle-sw{display:flex;align-items:center;justify-content:space-between;cursor:pointer;gap:8px;width:100%;padding:2px 0}
@@ -338,7 +338,7 @@ a[onclick]:active{transform:scale(.93)}
         <div class="upload-comp" id="upload-comp" onclick="document.getElementById('inp-comp').click()">
           <div style="font-size:28px">📎</div>
           <p>Anexe o comprovante do Pix</p>
-          <input type="file" id="inp-comp" accept="image/*,.pdf" style="display:none" onchange="selecionarComp(this)">
+          <input type="file" id="inp-comp" accept="image/*" style="display:none" onchange="selecionarComp(this)">
         </div>
         <div class="comp-prev" id="comp-prev" style="display:none">
           <span id="comp-nome">—</span>
@@ -891,6 +891,13 @@ let _compOcr  = null;
 
 async function selecionarComp(inp){
   const f=inp.files[0]; if(!f) return;
+  inp.value='';
+
+  if(!f.type.startsWith('image/')){
+    mostrarBloqueioComp('Arquivo inválido. Envie somente uma imagem do comprovante Pix (foto ou print da tela).');
+    return;
+  }
+
   const uploadEl = document.getElementById('upload-comp');
   const prevTxt  = uploadEl ? uploadEl.querySelector('p') : null;
   if(prevTxt) prevTxt.textContent='🔍 Verificando comprovante...';
@@ -963,7 +970,7 @@ async function selecionarComp(inp){
     document.getElementById('comp-prev').style.display='flex';
     uploadEl.style.display='none';
   };
-  rd.readAsDataURL(f); inp.value='';
+  rd.readAsDataURL(f);
 }
 window.selecionarComp = selecionarComp;
 
@@ -2902,6 +2909,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.1</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.2</div>
 </body>
 </html>
