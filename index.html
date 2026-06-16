@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v10.4-fix-firestore-animacoes-claude-md -->
+<meta charset="UTF-8"><!-- deploy:20260616-v10.5-botao-voltar-modais -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -379,7 +379,7 @@ a[onclick]:active{transform:scale(.93)}
 <div class="ash">
   <div class="ash-hd">
     <h3>Painel Admin</h3>
-    <button type="button" class="btn-cl" onclick="fecharAdmin()">✕</button>
+    <button type="button" class="btn-back" onclick="fecharAdmin()">← Voltar</button>
   </div>
   <div id="adm-login">
     <div class="senha-box">
@@ -473,7 +473,7 @@ a[onclick]:active{transform:scale(.93)}
         </div>
         <span style="font-size:14px;font-weight:800;color:var(--ou);letter-spacing:.3px">Aviso importante</span>
       </div>
-      <button type="button" onclick="fecharAvisoModal()" style="background:var(--g5);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;color:var(--g2);flex-shrink:0">✕</button>
+      <button type="button" onclick="fecharAvisoModal()" style="background:var(--vdx);border:1.5px solid #c5ddc9;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;color:var(--vd);cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0">← Fechar</button>
     </div>
     <div id="aviso-modal-txt" style="font-size:13px;color:var(--g1);line-height:1.8;white-space:pre-wrap;padding:.75rem;background:var(--g5);border-radius:10px;border-left:3px solid var(--ou)"></div>
     <div id="aviso-modal-prazo" style="font-size:10px;color:var(--g3);margin-top:.6rem;text-align:right"></div>
@@ -485,7 +485,7 @@ a[onclick]:active{transform:scale(.93)}
 <div id="comp-viewer" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.92);flex-direction:column" onclick="fecharCompViewer(event)">
   <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;flex-shrink:0">
     <span id="comp-viewer-nome" style="font-size:13px;font-weight:700;color:#fff;opacity:.85"></span>
-    <button type="button" onclick="fecharCompViewer(null)" style="background:rgba(255,255,255,.15);border:none;color:#fff;font-size:18px;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif">✕</button>
+    <button type="button" onclick="fecharCompViewer(null)" style="background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">← Voltar</button>
   </div>
   <div style="flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:1rem" id="comp-viewer-body"></div>
   <div style="padding:.75rem 1rem;display:flex;gap:8px;justify-content:center;flex-shrink:0" id="comp-viewer-actions"></div>
@@ -494,9 +494,8 @@ a[onclick]:active{transform:scale(.93)}
 <!-- Modal flutuante para seções do painel admin -->
 <div id="sec-modal" class="sec-modal">
   <div class="sec-modal-hd">
-    <button type="button" class="btn-back" onclick="fecharSecModal()">← Voltar</button>
     <span class="sec-modal-title" id="sec-modal-title">Seção</span>
-    <button type="button" class="btn-cl" onclick="fecharSecModal()">✕</button>
+    <button type="button" class="btn-back" onclick="fecharSecModal()">← Voltar</button>
   </div>
   <div class="sec-modal-body" id="sec-modal-body">
 
@@ -2745,6 +2744,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v10.4</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v10.5</div>
 </body>
 </html>
