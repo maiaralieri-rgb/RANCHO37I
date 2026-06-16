@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v10.6-trava-scroll-modais -->
+<meta charset="UTF-8"><!-- deploy:20260616-v10.7-antifraude-hash-comprovante -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -842,8 +842,33 @@ function resetDias(){
 }
 
 // ── Comprovante ──────────────────────────────────────────────────────────────
-function selecionarComp(inp){
+async function sha256hex(file){
+  const buf = await file.arrayBuffer();
+  const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hashBuf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+let _compHash = null;
+
+async function selecionarComp(inp){
   const f=inp.files[0]; if(!f) return;
+  // Calcula hash antes de ler como base64
+  let hash = null;
+  try{ hash = await sha256hex(f); } catch(e){ console.warn('[hash]', e); }
+  // Verifica duplicata no Firestore
+  if(hash){
+    try{
+      const snap = await getDoc(doc(db,'config','comprovantes'));
+      const hashes = snap.exists() ? (snap.data().hashes||{}) : {};
+      if(hashes[hash]){
+        const reg = hashes[hash];
+        toast(`⛔ Comprovante já registrado (${reg.qra} · ${reg.semana}). Não é possível reutilizar o mesmo comprovante.`);
+        inp.value='';
+        return;
+      }
+    }catch(e){ console.warn('[hash-check]', e); }
+  }
+  _compHash = hash;
   const rd=new FileReader();
   rd.onload=e=>{
     compSel={nome:f.name, data64:e.target.result, tipo:f.type.includes('pdf')?'pdf':'img'};
@@ -1146,7 +1171,17 @@ async function inscrever(){
     if(existe){ toast('QRA já inscrito. Fale com o admin.'); btn.disabled=false; btn.textContent='Confirmar inscrição'; return; }
     const entry={qra, dias, pago:false, criadoEm:Date.now()};
     if(compSel) entry.comprovante=compSel;
-    await addDoc(insRef, entry);
+    const docRef = await addDoc(insRef, entry);
+    // Registra hash do comprovante para detectar reutilização futura
+    if(_compHash && compSel){
+      try{
+        const label = _cacheSem ? _cacheSem.label : semAtiva;
+        await setDoc(doc(db,'config','comprovantes'),
+          { hashes: { [_compHash]: { qra, semana:label, semId:semAtiva, inscId:docRef.id, data:Date.now() } } },
+          { merge:true });
+      }catch(e){ console.warn('[hash-save]', e); }
+      _compHash = null;
+    }
     const vlrAtual = _cacheSem ? parseFloat(_cacheSem.valor)||0 : 0;
     mostrarResumoPosInscricao(qra, dias, vlrAtual);
     resetDias(); removerComp();
@@ -1586,6 +1621,21 @@ window.tglPago = tglPago;
 async function delIns(id){
   if(!confirm('Remover inscrito?')) return;
   if(!semAtiva) return;
+  // Remove hash do comprovante para liberar reutilização legítima
+  const insc = _cacheIns.find(x=>x.id===id);
+  if(insc && insc.comprovante){
+    try{
+      const snap = await getDoc(doc(db,'config','comprovantes'));
+      if(snap.exists()){
+        const hashes = snap.data().hashes||{};
+        const entry = Object.entries(hashes).find(([,v])=>v.inscId===id);
+        if(entry){
+          const upd = {...hashes}; delete upd[entry[0]];
+          await setDoc(doc(db,'config','comprovantes'), {hashes:upd});
+        }
+      }
+    }catch(e){ console.warn('[hash-del]', e); }
+  }
   await deleteDoc(doc(db,'semanas',semAtiva,'inscritos',id));
   toast('Inscrito removido');
 }
@@ -2747,6 +2797,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v10.6</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v10.7</div>
 </body>
 </html>
