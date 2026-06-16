@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v16-audit-fix-comp-lembrete-abrirAdmin -->
+<meta charset="UTF-8"><!-- deploy:20260616-v17-compartilhar-lembrete-web-share -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -577,8 +577,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
         <div id="lembrete-preview" style="font-size:13px;color:var(--g1);line-height:1.8;white-space:pre-wrap;background:var(--br);border-radius:8px;padding:.75rem;border:1px solid var(--g4)">Carregando...</div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" class="btn-sv" style="flex:1" onclick="copiarLembrete()">📋 Copiar mensagem</button>
-        <button type="button" class="btn-sv" style="flex:1;background:var(--g2)" onclick="abrirWhatsApp()">📱 Abrir WhatsApp</button>
+        <button type="button" class="btn-sv" style="flex:1" onclick="compartilharLembrete()">📤 Compartilhar</button>
+        <button type="button" class="btn-sv" style="flex:1;background:var(--g2)" onclick="abrirWhatsApp()">📱 WhatsApp</button>
       </div>
       <div style="font-size:11px;color:var(--g3);margin-top:.5rem;text-align:center">A mensagem é gerada com base na semana ativa e no cardápio preenchido</div>
     </div>
@@ -1960,14 +1960,24 @@ ${cardapioTxt||'   A definir'}
 }
 window.gerarLembrete = gerarLembrete;
 
-function copiarLembrete(){
+async function compartilharLembrete(){
   const msg = window._lembreteMsg;
   if(!msg){ toast('Gere o lembrete primeiro'); return; }
-  navigator.clipboard.writeText(msg)
-    .then(()=>toast('✓ Mensagem copiada!'))
-    .catch(()=>toast('Erro ao copiar'));
+  if(navigator.share){
+    try{
+      await navigator.share({ text: msg });
+    }catch(e){
+      // Usuário cancelou o menu de compartilhamento — não é erro
+      if(e.name !== 'AbortError') toast('Erro ao compartilhar');
+    }
+  } else {
+    // Fallback para navegadores sem Web Share API (desktop antigo)
+    navigator.clipboard.writeText(msg)
+      .then(()=>toast('✓ Mensagem copiada! (compartilhamento não suportado neste navegador)'))
+      .catch(()=>toast('Erro ao copiar'));
+  }
 }
-window.copiarLembrete = copiarLembrete;
+window.compartilharLembrete = compartilharLembrete;
 
 function abrirWhatsApp(){
   const msg = window._lembreteMsg;
@@ -2481,6 +2491,6 @@ function iniciarListenersUmaVez(){
 }
 iniciarListenersUmaVez();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v16</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v17</div>
 </body>
 </html>
