@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v11.10-cards-clicaveis-somente-admin -->
+<meta charset="UTF-8"><!-- deploy:20260616-v11.11-botoes-utilitarios-fonte-ajustada -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -130,9 +130,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .adm-nav-btn:hover{border-color:var(--g4);color:var(--g1)}
 .adm-nav-btn.active{border-color:var(--vdl);background:var(--vdx);color:var(--vd);font-weight:800}
 .adm-nav-btn .nb-ico{display:none}
-.adm-nav-btn .nb-lbl{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;overflow-wrap:anywhere}
+.adm-nav-btn .nb-lbl{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
 .adm-nav-btn .nb-badge{font-size:9px;background:var(--vd);color:#fff;border-radius:20px;padding:1px 6px;display:none}
 .adm-nav-btn.active .nb-badge{display:inline}
+.adm-nav-5col .adm-nav-btn .nb-lbl{font-size:10px;letter-spacing:.1px}
 .adm-stat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:1rem}
 .adm-stat-card{background:var(--br);border:1px solid var(--g5);border-radius:10px;padding:.5rem .6rem;text-align:center;min-width:0;overflow:hidden}
 .adm-stat-card .asc-l{font-size:9px;color:var(--g3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;line-height:1.25}
@@ -450,7 +451,7 @@ a[onclick]:active{transform:scale(.93)}
       </div>
       <div class="adm-nav-group" style="grid-column:1/-1">
         <div class="adm-nav-label">🔧 Utilitários</div>
-        <div class="adm-nav-btns" style="grid-template-columns:repeat(5,1fr);display:grid;gap:4px">
+        <div class="adm-nav-btns adm-nav-5col" style="grid-template-columns:repeat(5,1fr);display:grid;gap:4px">
           <button type="button" class="adm-nav-btn" onclick="aTab('notas',this)"><span class="nb-ico">📝</span><span class="nb-lbl">Notas</span></button>
           <button type="button" class="adm-nav-btn" onclick="aTab('lembrete',this)"><span class="nb-ico">🔔</span><span class="nb-lbl">Lembrete</span></button>
           <button type="button" class="adm-nav-btn" onclick="aTab('sugestoes',this)"><span class="nb-ico">💬</span><span class="nb-lbl">Sugestões</span></button>
@@ -3195,6 +3196,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.10</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.11</div>
 </body>
 </html>
