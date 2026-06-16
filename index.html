@@ -2008,20 +2008,39 @@ async function delNota(idx){
 window.delNota = delNota;
 
 // ── Admin — Comprovantes ──────────────────────────────────────────────────────
-function abrirCompViewer(data64, nome, insId, isPago){
+async function abrirCompViewer(data64, nome, insId, isPago){
   const v=document.getElementById('comp-viewer');
   const body=document.getElementById('comp-viewer-body');
   const actions=document.getElementById('comp-viewer-actions');
   document.getElementById('comp-viewer-nome').textContent=nome;
+  v.style.display='flex';
+  lockScroll();
+
   const isPdf=data64.startsWith('data:application/pdf');
-  body.innerHTML = isPdf
-    ? `<iframe src="${data64}" style="width:min(100vw,860px);height:80vh;border:none;border-radius:8px"></iframe>`
-    : `<img src="${data64}" alt="${escHTML(nome)}" style="max-width:100%;max-height:80vh;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.5)">`;
+  if(isPdf){
+    body.innerHTML='<div style="color:rgba(255,255,255,.6);font-size:13px">⏳ Carregando PDF...</div>';
+    try{
+      const resp = await fetch(data64);
+      const buf  = await resp.arrayBuffer();
+      const canvas = await pdfToCanvas(new File([buf],'comp.pdf',{type:'application/pdf'}));
+      if(canvas){
+        body.innerHTML='';
+        canvas.style.cssText='max-width:100%;max-height:76vh;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.5)';
+        body.appendChild(canvas);
+      } else {
+        body.innerHTML=`<div style="color:rgba(255,255,255,.7);text-align:center;font-size:13px;line-height:1.8">📄 PDF não pode ser exibido neste dispositivo.<br>Use o botão Baixar para visualizar.</div>`;
+      }
+    }catch(err){
+      console.warn('[pdf-viewer]',err);
+      body.innerHTML=`<div style="color:rgba(255,255,255,.7);text-align:center;font-size:13px">📄 Erro ao exibir PDF. Use Baixar.</div>`;
+    }
+  } else {
+    body.innerHTML=`<img src="${data64}" alt="${escHTML(nome)}" style="max-width:100%;max-height:80vh;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.5)">`;
+  }
+
   actions.innerHTML=`
     <a href="${data64}" download="${escHTML(nome)}" style="padding:9px 20px;background:rgba(255,255,255,.15);color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;font-family:'DM Sans',sans-serif">⬇ Baixar</a>
     <button type="button" onclick="tglPago('${insId}',${!isPago});fecharCompViewer(null)" style="padding:9px 20px;background:${isPago?'#388e3c':'var(--vd)'};color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">${isPago?'✓ Validado — desvalidar':'✓ Validar pagamento'}</button>`;
-  v.style.display='flex';
-  lockScroll();
 }
 window.abrirCompViewer=abrirCompViewer;
 
