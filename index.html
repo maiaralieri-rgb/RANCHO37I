@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v11.2-safe-area-bloqueio-upload-nao-imagem -->
+<meta charset="UTF-8"><!-- deploy:20260616-v11.3-antifraude-controlado-toggle-suporte-pdf -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -338,7 +338,7 @@ a[onclick]:active{transform:scale(.93)}
         <div class="upload-comp" id="upload-comp" onclick="document.getElementById('inp-comp').click()">
           <div style="font-size:28px">📎</div>
           <p>Anexe o comprovante do Pix</p>
-          <input type="file" id="inp-comp" accept="image/*" style="display:none" onchange="selecionarComp(this)">
+          <input type="file" id="inp-comp" accept="image/*,application/pdf" style="display:none" onchange="selecionarComp(this)">
         </div>
         <div class="comp-prev" id="comp-prev" style="display:none">
           <span id="comp-nome">—</span>
@@ -867,11 +867,52 @@ async function loadTesseract(){
   });
 }
 
+async function loadPdfJs(){
+  if(window.pdfjsLib) return;
+  await new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/pdfjs-dist@4/build/pdf.min.mjs';
+    s.type='module'; s.onload=res; s.onerror=rej;
+    document.head.appendChild(s);
+  });
+  // fallback: tenta importar como módulo
+  if(!window.pdfjsLib){
+    const mod = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4/build/pdf.min.mjs').catch(()=>null);
+    if(mod) window.pdfjsLib = mod;
+  }
+}
+
+async function pdfToCanvas(file){
+  try{
+    await loadPdfJs();
+    if(!window.pdfjsLib) return null;
+    const buf = await file.arrayBuffer();
+    const lib = window.pdfjsLib;
+    lib.GlobalWorkerOptions = lib.GlobalWorkerOptions || {};
+    lib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4/build/pdf.worker.min.mjs';
+    const pdf = await lib.getDocument({data: new Uint8Array(buf)}).promise;
+    const page = await pdf.getPage(1);
+    const vp = page.getViewport({scale:2});
+    const canvas = document.createElement('canvas');
+    canvas.width = vp.width; canvas.height = vp.height;
+    await page.render({canvasContext:canvas.getContext('2d'), viewport:vp}).promise;
+    return canvas;
+  }catch(e){ console.warn('[pdf2canvas]',e); return null; }
+}
+
 async function extrairDadosTiquete(file){
-  if(!file.type.startsWith('image/')) return null;
+  const isImg = file.type.startsWith('image/');
+  const isPdf = file.type === 'application/pdf';
+  if(!isImg && !isPdf) return null;
   try{
     await loadTesseract();
-    const result = await Tesseract.recognize(file, 'por', { logger:()=>{} });
+    let ocrInput = file;
+    if(isPdf){
+      const canvas = await pdfToCanvas(file);
+      if(!canvas) return null;
+      ocrInput = await new Promise(res => canvas.toBlob(res, 'image/png'));
+    }
+    const result = await Tesseract.recognize(ocrInput, 'por', { logger:()=>{} });
     const txt = result.data.text;
     // ID E2E do Pix: começa com E, 32 chars alfanuméricos
     const e2e = (txt.match(/E\d{2}[A-Z0-9]{28,32}/i)||[])[0]?.toUpperCase()||null;
@@ -893,44 +934,51 @@ async function selecionarComp(inp){
   const f=inp.files[0]; if(!f) return;
   inp.value='';
 
-  if(!f.type.startsWith('image/')){
-    mostrarBloqueioComp('Arquivo inválido. Envie somente uma imagem do comprovante Pix (foto ou print da tela).');
+  const isImg = f.type.startsWith('image/');
+  const isPdf = f.type === 'application/pdf';
+  const antifraude = !!(_cacheSem?.exigirComprovante);
+
+  if(!isImg && !isPdf){
+    if(antifraude){
+      mostrarBloqueioComp('Arquivo inválido. Envie somente uma imagem ou PDF do comprovante de pagamento Pix.');
+    } else {
+      toast('Atenção: envie somente imagem ou PDF do comprovante Pix.');
+    }
     return;
   }
 
   const uploadEl = document.getElementById('upload-comp');
   const prevTxt  = uploadEl ? uploadEl.querySelector('p') : null;
-  if(prevTxt) prevTxt.textContent='🔍 Verificando comprovante...';
 
-  // ── Camada 1: hash do arquivo ─────────────────────────────────────────────
-  let hash = null;
-  try{ hash = await sha256hex(f); }catch(e){ console.warn('[hash]',e); }
+  if(antifraude){
+    if(prevTxt) prevTxt.textContent='🔍 Verificando comprovante...';
 
-  let storedData = {};
-  try{
-    const snap = await getDoc(doc(db,'config','comprovantes'));
-    storedData = snap.exists() ? snap.data() : {};
-  }catch(e){ console.warn('[comp-fetch]',e); }
+    // ── Camada 1: hash do arquivo ──────────────────────────────────────────
+    let hash = null;
+    try{ hash = await sha256hex(f); }catch(e){ console.warn('[hash]',e); }
 
-  if(hash && (storedData.hashes||{})[hash]){
-    const reg = storedData.hashes[hash];
-    if(prevTxt) prevTxt.textContent='Anexe o comprovante do Pix';
-    inp.value='';
-    mostrarBloqueioComp(`Arquivo idêntico já registrado por ${reg.qra} (semana ${reg.semana}). Cada comprovante só pode ser usado uma vez.`);
-    return;
-  }
+    let storedData = {};
+    try{
+      const snap = await getDoc(doc(db,'config','comprovantes'));
+      storedData = snap.exists() ? snap.data() : {};
+    }catch(e){ console.warn('[comp-fetch]',e); }
 
-  // ── Camada 2+3: OCR — E2E ID e fingerprint data+hora+valor ───────────────
-  let ocr = null;
-  if(f.type.startsWith('image/')){
+    if(hash && (storedData.hashes||{})[hash]){
+      const reg = storedData.hashes[hash];
+      if(prevTxt) prevTxt.textContent='Anexe o comprovante do Pix';
+      mostrarBloqueioComp(`Arquivo idêntico já registrado por ${reg.qra} (semana ${reg.semana}). Cada comprovante só pode ser usado uma vez.`);
+      return;
+    }
+
+    // ── Camadas 2+3+4: OCR — funciona em imagem e PDF ─────────────────────
     if(prevTxt) prevTxt.textContent='🔍 Lendo dados do comprovante...';
-    ocr = await extrairDadosTiquete(f);
+    const ocr = await extrairDadosTiquete(f);
     if(ocr){
       // Camada 2: ID E2E único por transação Pix
       if(ocr.e2e && (storedData.e2eIds||{})[ocr.e2e]){
         const reg = storedData.e2eIds[ocr.e2e];
         if(prevTxt) prevTxt.textContent='Anexe o comprovante do Pix';
-        inp.value=''; _compHash=null; _compOcr=null;
+        _compHash=null; _compOcr=null;
         mostrarBloqueioComp(`ID de transação Pix já registrado por ${reg.qra} (semana ${reg.semana}). Comprovante inválido.`);
         return;
       }
@@ -939,33 +987,31 @@ async function selecionarComp(inp){
       if(fp.length > 4 && (storedData.fingerprints||{})[fp]){
         const reg = storedData.fingerprints[fp];
         if(prevTxt) prevTxt.textContent='Anexe o comprovante do Pix';
-        inp.value=''; _compHash=null; _compOcr=null;
+        _compHash=null; _compOcr=null;
         mostrarBloqueioComp(`Dados do comprovante (data, hora e valor) já registrados por ${reg.qra} (semana ${reg.semana}).`);
         return;
       }
+      // Camada 4: data retroativa — bloqueia comprovantes com mais de 30 dias
+      if(ocr.data){
+        const [d,m,a] = ocr.data.split('/').map(Number);
+        const diffDias = (Date.now() - new Date(a,m-1,d).getTime()) / 86400000;
+        if(diffDias > 30){
+          if(prevTxt) prevTxt.textContent='Anexe o comprovante do Pix';
+          _compHash=null; _compOcr=null;
+          mostrarBloqueioComp(`Comprovante retroativo detectado (data: ${ocr.data}). Apenas comprovantes dos últimos 30 dias são aceitos.`);
+          return;
+        }
+      }
     }
+    _compHash = hash;
+    _compOcr  = ocr;
   }
 
-  // Camada 4: data retroativa — bloqueia comprovantes com mais de 30 dias
-  if(ocr?.data){
-    const [d,m,a] = ocr.data.split('/').map(Number);
-    const dtComp = new Date(a,m-1,d);
-    const diffDias = (Date.now() - dtComp.getTime()) / 86400000;
-    if(diffDias > 30){
-      if(prevTxt) prevTxt.textContent='Anexe o comprovante do Pix';
-      inp.value=''; _compHash=null; _compOcr=null;
-      mostrarBloqueioComp(`Comprovante retroativo detectado (data: ${ocr.data}). Apenas comprovantes dos últimos 30 dias são aceitos.`);
-      return;
-    }
-  }
-
-  _compHash = hash;
-  _compOcr  = ocr;
   if(prevTxt) prevTxt.textContent='Anexe o comprovante do Pix';
 
   const rd=new FileReader();
   rd.onload=e=>{
-    compSel={nome:f.name, data64:e.target.result, tipo:f.type.includes('pdf')?'pdf':'img'};
+    compSel={nome:f.name, data64:e.target.result, tipo:isPdf?'pdf':'img'};
     document.getElementById('comp-nome').textContent=f.name;
     document.getElementById('comp-prev').style.display='flex';
     uploadEl.style.display='none';
@@ -2909,6 +2955,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.2</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.3</div>
 </body>
 </html>
