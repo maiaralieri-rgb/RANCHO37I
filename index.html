@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v11.7-auditoria-tripla-xss-try-catch-safe-area -->
+<meta charset="UTF-8"><!-- deploy:20260616-v11.8-cards-clicaveis-grafico-saldo-sugestao-inteligente -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -267,10 +267,10 @@ a[onclick]:active{transform:scale(.93)}
     <div class="hero-sub">Confirme sua presença para a semana</div>
     <div class="hero-cards">
       <div class="hc"><div class="hc-l">Valor/dia</div><div class="hc-v" id="hc-val">—</div><div class="hc-s">por refeição</div></div>
-      <div class="hc"><div class="hc-l">Inscritos</div><div class="hc-v" id="hc-ins">0</div><div class="hc-s"> </div></div>
-      <div class="hc" id="hc-arr-card"><div class="hc-l">Arrecadado</div><div class="hc-v" id="hc-arr">R$0</div><div class="hc-s">validado</div></div>
+      <div class="hc" id="hc-ins-card" onclick="abrirModalInscritos()" style="cursor:pointer;position:relative"><div class="hc-l">Inscritos</div><div class="hc-v" id="hc-ins">0</div><div class="hc-s">▶ ver lista</div></div>
+      <div class="hc" id="hc-arr-card" onclick="abrirModalPagantes()" style="cursor:pointer"><div class="hc-l">Arrecadado</div><div class="hc-v" id="hc-arr">R$0</div><div class="hc-s">▶ validados</div></div>
       <div class="hc" id="hc-pend-card"><div class="hc-l">Pendente</div><div class="hc-v" id="hc-pend" style="color:#ffd27a">R$0</div><div class="hc-s">aguarda aprovação</div></div>
-      <div class="hc" id="hc-saldo-card" style="display:none"><div class="hc-l">Saldo</div><div class="hc-v" id="hc-saldo">R$0</div><div class="hc-s">próx. semana</div></div>
+      <div class="hc" id="hc-saldo-card" onclick="abrirModalGrafico()" style="display:none;cursor:pointer"><div class="hc-l">Saldo ant.</div><div class="hc-v" id="hc-saldo">R$0</div><div class="hc-s">▶ histórico</div></div>
     </div>
   </div>
 </div>
@@ -425,8 +425,7 @@ a[onclick]:active{transform:scale(.93)}
       </div>
       <div class="adm-stat-card" style="grid-column:1/-1;background:var(--vdx);border-color:var(--vdl);display:flex;align-items:center;justify-content:space-between;padding:.5rem .85rem">
         <div>
-          <div class="asc-l" style="margin:0">Saldo total (anterior + arrecadado − gastos)</div>
-          <div style="font-size:10px;color:var(--g3)" id="adm-stat-saldo-formula">—</div>
+          <div class="asc-l" style="margin:0">Saldo total</div>
         </div>
         <div class="asc-v" id="adm-stat-saldo" style="font-size:1.15rem;color:var(--vd)">—</div>
       </div>
@@ -526,7 +525,7 @@ a[onclick]:active{transform:scale(.93)}
       <!-- Cardápio -->
       <div style="background:var(--g5);border-radius:var(--r);padding:.85rem;margin-bottom:.85rem">
         <div style="font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.65rem">Cardápio da semana</div>
-        <button type="button" onclick="sugerirCardapio()" style="margin-bottom:.65rem;padding:7px 14px;font-size:12px;font-weight:700;background:var(--vdx);border:1.5px solid var(--vdl);border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--vd);width:100%">✨ Sugerir cardápio automaticamente</button>
+        <button type="button" onclick="sugerirCardapio()" style="margin-bottom:.65rem;padding:7px 14px;font-size:12px;font-weight:700;background:var(--vdx);border:1.5px solid var(--vdl);border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--vd);width:100%">✨ Sugerir cardápio pelo histórico financeiro</button>
         <div class="cdp-adm">
           <div class="cdp-adm-row" style="margin-bottom:4px">
             <div></div>
@@ -752,6 +751,28 @@ a[onclick]:active{transform:scale(.93)}
 
   </div><!-- sec-modal-body -->
 </div><!-- sec-modal -->
+
+<!-- Modal: Lista de Inscritos / Pagantes -->
+<div id="hc-modal" style="display:none;position:fixed;inset:0;z-index:520;background:rgba(0,0,0,.55);align-items:flex-end;justify-content:center" onclick="fecharHcModal(event)">
+  <div style="background:var(--br);border-radius:16px 16px 0 0;width:100%;max-width:680px;max-height:80vh;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.1rem;border-bottom:1px solid var(--g4);flex-shrink:0">
+      <span id="hc-modal-title" style="font-family:'DM Serif Display',serif;font-size:1rem;font-weight:700;color:var(--g1)"></span>
+      <button type="button" onclick="fecharHcModal(null)" style="background:var(--vdx);border:1.5px solid #c5ddc9;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--vd);cursor:pointer;font-family:'DM Sans',sans-serif">← Fechar</button>
+    </div>
+    <div id="hc-modal-body" style="overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1rem;flex:1"></div>
+  </div>
+</div>
+
+<!-- Modal: Gráfico histórico de saldo -->
+<div id="grafico-modal" style="display:none;position:fixed;inset:0;z-index:520;background:rgba(0,0,0,.55);align-items:flex-end;justify-content:center" onclick="fecharGraficoModal(event)">
+  <div style="background:var(--br);border-radius:16px 16px 0 0;width:100%;max-width:680px;max-height:85vh;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.1rem;border-bottom:1px solid var(--g4);flex-shrink:0">
+      <span style="font-family:'DM Serif Display',serif;font-size:1rem;font-weight:700;color:var(--g1)">Histórico de saldo — semana a semana</span>
+      <button type="button" onclick="fecharGraficoModal(null)" style="background:var(--vdx);border:1.5px solid #c5ddc9;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--vd);cursor:pointer;font-family:'DM Sans',sans-serif">← Fechar</button>
+    </div>
+    <div id="grafico-modal-body" style="overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1rem;flex:1"></div>
+  </div>
+</div>
 
 <!-- Firebase SDK -->
 <script type="module">
@@ -1426,6 +1447,110 @@ function fecharAdmin(){
   if(isAdmin) document.getElementById('fab-adm').style.display='flex';
 }
 window.fecharAdmin = fecharAdmin;
+
+// ── Modais hero-cards (inscritos, pagantes, gráfico) ─────────────────────────
+function fecharHcModal(e){
+  if(e && e.target.id !== 'hc-modal') return;
+  document.getElementById('hc-modal').style.display='none';
+  unlockScroll();
+}
+window.fecharHcModal = fecharHcModal;
+
+function fecharGraficoModal(e){
+  if(e && e.target.id !== 'grafico-modal') return;
+  document.getElementById('grafico-modal').style.display='none';
+  unlockScroll();
+}
+window.fecharGraficoModal = fecharGraficoModal;
+
+function _abrirHcModal(title, html){
+  document.getElementById('hc-modal-title').textContent = title;
+  document.getElementById('hc-modal-body').innerHTML = html;
+  const m = document.getElementById('hc-modal');
+  m.style.display = 'flex';
+  lockScroll();
+}
+
+function abrirModalInscritos(){
+  if(!_cacheIns.length){ _abrirHcModal('Inscritos','<div class="empty-st">Nenhum inscrito ainda.</div>'); return; }
+  const vlr = _cacheSem ? parseFloat(_cacheSem.valor)||0 : 0;
+  const rows = _cacheIns.map(i=>{
+    const nd = cntD(i.dias);
+    const dias = DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]);
+    const pills = dias.map(d=>`<span class="dp">${d}</span>`).join('');
+    const badge = i.pago
+      ? `<span class="s-pago">✓ Pago</span>`
+      : (i.comprovante ? `<span class="s-deve">⏳ Aguarda</span>` : `<span class="s-deve">Pendente</span>`);
+    return`<div class="ins-row"><div><div class="ins-nome">${escHTML(i.qra)}</div><div class="ins-dias" style="margin-top:3px">${pills}</div></div><div style="text-align:right"><div>${badge}</div><div class="ins-val">R$${(nd*vlr).toFixed(2)}</div></div></div>`;
+  }).join('');
+  _abrirHcModal(`Inscritos (${_cacheIns.length})`, `<div class="card">${rows}</div>`);
+}
+window.abrirModalInscritos = abrirModalInscritos;
+
+function abrirModalPagantes(){
+  const vlr = _cacheSem ? parseFloat(_cacheSem.valor)||0 : 0;
+  const pagantes = _cacheIns.filter(i=>i.pago);
+  if(!pagantes.length){ _abrirHcModal('Pagamentos validados','<div class="empty-st">Nenhum pagamento validado ainda.</div>'); return; }
+  const total = pagantes.reduce((a,i)=>a+cntD(i.dias)*vlr,0);
+  const rows = pagantes.map(i=>{
+    const nd = cntD(i.dias);
+    const dias = DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]);
+    const pills = dias.map(d=>`<span class="dp">${d}</span>`).join('');
+    return`<div class="ins-row"><div><div class="ins-nome">${escHTML(i.qra)}</div><div class="ins-dias" style="margin-top:3px">${pills}</div></div><div style="text-align:right"><span class="s-pago">✓ Pago</span><div class="ins-val">R$${(nd*vlr).toFixed(2)}</div></div></div>`;
+  }).join('');
+  const resumo = `<div style="padding:.6rem .75rem;background:var(--vdx);border-radius:8px;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;font-weight:700;color:var(--vd)">${pagantes.length} pagante${pagantes.length>1?'s':''}</span><span style="font-size:1.1rem;font-weight:800;color:var(--vd)">R$${total.toFixed(2)}</span></div>`;
+  _abrirHcModal('Arrecadado — validados', resumo + `<div class="card">${rows}</div>`);
+}
+window.abrirModalPagantes = abrirModalPagantes;
+
+function abrirModalGrafico(){
+  if(!_cacheSemanas.length){ _abrirHcModal('Histórico','<div class="empty-st">Nenhuma semana cadastrada.</div>'); return; }
+  const sems = [..._cacheSemanas].sort((a,b)=>a.criadoEm-b.criadoEm);
+  const dados = sems.map(s=>{
+    const vlr = parseFloat(s.valor)||0;
+    const arr = _cacheArrPorSemana[s.id]||0;
+    const gastos = parseFloat(s.gastos)||0;
+    const saldo = arr - gastos;
+    return { label:s.label, arr, gastos, saldo };
+  });
+  const maxVal = Math.max(...dados.map(d=>Math.abs(d.saldo)), 1);
+  const bars = dados.map(d=>{
+    const pct = Math.min(100, Math.round(Math.abs(d.saldo)/maxVal*100));
+    const cor = d.saldo >= 0 ? 'var(--vd)' : 'var(--er)';
+    const sinal = d.saldo >= 0 ? '+' : '';
+    return`<div style="margin-bottom:.85rem">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px">
+        <span style="font-size:11px;font-weight:700;color:var(--g2)">${escHTML(d.label)}</span>
+        <span style="font-size:12px;font-weight:800;color:${cor}">${sinal}R$${d.saldo.toFixed(2)}</span>
+      </div>
+      <div style="background:var(--g5);border-radius:4px;height:12px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:${cor};border-radius:4px;transition:width .4s"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:2px">
+        <span style="font-size:9px;color:var(--g3)">Arrecad. R$${d.arr.toFixed(2)}</span>
+        <span style="font-size:9px;color:var(--g3)">Gastos R$${d.gastos.toFixed(2)}</span>
+      </div>
+    </div>`;
+  }).join('');
+  const arrMed = dados.length ? dados.reduce((a,d)=>a+d.arr,0)/dados.length : 0;
+  const gastosMed = dados.length ? dados.reduce((a,d)=>a+d.gastos,0)/dados.length : 0;
+  const resumo = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem">
+    <div style="background:var(--vdx);border:1px solid #c5ddc9;border-radius:8px;padding:.65rem;text-align:center">
+      <div style="font-size:9px;color:var(--g3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Média arrecadada</div>
+      <div style="font-size:1.1rem;font-weight:800;color:var(--vd)">R$${arrMed.toFixed(2)}</div>
+    </div>
+    <div style="background:var(--wnc);border:1px solid #e8d48a;border-radius:8px;padding:.65rem;text-align:center">
+      <div style="font-size:9px;color:var(--g3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Média de gastos</div>
+      <div style="font-size:1.1rem;font-weight:800;color:var(--wn)">R$${gastosMed.toFixed(2)}</div>
+    </div>
+  </div>`;
+  const m = document.getElementById('grafico-modal');
+  document.getElementById('grafico-modal-body').innerHTML = resumo + bars;
+  m.style.display='flex';
+  lockScroll();
+}
+window.abrirModalGrafico = abrirModalGrafico;
+
 function fecharSecModal(){
   const sm=document.getElementById('sec-modal');
   if(sm) sm.classList.remove('open');
@@ -1643,13 +1768,11 @@ function atualizarAdminStatusBar(sem, ins, vlr){
   if(pendEl) pendEl.textContent = `R$${pend.toFixed(2)}`;
   const credEl  = document.getElementById('adm-stat-credant');
   const saldoEl = document.getElementById('adm-stat-saldo');
-  const formulaEl = document.getElementById('adm-stat-saldo-formula');
   if(credEl) credEl.textContent = `R$${saldoAnt.toFixed(2)}`;
   if(saldoEl){
     saldoEl.textContent = `R$${saldo.toFixed(2)}`;
     saldoEl.style.color = saldo >= 0 ? 'var(--vd)' : 'var(--er)';
   }
-  if(formulaEl) formulaEl.textContent = `R$${saldoAnt.toFixed(2)} + R$${arrAtual.toFixed(2)}${gastosAtual?` − R$${gastosAtual.toFixed(2)}`:''}`;
 
   if(statPrazo && sem && sem.prazoData){
     const prazo = new Date(sem.prazoData+'T'+(sem.prazoHora||'23:59'));
@@ -1755,18 +1878,66 @@ async function salvarSemana(){
 }
 window.salvarSemana = salvarSemana;
 
+// Banco de pratos com faixa de custo estimado por porção (R$)
+const _BANCO_PRATOS = [
+  {p:'Frango grelhado',a:'Arroz, feijão e salada',custo:8},
+  {p:'Frango ao molho',a:'Arroz, macarrão e legumes',custo:9},
+  {p:'Frango ensopado',a:'Arroz, feijão e legumes',custo:9},
+  {p:'Frango assado',a:'Arroz, feijão e salada',custo:8},
+  {p:'Frango xadrez',a:'Arroz e legumes salteados',custo:10},
+  {p:'Estrogonofe de frango',a:'Arroz e batata palha',custo:11},
+  {p:'Bife acebolado',a:'Arroz, batata frita e salada',custo:16},
+  {p:'Bife à parmegiana',a:'Arroz, feijão e macarrão',custo:18},
+  {p:'Carne assada',a:'Arroz, feijão e macarrão',custo:15},
+  {p:'Carne moída',a:'Arroz, feijão e farofa',custo:10},
+  {p:'Almôndegas ao molho',a:'Arroz, feijão e macarrão',custo:11},
+  {p:'Costelinha suína',a:'Arroz, feijão e mandioca',custo:14},
+  {p:'Tilápia assada',a:'Arroz, feijão e salada',custo:13},
+  {p:'Omelete recheado',a:'Arroz, feijão e salada',custo:6},
+  {p:'Frango desfiado',a:'Arroz, feijão e macaxeira',custo:8},
+];
+
 function sugerirCardapio(){
-  const menus=[
-    [{p:'Frango grelhado',a:'Arroz, feijão e salada'},{p:'Bife acebolado',a:'Arroz, batata frita e salada'},{p:'Frango ao molho',a:'Arroz, macarrão e legumes'},{p:'Tilápia assada',a:'Arroz, feijão e salada'},{p:'Carne assada',a:'Arroz, feijão e macarrão'}],
-    [{p:'Estrogonofe de frango',a:'Arroz e batata palha'},{p:'Bife à parmegiana',a:'Arroz, feijão e macarrão'},{p:'Frango ensopado',a:'Arroz, feijão e legumes'},{p:'Costelinha suína',a:'Arroz, feijão e mandioca'},{p:'Frango assado',a:'Arroz, feijão e salada'}],
-    [{p:'Frango xadrez',a:'Arroz e legumes salteados'},{p:'Almôndegas ao molho',a:'Arroz, feijão e macarrão'},{p:'Carne moída',a:'Arroz, feijão e farofa'},{p:'Frango grelhado',a:'Arroz, feijão e batata'},{p:'NÃO HAVERÁ ALMOÇO',a:''}],
-  ];
-  const m=menus[Math.floor(Math.random()*menus.length)];
+  // Versão inteligente: usa histórico financeiro + rotatividade
+  const sems = [..._cacheSemanas].sort((a,b)=>a.criadoEm-b.criadoEm);
+
+  // Orçamento médio disponível por inscrito (arrecadado ÷ inscritos médios)
+  let orcPorPessoa = 15; // fallback
+  if(sems.length >= 2){
+    const ultimas = sems.slice(-4);
+    const mediArr = ultimas.reduce((a,s)=>a+(_cacheArrPorSemana[s.id]||0), 0) / ultimas.length;
+    const mediIns = ultimas.reduce((a,s)=>{
+      const vlr = parseFloat(s.valor)||0;
+      return a + (vlr>0 ? (_cacheArrPorSemana[s.id]||0)/vlr : 0);
+    }, 0) / ultimas.length;
+    const mediGastos = ultimas.reduce((a,s)=>a+(parseFloat(s.gastos)||0), 0) / ultimas.length;
+    // Custo por refeição estimado = gastos médios / inscritos médios / 5 dias
+    if(mediIns > 0 && mediGastos > 0) orcPorPessoa = mediGastos / mediIns / 5;
+  }
+
+  // Pratos usados nas últimas 2 semanas (evitar repetição)
+  const recentes = new Set();
+  sems.slice(-2).forEach(s=>{
+    (s.cardapio||[]).forEach(r=>{ if(r&&r.principal) recentes.add(r.principal.toLowerCase()); });
+  });
+
+  // Filtra pratos dentro do orçamento e não recentes
+  const viaveis = _BANCO_PRATOS.filter(p=>p.custo <= orcPorPessoa * 1.3 && !recentes.has(p.p.toLowerCase()));
+  const pool = viaveis.length >= 5 ? viaveis : _BANCO_PRATOS; // fallback se poucos viáveis
+
+  // Seleciona 5 pratos variados (sem repetir)
+  const shuffle = arr => [...arr].sort(()=>Math.random()-.5);
+  const selecionados = shuffle(pool).slice(0,5);
+
   DK.forEach((dk,i)=>{
     const ep=document.getElementById('cp-'+dk), ea=document.getElementById('ca-'+dk);
-    if(ep) ep.value=m[i].p; if(ea) ea.value=m[i].a;
+    if(ep) ep.value=selecionados[i]?.p||''; if(ea) ea.value=selecionados[i]?.a||'';
   });
-  toast('✨ Cardápio sugerido! Edite conforme necessário.');
+
+  const msg = sems.length >= 2
+    ? `✨ Cardápio sugerido com base no histórico! Orçamento estimado/prato: R$${orcPorPessoa.toFixed(2)}. Pratos das últimas semanas foram evitados.`
+    : '✨ Cardápio sugerido! Adicione mais semanas para sugestões baseadas no seu histórico financeiro.';
+  toast(msg);
 }
 window.sugerirCardapio=sugerirCardapio;
 
@@ -3026,6 +3197,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.7</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.8</div>
 </body>
 </html>
