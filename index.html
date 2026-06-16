@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v19-modal-flutuante-secoes -->
+<meta charset="UTF-8"><!-- deploy:20260616-v20-visualizador-comprovante-fullscreen -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -441,6 +441,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
     </div>
   </div>
 </div>
+</div>
+
+<!-- Visualizador fullscreen de comprovante -->
+<div id="comp-viewer" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.92);flex-direction:column" onclick="fecharCompViewer(event)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;flex-shrink:0">
+    <span id="comp-viewer-nome" style="font-size:13px;font-weight:700;color:#fff;opacity:.85"></span>
+    <button type="button" onclick="fecharCompViewer(null)" style="background:rgba(255,255,255,.15);border:none;color:#fff;font-size:18px;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif">✕</button>
+  </div>
+  <div style="flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:1rem" id="comp-viewer-body"></div>
+  <div style="padding:.75rem 1rem;display:flex;gap:8px;justify-content:center;flex-shrink:0" id="comp-viewer-actions"></div>
 </div>
 
 <!-- Modal flutuante para seções do painel admin -->
@@ -1582,30 +1592,50 @@ async function delNota(idx){
 window.delNota = delNota;
 
 // ── Admin — Comprovantes ──────────────────────────────────────────────────────
+function abrirCompViewer(data64, nome, insId, isPago){
+  const v=document.getElementById('comp-viewer');
+  const body=document.getElementById('comp-viewer-body');
+  const actions=document.getElementById('comp-viewer-actions');
+  document.getElementById('comp-viewer-nome').textContent=nome;
+  const isPdf=data64.startsWith('data:application/pdf');
+  body.innerHTML = isPdf
+    ? `<iframe src="${data64}" style="width:min(100vw,860px);height:80vh;border:none;border-radius:8px"></iframe>`
+    : `<img src="${data64}" alt="${escHTML(nome)}" style="max-width:100%;max-height:80vh;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.5)">`;
+  actions.innerHTML=`
+    <a href="${data64}" download="${escHTML(nome)}" style="padding:9px 20px;background:rgba(255,255,255,.15);color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;font-family:'DM Sans',sans-serif">⬇ Baixar</a>
+    <button type="button" onclick="tglPago('${insId}',${!isPago});fecharCompViewer(null)" style="padding:9px 20px;background:${isPago?'#388e3c':'var(--vd)'};color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">${isPago?'✓ Validado — desvalidar':'✓ Validar pagamento'}</button>`;
+  v.style.display='flex';
+  document.body.style.overflow='hidden';
+}
+window.abrirCompViewer=abrirCompViewer;
+
+function fecharCompViewer(e){
+  if(e&&e.target.id!=='comp-viewer') return;
+  document.getElementById('comp-viewer').style.display='none';
+  document.body.style.overflow='';
+}
+window.fecharCompViewer=fecharCompViewer;
+
 function renderAdmComp(){
   const el = document.getElementById('a-comp-list');
   if(!semAtiva){ el.innerHTML='<div class="empty-st">Nenhuma semana ativa.</div>'; return; }
-  // Usa o cache live em vez de getDocs avulso — instantâneo e sempre atualizado
   const comps = _cacheIns.filter(i=>i.comprovante);
   if(!comps.length){ el.innerHTML='<div class="empty-st">Nenhum comprovante enviado.</div>'; return; }
   el.innerHTML = comps.map(i=>{
     const c = i.comprovante;
     const isPdf = c.tipo==='pdf';
-    const preview = !isPdf
-      ? `<img src="${c.data64}" alt="comprovante" style="width:100%;max-height:160px;object-fit:contain;border-radius:6px;border:1px solid var(--g4);margin:.4rem 0;cursor:pointer" onclick="window.open('${c.data64}','_blank')">`
-      : `<div style="padding:.5rem;background:var(--g5);border-radius:6px;text-align:center;font-size:12px;color:var(--g2);margin:.4rem 0">📄 PDF — clique em Baixar para visualizar</div>`;
+    const thumb = !isPdf
+      ? `<img src="${c.data64}" alt="comprovante" style="width:100%;max-height:140px;object-fit:contain;border-radius:6px;border:1px solid var(--g4);margin:.4rem 0;cursor:zoom-in" onclick="abrirCompViewer('${c.data64}','${escHTML(c.nome)}','${i.id}',${!!i.pago})">`
+      : `<div onclick="abrirCompViewer('${c.data64}','${escHTML(c.nome)}','${i.id}',${!!i.pago})" style="padding:.6rem;background:var(--g5);border-radius:6px;text-align:center;font-size:12px;color:var(--vdm);font-weight:700;margin:.4rem 0;cursor:pointer;border:1px dashed var(--g4)">📄 PDF — toque para visualizar</div>`;
     return `<div style="background:var(--br);border:1px solid var(--g4);border-radius:var(--r);padding:.75rem;margin-bottom:.6rem">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:.35rem">
-        <div>
-          <div style="font-size:13px;font-weight:700;color:var(--g1)">${escHTML(i.qra)}</div>
+        <div style="min-width:0">
+          <div style="font-size:13px;font-weight:700;color:var(--g1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHTML(i.qra)}</div>
           <div style="font-size:10px;color:var(--g3)">${escHTML(c.nome)}</div>
         </div>
-        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
-          <a href="${c.data64}" download="${c.nome}" style="font-size:11px;color:var(--vdm);font-weight:700;text-decoration:none;padding:3px 9px;border:1px solid #c5ddc9;border-radius:20px;background:var(--vdx)">⬇ Baixar</a>
-          <button type="button" class="btn-pg ${i.pago?'pago':'deve'}" onclick="tglPago('${i.id}',${!i.pago})">${i.pago?'✓ Validado':'Validar'}</button>
-        </div>
+        <button type="button" class="btn-pg ${i.pago?'pago':'deve'}" style="flex-shrink:0" onclick="tglPago('${i.id}',${!i.pago})">${i.pago?'✓ Validado':'Validar'}</button>
       </div>
-      ${preview}
+      ${thumb}
     </div>`;
   }).join('');
 }
@@ -2545,6 +2575,6 @@ function iniciarListenersUmaVez(){
 }
 iniciarListenersUmaVez();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v19</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v20</div>
 </body>
 </html>
