@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v11.8-cards-clicaveis-grafico-saldo-sugestao-inteligente -->
+<meta charset="UTF-8"><!-- deploy:20260616-v11.9-stat-cards-admin-clicaveis -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -407,26 +407,24 @@ a[onclick]:active{transform:scale(.93)}
         <span id="adm-sem-nome" style="font-size:13px;font-weight:700;color:var(--vd);flex:1">Nenhuma semana</span>
         <span id="adm-stat-prazo" style="font-size:10px;color:var(--g3)"></span>
       </div>
-      <div class="adm-stat-card">
-        <div class="asc-l">Inscritos</div>
+      <div class="adm-stat-card" style="cursor:pointer" onclick="abrirModalInscritos()">
+        <div class="asc-l">Inscritos <span style="font-size:9px;opacity:.6">▶</span></div>
         <div class="asc-v" id="adm-stat-ins">0</div>
       </div>
-      <div class="adm-stat-card green">
-        <div class="asc-l">Arrecadado (validado)</div>
+      <div class="adm-stat-card green" style="cursor:pointer" onclick="abrirModalPagantes()">
+        <div class="asc-l">Arrecadado <span style="font-size:9px;opacity:.6">▶</span></div>
         <div class="asc-v" id="adm-stat-arr">R$0</div>
       </div>
-      <div class="adm-stat-card" style="border-color:#e8d48a;background:var(--wnc);cursor:pointer" onclick="aTab('comprovantes',null)" title="Ver pendentes">
-        <div class="asc-l">Pendente aprovação <span style="font-size:9px;opacity:.7">▶ ver</span></div>
+      <div class="adm-stat-card" style="border-color:#e8d48a;background:var(--wnc);cursor:pointer" onclick="aTab('comprovantes',null)">
+        <div class="asc-l">Pendente <span style="font-size:9px;opacity:.7">▶</span></div>
         <div class="asc-v" id="adm-stat-pend" style="color:var(--wn)">R$0</div>
       </div>
-      <div class="adm-stat-card" style="border-color:#c5ddc9">
-        <div class="asc-l">Saldo anterior</div>
+      <div class="adm-stat-card" style="border-color:#c5ddc9;cursor:pointer" onclick="abrirModalGrafico()">
+        <div class="asc-l">Saldo anterior <span style="font-size:9px;opacity:.6">▶</span></div>
         <div class="asc-v" id="adm-stat-credant" style="color:var(--vd)">R$0</div>
       </div>
       <div class="adm-stat-card" style="grid-column:1/-1;background:var(--vdx);border-color:var(--vdl);display:flex;align-items:center;justify-content:space-between;padding:.5rem .85rem">
-        <div>
-          <div class="asc-l" style="margin:0">Saldo total</div>
-        </div>
+        <div class="asc-l" style="margin:0">Saldo total</div>
         <div class="asc-v" id="adm-stat-saldo" style="font-size:1.15rem;color:var(--vd)">—</div>
       </div>
     </div>
@@ -3197,6 +3195,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.8</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.9</div>
 </body>
 </html>
