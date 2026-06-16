@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v10.2-comprovante-obrigatorio-pendentes -->
+<meta charset="UTF-8"><!-- deploy:20260616-v10.3-avisos-toggle-comprovante -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -191,6 +191,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .sec-modal-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1.1rem}
 .btn-back{background:var(--vdx);border:1.5px solid #c5ddc9;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;color:var(--vd);cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0}
 .btn-back:hover{background:#d4ecda}
+.toggle-sw{display:flex;align-items:center;justify-content:space-between;cursor:pointer;gap:8px;width:100%;padding:2px 0}
+.toggle-sw-lbl{font-size:12px;font-weight:600;color:var(--g2);text-transform:uppercase;letter-spacing:.5px;flex:1;line-height:1.4}
+.toggle-track{width:46px;height:26px;background:var(--g4);border-radius:13px;transition:background .25s;flex-shrink:0;position:relative}
+.toggle-sw.on .toggle-track{background:var(--vd)}
+.toggle-track::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.toggle-sw.on .toggle-track::after{transform:translateX(20px)}
+@keyframes aviso-stamp{0%{transform:scale(.25) rotate(-6deg);opacity:0}60%{transform:scale(1.08) rotate(1.5deg);opacity:1}80%{transform:scale(.97) rotate(-.5deg)}100%{transform:scale(1) rotate(0deg);opacity:1}}
+@keyframes aviso-ring{0%{transform:scale(1);opacity:.9}100%{transform:scale(2.4);opacity:0}}
+.aviso-inner{animation:aviso-stamp .45s cubic-bezier(.22,1,.36,1) both}
+.aviso-ring{position:absolute;inset:0;border-radius:50%;border:3px solid var(--ou);animation:aviso-ring .8s ease-out .35s both}
 .fab-adm{position:fixed;bottom:1.4rem;right:1rem;z-index:150;display:none;background:var(--vd);color:#fff;border:none;border-radius:28px;padding:10px 18px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.28);align-items:center;gap:7px;transition:transform .15s,box-shadow .15s}
 .fab-adm:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.32)}
 .fab-adm:active{transform:scale(.96)}
@@ -434,16 +444,36 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
       </div>
       <div class="adm-nav-group" style="grid-column:1/-1">
         <div class="adm-nav-label">🔧 Utilitários</div>
-        <div class="adm-nav-btns" style="grid-template-columns:repeat(4,1fr);display:grid;gap:4px">
+        <div class="adm-nav-btns" style="grid-template-columns:repeat(5,1fr);display:grid;gap:4px">
           <button type="button" class="adm-nav-btn" onclick="aTab('notas',this)"><span class="nb-ico">📝</span><span class="nb-lbl">Notas</span></button>
           <button type="button" class="adm-nav-btn" onclick="aTab('lembrete',this)"><span class="nb-ico">🔔</span><span class="nb-lbl">Lembrete</span></button>
           <button type="button" class="adm-nav-btn" onclick="aTab('sugestoes',this)"><span class="nb-ico">💬</span><span class="nb-lbl">Sugestões</span></button>
           <button type="button" class="adm-nav-btn" onclick="aTab('backup',this)"><span class="nb-ico">💾</span><span class="nb-lbl">Backup</span></button>
+          <button type="button" class="adm-nav-btn" onclick="aTab('avisos',this)"><span class="nb-ico">📣</span><span class="nb-lbl">Avisos</span></button>
         </div>
       </div>
     </div>
   </div>
 </div>
+</div>
+
+<!-- Aviso flutuante para usuários -->
+<div id="aviso-modal" style="display:none;position:fixed;inset:0;z-index:550;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:1.2rem">
+  <div class="aviso-inner" style="background:var(--br);border-radius:20px;width:100%;max-width:460px;padding:1.4rem;box-shadow:0 12px 48px rgba(0,0,0,.35);position:relative">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center">
+          <div class="aviso-ring"></div>
+          <span style="font-size:22px;position:relative;z-index:1">📣</span>
+        </div>
+        <span style="font-size:14px;font-weight:800;color:var(--ou);letter-spacing:.3px">Aviso importante</span>
+      </div>
+      <button type="button" onclick="fecharAvisoModal()" style="background:var(--g5);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;color:var(--g2);flex-shrink:0">✕</button>
+    </div>
+    <div id="aviso-modal-txt" style="font-size:13px;color:var(--g1);line-height:1.8;white-space:pre-wrap;padding:.75rem;background:var(--g5);border-radius:10px;border-left:3px solid var(--ou)"></div>
+    <div id="aviso-modal-prazo" style="font-size:10px;color:var(--g3);margin-top:.6rem;text-align:right"></div>
+    <button type="button" onclick="fecharAvisoModal()" style="margin-top:.9rem;width:100%;padding:11px;background:var(--vd);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Entendido ✓</button>
+  </div>
 </div>
 
 <!-- Visualizador fullscreen de comprovante -->
@@ -505,10 +535,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
       </div>
       <div style="background:var(--g5);border-radius:var(--r);padding:.85rem;margin-bottom:.85rem">
         <div class="afield" style="margin-top:.5rem">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:600;color:var(--g2);text-transform:uppercase;letter-spacing:.5px">
-            <input type="checkbox" id="a-exigir-comp" style="width:16px;height:16px;cursor:pointer;accent-color:var(--vd)">
-            Exigir comprovante de pagamento na inscrição
-          </label>
+          <div class="toggle-sw" id="toggle-exigir-comp" onclick="toggleExigirComp(this)">
+            <span class="toggle-sw-lbl">Exigir comprovante de pagamento na inscrição</span>
+            <div class="toggle-track"></div>
+          </div>
+          <input type="checkbox" id="a-exigir-comp" style="display:none">
         </div>
       </div>
       <button type="button" class="btn-sv" onclick="salvarSemana()">Salvar semana</button>
@@ -690,6 +721,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
         </div>
       </div>
       <div id="rel-empty" style="padding:1.5rem;text-align:center;color:var(--g3);font-size:13px">Informe o total de gastos para gerar o relatório.</div>
+    </div>
+
+    <!-- AVISOS -->
+    <div class="asec" id="asec-avisos">
+      <div style="font-size:12px;color:var(--g2);margin-bottom:.75rem;line-height:1.6">Mensagens inseridas aqui aparecem como aviso flutuante para todos os usuários ao abrir o sistema, até serem removidas ou o prazo expirar. Se deixado em branco, nada é exibido.</div>
+      <div id="aviso-ativo-box" style="display:none;background:var(--okc);border:1px solid #aaddbf;border-radius:var(--r);padding:.75rem;margin-bottom:.85rem">
+        <div style="font-size:10px;font-weight:800;color:var(--ok);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">✓ Aviso ativo</div>
+        <div id="aviso-ativo-txt" style="font-size:12px;color:var(--g1);line-height:1.6;white-space:pre-wrap"></div>
+        <div id="aviso-ativo-prazo" style="font-size:10px;color:var(--g3);margin-top:4px"></div>
+      </div>
+      <div id="aviso-inativo-box" style="background:var(--g5);border-radius:var(--r);padding:.65rem .8rem;margin-bottom:.85rem;font-size:12px;color:var(--g3)">Nenhum aviso ativo no momento.</div>
+      <div class="afield"><label>Mensagem do aviso</label><textarea id="a-aviso-msg" rows="5" placeholder="Digite o aviso que será exibido para todos os usuários..."></textarea></div>
+      <div class="afield"><label>Prazo em dias (aviso expira automaticamente)</label>
+        <input type="number" id="a-aviso-dias" min="1" max="90" value="5" placeholder="5">
+        <div style="font-size:10px;color:var(--g3);margin-top:3px">Padrão: 5 dias. O aviso desaparece automaticamente após esse período.</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn-sv" style="flex:1" onclick="salvarAviso()">📣 Publicar aviso</button>
+        <button type="button" class="btn-sv" style="flex:1;background:#c0392b" onclick="limparAviso()">🗑 Remover aviso</button>
+      </div>
     </div>
 
   </div><!-- sec-modal-body -->
@@ -1081,7 +1132,7 @@ async function inscrever(){
   const dias=getDias();
   if(!Object.values(dias).some(Boolean)){ toast('Selecione ao menos um dia'); return; }
   if(!semAtiva){ toast('Nenhuma semana ativa'); return; }
-  if(!compSel){ mostrarErroComprovante(); return; }
+  if(_cacheSem && _cacheSem.exigirComprovante && !compSel){ mostrarErroComprovante(); return; }
   const btn=document.getElementById('btn-inscrever');
   btn.disabled=true; btn.textContent='Salvando...';
   try{
@@ -1142,6 +1193,108 @@ function fecharSecModal(){
   document.querySelectorAll('.adm-nav-btn').forEach(b=>b.classList.remove('active'));
 }
 window.fecharSecModal = fecharSecModal;
+
+function toggleExigirComp(el){
+  el.classList.toggle('on');
+  document.getElementById('a-exigir-comp').checked = el.classList.contains('on');
+}
+window.toggleExigirComp = toggleExigirComp;
+
+// ── Janela de Avisos ──────────────────────────────────────────────────────────
+const _AVISO_INICIAL = `Usuario, informamos que por questoes de controle financeiro, a partir da proxima semana será obrigatório o envio do comprovante de pagamento para a confirmação da sua reserva na lista. Informamos que sem esse procedimento a previsão do usuario permanecera PENDENTE, nao sendo confirmada a reserva. - Atenciosamente.`;
+
+let _avisoDoc = null;
+
+async function carregarAviso(){
+  try{
+    const snap = await getDoc(doc(db,'config','aviso'));
+    if(!snap.exists()){
+      const initial = { mensagem:_AVISO_INICIAL, dias:5, criadoEm:Date.now() };
+      await setDoc(doc(db,'config','aviso'), initial);
+      _avisoDoc = initial;
+      mostrarBannerAviso(initial);
+      renderAvisoAdmin();
+      return;
+    }
+    const d = snap.data();
+    const expirou = d.criadoEm && d.dias && (Date.now() > d.criadoEm + d.dias*86400000);
+    if(expirou || !d.mensagem || !d.mensagem.trim()){ _avisoDoc=null; renderAvisoAdmin(); return; }
+    _avisoDoc = d;
+    mostrarBannerAviso(d);
+    renderAvisoAdmin();
+  }catch(e){ console.error('[aviso]', e); }
+}
+
+function mostrarBannerAviso(d){
+  const m = document.getElementById('aviso-modal');
+  const txt = document.getElementById('aviso-modal-txt');
+  const prazo = document.getElementById('aviso-modal-prazo');
+  if(!m||!txt) return;
+  txt.textContent = d.mensagem;
+  if(prazo && d.criadoEm && d.dias){
+    const exp = new Date(d.criadoEm + d.dias*86400000);
+    const rest = Math.max(0, Math.ceil((d.criadoEm + d.dias*86400000 - Date.now())/86400000));
+    prazo.textContent = `Válido até ${exp.toLocaleDateString('pt-BR')} · ${rest} dia(s) restante(s)`;
+  }
+  m.style.display='flex';
+  // reset animation
+  const inner = m.querySelector('.aviso-inner');
+  if(inner){ inner.style.animation='none'; requestAnimationFrame(()=>{ inner.style.animation=''; }); }
+}
+
+function fecharAvisoModal(){
+  const m = document.getElementById('aviso-modal');
+  if(m) m.style.display='none';
+}
+window.fecharAvisoModal = fecharAvisoModal;
+
+function renderAvisoAdmin(){
+  const ativo = document.getElementById('aviso-ativo-box');
+  const inativo = document.getElementById('aviso-inativo-box');
+  const txtEl = document.getElementById('aviso-ativo-txt');
+  const prazoEl = document.getElementById('aviso-ativo-prazo');
+  const msgInput = document.getElementById('a-aviso-msg');
+  const diasInput = document.getElementById('a-aviso-dias');
+  if(!ativo||!inativo) return;
+  if(_avisoDoc && _avisoDoc.mensagem){
+    ativo.style.display='block'; inativo.style.display='none';
+    if(txtEl) txtEl.textContent=_avisoDoc.mensagem;
+    if(prazoEl && _avisoDoc.criadoEm && _avisoDoc.dias){
+      const exp = new Date(_avisoDoc.criadoEm + _avisoDoc.dias*86400000);
+      const rest = Math.max(0, Math.ceil((_avisoDoc.criadoEm + _avisoDoc.dias*86400000 - Date.now())/86400000));
+      prazoEl.textContent = `Expira ${exp.toLocaleDateString('pt-BR')} · ${rest} dia(s) restante(s)`;
+    }
+    if(msgInput) msgInput.value = _avisoDoc.mensagem;
+    if(diasInput) diasInput.value = _avisoDoc.dias||5;
+  } else {
+    ativo.style.display='none'; inativo.style.display='block';
+    if(msgInput && !msgInput.value.trim()) msgInput.value = _AVISO_INICIAL;
+  }
+}
+
+async function salvarAviso(){
+  const msg = (document.getElementById('a-aviso-msg').value||'').trim();
+  const dias = parseInt(document.getElementById('a-aviso-dias').value)||5;
+  if(!msg){ toast('Digite uma mensagem antes de publicar'); return; }
+  try{
+    const data = { mensagem:msg, dias, criadoEm:Date.now() };
+    await setDoc(doc(db,'config','aviso'), data);
+    _avisoDoc = data;
+    renderAvisoAdmin();
+    toast('✓ Aviso publicado!');
+  }catch(e){ toast('Erro ao publicar: '+e.message); console.error(e); }
+}
+window.salvarAviso = salvarAviso;
+
+async function limparAviso(){
+  try{
+    await setDoc(doc(db,'config','aviso'), { mensagem:'', dias:5, criadoEm:0 });
+    _avisoDoc = null;
+    renderAvisoAdmin();
+    toast('✓ Aviso removido.');
+  }catch(e){ toast('Erro ao remover: '+e.message); console.error(e); }
+}
+window.limparAviso = limparAviso;
 function ovClick(e){ if(e.target.id==='ov') fecharAdmin(); }
 window.ovClick = ovClick;
 
@@ -1211,7 +1364,7 @@ const SECTION_TITLES = {
   semana:'Configurar Semana', inscritos:'Inscritos', listadia:'Lista do Dia',
   cozinheiro:'Cozinheiro', pagamento:'Pagamento', comprovantes:'Comprovantes',
   compras:'Lista de Compras', relatorio:'Relatório', notas:'Notas Fiscais',
-  lembrete:'Lembrete', sugestoes:'Sugestões', backup:'Backup'
+  lembrete:'Lembrete', sugestoes:'Sugestões', backup:'Backup', avisos:'Janela de Avisos Importantes'
 };
 function aTab(t,btn){
   document.querySelectorAll('.adm-nav-btn,.atab').forEach(b=>b.classList.remove('active'));
@@ -1286,6 +1439,8 @@ async function preencherAdmin(){
   if(caEl){ const vlrSem=parseFloat(sem.valor)||0; caEl.value=calcSaldoCumulativo(sem.id, _cacheIns, vlrSem).saldoAnt.toFixed(2); }
   const exigirEl=document.getElementById('a-exigir-comp');
   if(exigirEl) exigirEl.checked=sem.exigirComprovante||false;
+  const tgl=document.getElementById('toggle-exigir-comp');
+  if(tgl){ tgl.classList.toggle('on', !!(sem.exigirComprovante)); }
   const ctxEl = document.getElementById('notas-sem-ctx');
   if(ctxEl) ctxEl.textContent = sem ? `Notas da semana: ${sem.label}` : 'Selecione uma semana';
   // Pagamento — lê do documento da semana
@@ -2583,7 +2738,9 @@ function iniciarListenersUmaVez(){
   iniciarListeners();
 }
 iniciarListenersUmaVez();
+carregarAviso();
+carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v10.2</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v10.3</div>
 </body>
 </html>
