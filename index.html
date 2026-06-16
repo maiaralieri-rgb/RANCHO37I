@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v14-mobile-overflow-compras-btn -->
+<meta charset="UTF-8"><!-- deploy:20260616-v15-fix-logout-real -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -57,7 +57,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .vbox-cifrao{font-size:.95rem;color:var(--vdm);font-weight:600}
 .vbox-num{font-size:1.9rem;font-weight:700;color:var(--vd);font-family:'DM Serif Display',serif}
 .vbox-lbl{font-size:11px;color:var(--g2)}
-.vbox-obs{font-size:13px;color:var(--g2);max-width:320px;line-height:1.6;font-style:italic}
+.vbox-obs{font-size:13px;color:var(--g2);max-width:min(320px,100%);line-height:1.6;font-style:italic}
 .cdp-row{display:grid;grid-template-columns:46px 1fr;border-bottom:1px solid var(--g5);padding:.55rem .75rem;align-items:start}
 .cdp-row:last-child{border-bottom:none}
 .cdp-dia{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g3);padding-top:2px}
@@ -1104,10 +1104,17 @@ function loginAdmin(){
 window.loginAdmin = loginAdmin;
 function logoutAdmin(){
   isAdmin=false;
+  // Esconde indicadores visuais de sessão
   document.getElementById('badge-adm').style.display='none';
   document.getElementById('btn-logout').style.display='none';
+  // CRÍTICO: reseta o estado interno do painel para exigir senha no próximo acesso
+  document.getElementById('adm-painel').style.display='none';
+  document.getElementById('adm-login').style.display='block';
+  const senhaEl = document.getElementById('inp-senha');
+  if(senhaEl) senhaEl.value='';
   fecharAdmin();
   if(_cacheSem) renderHero(_cacheSem, _cacheIns);
+  toast('✓ Sessão admin encerrada.');
 }
 window.logoutAdmin = logoutAdmin;
 
@@ -2448,6 +2455,6 @@ function iniciarListenersUmaVez(){
 }
 iniciarListenersUmaVez();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v14</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v15</div>
 </body>
 </html>
