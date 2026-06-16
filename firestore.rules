@@ -3,12 +3,16 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // Semanas e inscritos: leitura e escrita livres
-    // (segurança via restrição de domínio da API key no Google Cloud Console)
     match /semanas/{semId} {
       allow read, write: if true;
       match /inscritos/{inscId} {
         allow read, write: if true;
       }
+    }
+
+    // Configurações globais do sistema (avisos, config)
+    match /config/{docId} {
+      allow read, write: if true;
     }
 
     // Bloqueia qualquer outra coleção
