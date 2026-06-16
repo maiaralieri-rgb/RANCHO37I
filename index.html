@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v11.4-suporte-word-doc-docx-comprovante -->
+<meta charset="UTF-8"><!-- deploy:20260616-v11.5-scroll-lock-todos-modais -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -845,7 +845,27 @@ function resetDias(){
   if(resumo) resumo.style.display='none';
 }
 
-// ── Comprovante — sistema antifraude multicamada ──────────────────────────────
+// ── Scroll lock — impede rolagem de fundo em qualquer modal aberto ────────────
+let _scrollLockCount = 0;
+let _scrollY = 0;
+function lockScroll(){
+  _scrollLockCount++;
+  if(_scrollLockCount > 1) return;
+  _scrollY = window.scrollY;
+  document.body.style.cssText += ';position:fixed;top:-'+_scrollY+'px;left:0;right:0;overflow:hidden';
+}
+function unlockScroll(){
+  _scrollLockCount = Math.max(0, _scrollLockCount - 1);
+  if(_scrollLockCount > 0) return;
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.overflow = '';
+  window.scrollTo(0, _scrollY);
+}
+
+
 // Camada 1: hash SHA-256 do arquivo (mesmo arquivo = bloqueado)
 // Camada 2: OCR — ID E2E do Pix (mesmo comprovante screenshot = bloqueado)
 // Camada 3: OCR — data+hora+valor (mesmo comprovante, campos idênticos = bloqueado)
@@ -1387,7 +1407,7 @@ window.trocarSemana = trocarSemana;
 function abrirAdmin(){
   document.getElementById('ov').classList.add('open');
   document.getElementById('fab-adm').style.display='none';
-  document.body.style.overflow='hidden';
+  lockScroll();
   if(isAdmin){
     document.getElementById('adm-login').style.display='none';
     document.getElementById('adm-painel').style.display='block';
@@ -1402,7 +1422,7 @@ window.abrirAdmin = abrirAdmin;
 function fecharAdmin(){
   fecharSecModal();
   document.getElementById('ov').classList.remove('open');
-  document.body.style.overflow='';
+  unlockScroll();
   if(isAdmin) document.getElementById('fab-adm').style.display='flex';
 }
 window.fecharAdmin = fecharAdmin;
@@ -1411,8 +1431,7 @@ function fecharSecModal(){
   if(sm) sm.classList.remove('open');
   document.querySelectorAll('.asec').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.adm-nav-btn').forEach(b=>b.classList.remove('active'));
-  // Só libera scroll se o painel admin também estiver fechado
-  if(!document.getElementById('ov').classList.contains('open')) document.body.style.overflow='';
+  // sec-modal fecha mas o painel admin pode continuar aberto — não decrementa lock
 }
 window.fecharSecModal = fecharSecModal;
 
@@ -1459,7 +1478,7 @@ function mostrarBannerAviso(d){
     prazo.textContent = `Válido até ${exp.toLocaleDateString('pt-BR')} · ${rest} dia(s) restante(s)`;
   }
   m.style.display='flex';
-  document.body.style.overflow='hidden';
+  lockScroll();
   // reset animation
   const inner = m.querySelector('.aviso-inner');
   if(inner){ inner.style.animation='none'; requestAnimationFrame(()=>{ inner.style.animation=''; }); }
@@ -1468,7 +1487,7 @@ function mostrarBannerAviso(d){
 function fecharAvisoModal(){
   const m = document.getElementById('aviso-modal');
   if(m) m.style.display='none';
-  document.body.style.overflow='';
+  unlockScroll();
 }
 window.fecharAvisoModal = fecharAvisoModal;
 
@@ -1598,7 +1617,7 @@ function aTab(t,btn){
   if(sec) sec.classList.add('active');
   const sm=document.getElementById('sec-modal');
   const smTitle=document.getElementById('sec-modal-title');
-  if(sm){ sm.classList.add('open'); if(smTitle) smTitle.textContent=SECTION_TITLES[t]||t; document.body.style.overflow='hidden'; }
+  if(sm){ sm.classList.add('open'); if(smTitle) smTitle.textContent=SECTION_TITLES[t]||t; }
   const body=document.getElementById('sec-modal-body');
   if(body) body.scrollTop=0;
   if(t==='relatorio') calcRelatorio();
@@ -2002,14 +2021,14 @@ function abrirCompViewer(data64, nome, insId, isPago){
     <a href="${data64}" download="${escHTML(nome)}" style="padding:9px 20px;background:rgba(255,255,255,.15);color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;font-family:'DM Sans',sans-serif">⬇ Baixar</a>
     <button type="button" onclick="tglPago('${insId}',${!isPago});fecharCompViewer(null)" style="padding:9px 20px;background:${isPago?'#388e3c':'var(--vd)'};color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">${isPago?'✓ Validado — desvalidar':'✓ Validar pagamento'}</button>`;
   v.style.display='flex';
-  document.body.style.overflow='hidden';
+  lockScroll();
 }
 window.abrirCompViewer=abrirCompViewer;
 
 function fecharCompViewer(e){
   if(e&&e.target.id!=='comp-viewer') return;
   document.getElementById('comp-viewer').style.display='none';
-  document.body.style.overflow='';
+  unlockScroll();
 }
 window.fecharCompViewer=fecharCompViewer;
 
@@ -2979,6 +2998,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.4</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.5</div>
 </body>
 </html>
