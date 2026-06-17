@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v11.22-restaura-bloco-pix-config-pagamento -->
+<meta charset="UTF-8"><!-- deploy:20260616-v11.23-pix-modal-laranja-destaque -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -97,10 +97,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .s-deve{background:var(--wnc);color:var(--wn);padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700}
 .ins-val{font-size:12px;color:var(--g3)}
 .empty-st{padding:1.5rem;text-align:center;color:var(--g3);font-size:13px}
-.pgto-box{background:var(--wnc);border:1px solid #e8d48a;border-radius:var(--r);padding:.9rem 1.1rem}
-.pgto-tit{font-size:13px;font-weight:700;color:var(--wn);margin-bottom:.4rem}
-.pgto-inf{font-size:13px;color:var(--g1);line-height:1.6;white-space:pre-wrap;user-select:text;-webkit-user-select:text;cursor:text}
-.pgto-obs{font-size:11px;color:var(--g2);margin-top:.4rem}
+.pgto-box{background:#fff4ec;border:2px solid #e07620;border-radius:var(--r);padding:.9rem 1.1rem}
+.pgto-tit{font-size:13px;font-weight:800;color:#b84d00;margin-bottom:.4rem}
+.pgto-inf{font-size:13px;color:#5a2e00;line-height:1.6;white-space:pre-wrap;user-select:text;-webkit-user-select:text;cursor:text}
+.pgto-obs{font-size:11px;color:#8a4800;margin-top:.4rem}
 .nota-item{display:flex;align-items:center;gap:9px;padding:.6rem .75rem;background:var(--g5);border-radius:8px;margin-bottom:6px}
 .nota-ico{font-size:18px}
 .nota-nome{font-size:12px;font-weight:500;flex:1;color:var(--g1);word-break:break-all}
@@ -1236,9 +1236,9 @@ function renderPagamento(pg){
     const btn=document.createElement('button');
     btn.type='button';
     btn.textContent='📋 Clique para copiar a chave Pix';
-    btn.style.cssText='width:100%;padding:10px;background:#fff3cd;border:1.5px dashed #e8d48a;border-radius:8px;font-size:13px;font-weight:700;color:#7b5e00;cursor:pointer;font-family:inherit;margin-top:4px;transition:background .15s';
-    btn.onmouseover=()=>btn.style.background='#ffeaa0';
-    btn.onmouseout=()=>btn.style.background='#fff3cd';
+    btn.style.cssText='width:100%;padding:10px;background:#e07620;border:none;border-radius:8px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;margin-top:4px;transition:background .15s';
+    btn.onmouseover=()=>btn.style.background='#c45c00';
+    btn.onmouseout=()=>btn.style.background='#e07620';
     btn.onclick=()=>{
       const key=window._pixKey||'';
       if(!key) return;
@@ -3204,6 +3204,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.22</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.23</div>
 </body>
 </html>
