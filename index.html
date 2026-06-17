@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260616-v11.23-pix-modal-laranja-destaque -->
+<meta charset="UTF-8"><!-- deploy:20260616-v11.24-pix-confirmacao-azul-permanente -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1237,22 +1237,18 @@ function renderPagamento(pg){
     btn.type='button';
     btn.textContent='📋 Clique para copiar a chave Pix';
     btn.style.cssText='width:100%;padding:10px;background:#e07620;border:none;border-radius:8px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;margin-top:4px;transition:background .15s';
-    btn.onmouseover=()=>btn.style.background='#c45c00';
-    btn.onmouseout=()=>btn.style.background='#e07620';
+    btn.onmouseover=()=>{ if(!btn._copied) btn.style.background='#c45c00'; };
+    btn.onmouseout=()=>{ if(!btn._copied) btn.style.background='#e07620'; };
     btn.onclick=()=>{
       const key=window._pixKey||'';
       if(!key) return;
       navigator.clipboard.writeText(key).then(()=>{
+        btn._copied=true;
         btn.textContent='✓ Chave copiada!';
-        btn.style.background='#eaf4ee';
-        btn.style.borderColor='#aaddbf';
-        btn.style.color='#1a6b3a';
-        setTimeout(()=>{
-          btn.textContent='📋 Clique para copiar a chave Pix';
-          btn.style.background='#fff3cd';
-          btn.style.borderColor='#e8d48a';
-          btn.style.color='#7b5e00';
-        },2500);
+        btn.style.background='#1a5799';
+        btn.style.color='#fff';
+        btn.onmouseover=null;
+        btn.onmouseout=null;
       }).catch(()=>{ alert('Chave Pix: '+key); });
     };
     infEl.appendChild(btn);
@@ -3204,6 +3200,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.23</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.24</div>
 </body>
 </html>
