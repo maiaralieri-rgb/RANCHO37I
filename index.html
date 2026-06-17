@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260617-v11.25-performance -->
+<meta charset="UTF-8"><!-- deploy:20260617-v11.26-performance-max -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -21,6 +21,8 @@
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js">
 <!-- Fontes não-bloqueantes: carrega em background, aplica quando pronto -->
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"></noscript>
@@ -43,7 +45,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .tb-brand{display:flex;align-items:center;gap:10px}
 .tb-ico{width:32px;height:32px;border-radius:50%;background:var(--ou);display:flex;align-items:center;justify-content:center;font-size:15px}
 .tb-title{font-family:'DM Serif Display',serif;font-size:1.05rem;color:#fff}
-.tb-sub{font-size:10px;color:rgba(255,255,255,.45);display:block}
 .btn-adm{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:5px 13px;border-radius:20px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif}
 .btn-adm:hover{background:rgba(255,255,255,.22)}
 .badge-adm{background:var(--ou);color:var(--vd);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;display:none}
@@ -126,9 +127,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .ash{background:var(--br);border-radius:16px 16px 0 0;width:100%;max-width:680px;max-height:88vh;overflow-y:auto;overflow-x:hidden;padding:1.4rem;padding-bottom:calc(1.4rem + env(safe-area-inset-bottom))}
 .ash-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem}
 .ash-hd h3{font-family:'DM Serif Display',serif;font-size:1.15rem}
-.btn-cl{background:var(--g5);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
-.atabs{display:flex;gap:3px;background:var(--g5);border-radius:8px;padding:4px;margin-bottom:1rem;flex-wrap:wrap}
-.atab{flex:1;padding:6px 4px;font-size:11px;border:none;background:transparent;cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;color:var(--g2);transition:all .15s;min-width:60px}
 .atab.active{background:var(--br);color:var(--vd);font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .adm-nav-group{margin-bottom:.6rem}
 .adm-nav-label{font-size:9px;font-weight:800;color:var(--g3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:5px;padding:0 2px;display:flex;align-items:center;gap:5px}
@@ -139,8 +137,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .adm-nav-btn.active{border-color:var(--vdl);background:var(--vdx);color:var(--vd);font-weight:800}
 .adm-nav-btn .nb-ico{display:none}
 .adm-nav-btn .nb-lbl{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
-.adm-nav-btn .nb-badge{font-size:9px;background:var(--vd);color:#fff;border-radius:20px;padding:1px 6px;display:none}
-.adm-nav-btn.active .nb-badge{display:inline}
+.adm-nav-btn
+.adm-nav-btn.active
 .adm-nav-5col .adm-nav-btn .nb-lbl{font-size:10px;letter-spacing:.1px}
 .adm-stat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:1rem}
 .adm-stat-card{background:var(--br);border:1px solid var(--g5);border-radius:10px;padding:.5rem .6rem;text-align:center;min-width:0;overflow:hidden}
@@ -184,7 +182,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .btn-dn:hover{color:var(--er)}
 .sem-adm-row{display:flex;align-items:center;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--g5)}
 .sem-adm-row:last-child{border-bottom:none}
-.comp-adm-row{padding:.55rem .75rem;border-bottom:1px solid var(--g5);display:flex;align-items:center;gap:8px}
 .comp-adm-row:last-child{border-bottom:none}
 .rel-card{background:var(--br);border:1px solid var(--g4);border-radius:8px;padding:.75rem;text-align:center}
 .rel-card .rc-l{font-size:10px;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:700}
@@ -196,7 +193,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 @keyframes pulse{from{opacity:1}to{opacity:.4}}
 .upload-req{border-color:var(--er)!important;background:var(--erc)!important;animation:pulse-req 0.6s ease 3}
 @keyframes pulse-req{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
-.upload-badge-req{display:inline-block;background:var(--er);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-top:4px;letter-spacing:.5px}
 .sec-modal{position:fixed;inset:0;background:var(--cr);z-index:300;display:none;flex-direction:column;overflow:hidden}
 .sec-modal.open{display:flex}
 .sec-modal-hd{background:var(--br);border-bottom:1px solid var(--g4);padding:.85rem 1rem;padding-top:calc(.85rem + env(safe-area-inset-top));display:flex;align-items:center;gap:10px;flex-shrink:0}
@@ -475,7 +471,7 @@ a[onclick]:active{transform:scale(.93)}
 <!-- Aviso flutuante para usuários -->
 <div id="aviso-modal" style="display:none;position:fixed;inset:0;z-index:550;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:1.2rem;padding-top:calc(1.2rem + env(safe-area-inset-top))">
   <div class="aviso-inner" style="background:var(--br);border-radius:20px;width:100%;max-width:460px;padding:1.4rem;box-shadow:0 12px 48px rgba(0,0,0,.35);position:relative;overflow:visible">
-    <img src="./chef-pm.png" alt="" aria-hidden="true" loading="eager" decoding="async" style="position:absolute;top:-119px;right:-4px;width:130px;pointer-events:none;z-index:1">
+    <img src="./chef-pm.webp" alt="" aria-hidden="true" loading="eager" decoding="async" style="position:absolute;top:-119px;right:-4px;width:130px;pointer-events:none;z-index:1">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
       <div style="display:flex;align-items:center;gap:10px">
         <div style="position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center">
@@ -3208,6 +3204,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.25</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.26</div>
 </body>
 </html>
