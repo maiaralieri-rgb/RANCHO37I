@@ -1,11 +1,10 @@
 [build]
   publish = "."
 
-# HTML — sempre fresco (sem cache)
+# Segurança + CSP para todos os arquivos (inclui / e /*.html)
 [[headers]]
-  for = "/*.html"
+  for = "/*"
   [headers.values]
-    Cache-Control = "no-cache, no-store, must-revalidate"
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
@@ -13,7 +12,18 @@
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://apis.google.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://firestore.googleapis.com wss://*.firebaseio.com https://cdn.jsdelivr.net https://tessdata.projectnaptha.com; img-src 'self' data: blob:; worker-src blob: https://cdn.jsdelivr.net; frame-ancestors 'none'"
 
-# Assets estáticos — cache longo (imagens, manifesto, ícone)
+# HTML — sem cache (conteúdo sempre atualizado)
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# Assets estáticos — cache longo
+[[headers]]
+  for = "/*.webp"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, stale-while-revalidate=86400"
+
 [[headers]]
   for = "/*.png"
   [headers.values]
@@ -23,11 +33,3 @@
   for = "/*.json"
   [headers.values]
     Cache-Control = "public, max-age=3600, stale-while-revalidate=600"
-
-# Segurança para todos os outros arquivos
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
