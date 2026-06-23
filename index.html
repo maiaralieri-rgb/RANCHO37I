@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260617-v11.26-performance-max -->
+<meta charset="UTF-8"><!-- deploy:20260617-v11.27-pdf-viewer-corrigido -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -914,34 +914,33 @@ async function loadTesseract(){
 
 async function loadPdfJs(){
   if(window.pdfjsLib) return;
-  await new Promise((res,rej)=>{
-    const s=document.createElement('script');
-    s.src='https://cdn.jsdelivr.net/npm/pdfjs-dist@4/build/pdf.min.mjs';
-    s.type='module'; s.onload=res; s.onerror=rej;
-    document.head.appendChild(s);
-  });
-  // fallback: tenta importar como módulo
-  if(!window.pdfjsLib){
-    const mod = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4/build/pdf.min.mjs').catch(()=>null);
-    if(mod) window.pdfjsLib = mod;
+  const mod = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4/build/pdf.min.mjs').catch(()=>null);
+  if(mod){
+    window.pdfjsLib = mod;
+    mod.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@4/build/pdf.worker.min.mjs';
   }
 }
 
-async function pdfToCanvas(file){
+async function pdfToCanvases(data64){
   try{
     await loadPdfJs();
     if(!window.pdfjsLib) return null;
-    const buf = await file.arrayBuffer();
-    const lib = window.pdfjsLib;
-    lib.GlobalWorkerOptions = lib.GlobalWorkerOptions || {};
-    lib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4/build/pdf.worker.min.mjs';
-    const pdf = await lib.getDocument({data: new Uint8Array(buf)}).promise;
-    const page = await pdf.getPage(1);
-    const vp = page.getViewport({scale:2});
-    const canvas = document.createElement('canvas');
-    canvas.width = vp.width; canvas.height = vp.height;
-    await page.render({canvasContext:canvas.getContext('2d'), viewport:vp}).promise;
-    return canvas;
+    // Converte base64 → Uint8Array sem fetch (evita bloqueio de CSP)
+    const b64 = data64.split(',')[1];
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+    const pdf = await window.pdfjsLib.getDocument({data:bytes}).promise;
+    const canvases = [];
+    for(let p=1; p<=pdf.numPages; p++){
+      const page = await pdf.getPage(p);
+      const vp = page.getViewport({scale:2});
+      const canvas = document.createElement('canvas');
+      canvas.width=vp.width; canvas.height=vp.height;
+      await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+      canvases.push(canvas);
+    }
+    return canvases.length ? canvases : null;
   }catch(e){ console.warn('[pdf2canvas]',e); return null; }
 }
 
@@ -980,13 +979,14 @@ async function extrairDadosTiquete(file){
       const res = await mammoth.extractRawText({arrayBuffer: buf});
       return _parseTxt(res.value||'');
     }
-    // PDF: renderiza primeira página em canvas via PDF.js
+    // PDF: renderiza primeira página em canvas via PDF.js para OCR
     await loadTesseract();
     let ocrInput = file;
     if(isPdf){
-      const canvas = await pdfToCanvas(file);
-      if(!canvas) return null;
-      ocrInput = await new Promise(res => canvas.toBlob(res, 'image/png'));
+      const b64 = await new Promise(r=>{ const fr=new FileReader(); fr.onload=e=>r(e.target.result); fr.readAsDataURL(file); });
+      const canvases = await pdfToCanvases(b64);
+      if(!canvases) return null;
+      ocrInput = await new Promise(res => canvases[0].toBlob(res, 'image/png'));
     }
     const result = await Tesseract.recognize(ocrInput, 'por', { logger:()=>{} });
     return _parseTxt(result.data.text);
@@ -2196,23 +2196,27 @@ async function abrirCompViewer(data64, nome, insId, isPago){
   lockScroll();
 
   const isPdf=data64.startsWith('data:application/pdf');
+  const isDoc=data64.startsWith('data:application/vnd')||data64.startsWith('data:application/msword');
   if(isPdf){
-    body.innerHTML='<div style="color:rgba(255,255,255,.6);font-size:13px">⏳ Carregando PDF...</div>';
+    body.innerHTML='<div style="color:rgba(255,255,255,.6);font-size:13px;text-align:center">⏳ Carregando PDF...</div>';
     try{
-      const resp = await fetch(data64);
-      const buf  = await resp.arrayBuffer();
-      const canvas = await pdfToCanvas(new File([buf],'comp.pdf',{type:'application/pdf'}));
-      if(canvas){
+      const canvases = await pdfToCanvases(data64);
+      if(canvases){
         body.innerHTML='';
-        canvas.style.cssText='max-width:100%;max-height:76vh;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.5)';
-        body.appendChild(canvas);
+        canvases.forEach((canvas,i)=>{
+          canvas.style.cssText='max-width:100%;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.5);display:block';
+          if(i>0) canvas.style.marginTop='12px';
+          body.appendChild(canvas);
+        });
       } else {
-        body.innerHTML=`<div style="color:rgba(255,255,255,.7);text-align:center;font-size:13px;line-height:1.8">📄 PDF não pode ser exibido neste dispositivo.<br>Use o botão Baixar para visualizar.</div>`;
+        body.innerHTML=`<div style="color:rgba(255,255,255,.7);text-align:center;font-size:13px;line-height:1.8">📄 PDF não pode ser exibido neste dispositivo.<br>Use o botão <strong>Baixar</strong> para visualizar.</div>`;
       }
     }catch(err){
       console.warn('[pdf-viewer]',err);
       body.innerHTML=`<div style="color:rgba(255,255,255,.7);text-align:center;font-size:13px">📄 Erro ao exibir PDF. Use Baixar.</div>`;
     }
+  } else if(isDoc){
+    body.innerHTML=`<div style="color:rgba(255,255,255,.7);text-align:center;font-size:13px;line-height:1.8">📝 Arquivo Word — não é possível visualizar inline.<br>Use o botão <strong>Baixar</strong> para abrir.</div>`;
   } else {
     body.innerHTML=`<img src="${data64}" alt="${escHTML(nome)}" style="max-width:100%;max-height:80vh;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.5)">`;
   }
@@ -3204,6 +3208,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.26</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.27</div>
 </body>
 </html>
