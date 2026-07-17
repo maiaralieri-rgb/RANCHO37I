@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260617-v11.28-limpeza-final -->
+<meta charset="UTF-8"><!-- deploy:20260717-v12.0-tela-usuario-simplificada -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -54,11 +54,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .hero-wk{font-size:14px;letter-spacing:2px;text-transform:uppercase;color:var(--ou);margin-bottom:8px;font-weight:600}
 .hero h2{font-family:'DM Serif Display',serif;font-size:1.6rem;margin-bottom:.4rem}
 .hero-sub{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:1rem}
-.hero-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
-.hc{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.65rem .6rem;min-width:0;overflow:hidden}
-.hc-l{font-size:9px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hc-v{font-size:clamp(.95rem,4.6vw,1.25rem);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
-.hc-s{font-size:10px;color:rgba(255,255,255,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .main{max-width:680px;margin:0 auto;padding:1.2rem}
 .sec{margin-bottom:1.4rem}
 .sec-title{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--g3);font-weight:700;margin-bottom:.65rem;display:flex;align-items:center;gap:8px}
@@ -71,19 +66,29 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .vbox-num{font-size:1.9rem;font-weight:700;color:var(--vd);font-family:'DM Serif Display',serif}
 .vbox-lbl{font-size:11px;color:var(--g2)}
 .vbox-obs{font-size:13px;color:var(--g2);max-width:min(320px,100%);line-height:1.6;font-style:italic}
-.cdp-row{display:grid;grid-template-columns:46px 1fr;border-bottom:1px solid var(--g5);padding:.55rem .75rem;align-items:start}
-.cdp-row:last-child{border-bottom:none}
-.cdp-dia{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g3);padding-top:2px}
-.cdp-principal{font-size:13px;font-weight:500;color:var(--g1)}
-.cdp-acomp{font-size:11px;color:var(--g3);margin-top:1px}
-.dias-wrap{display:flex;gap:8px;margin-top:4px}
-.dia-btn{flex:1;border:2px solid var(--g4);border-radius:10px;padding:14px 4px 12px;cursor:pointer;text-align:center;background:var(--br);transition:border-color .15s,background .15s,transform .1s;font-family:'DM Sans',sans-serif}
-.dia-btn:hover{border-color:var(--vdl);background:var(--vdx)}
-.dia-btn:active{transform:scale(.95)}
-.dia-btn.ativo{background:var(--vd);border-color:var(--vd);color:#fff}
-.dia-btn .db-nome{display:block;font-size:13px;font-weight:700;letter-spacing:.5px;color:inherit}
-.dia-btn .db-chk{display:block;font-size:16px;margin-top:5px;color:var(--g4);line-height:1}
-.dia-btn.ativo .db-chk{color:rgba(255,255,255,.7)}
+.vbox-big{padding:1.3rem 1.4rem}
+.vbox-big .vbox-cifrao{font-size:1.6rem}
+.vbox-big .vbox-num{font-size:3.4rem;line-height:1}
+.vbox-big .vbox-lbl{font-size:14px}
+/* Cardápio com seleção de dias integrada */
+.dia-menu{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:none;border-bottom:1px solid var(--g5);padding:.85rem .9rem;background:var(--br);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s}
+.dia-menu:last-child{border-bottom:none}
+.dia-menu:hover:not(.bloqueado){background:var(--vdx)}
+.dia-menu:active:not(.bloqueado){transform:scale(.99)}
+.dia-menu.ativo{background:var(--vdx)}
+.dia-menu .dm-check{flex-shrink:0;width:26px;height:26px;border-radius:50%;border:2px solid var(--g4);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--g4);transition:all .15s}
+.dia-menu.ativo .dm-check{background:var(--vd);border-color:var(--vd);color:#fff}
+.dia-menu.bloqueado{cursor:not-allowed;opacity:.7}
+.dia-menu.bloqueado .dm-check{border-color:#f1a9a0;color:var(--er)}
+.dm-body{flex:1;min-width:0}
+.dm-dia{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--vdm);margin-bottom:2px}
+.dia-menu.ativo .dm-dia{color:var(--vd)}
+.dm-prato{font-size:14px;font-weight:600;color:var(--g1);line-height:1.3}
+.dm-acomp{font-size:12px;color:var(--g3);margin-top:1px}
+/* Aviso de pedidos após o prazo */
+.pos-prazo-box{display:flex;gap:10px;align-items:flex-start;background:var(--wnc);border:1px solid #e8d48a;border-left:4px solid #d99a1c;border-radius:var(--r);padding:.85rem 1rem;font-size:12.5px;color:#6b5200;line-height:1.55}
+.pos-prazo-box .pp-ico{font-size:18px;flex-shrink:0;line-height:1.3}
+.pos-prazo-box strong{color:#8a4800}
 .field{margin-bottom:.75rem}
 .field label{display:block;font-size:12px;font-weight:600;color:var(--g2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
 .field input,.field textarea{width:100%;padding:9px 12px;border:1px solid var(--g4);border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;background:var(--br);color:var(--g1);transition:border-color .15s}
@@ -146,9 +151,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .adm-stat-card .asc-v{font-size:clamp(.85rem,4vw,1.05rem);font-weight:700;color:var(--g1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .adm-stat-card.green{border-color:#c5ddc9;background:var(--vdx)}
 .adm-stat-card.green .asc-v{color:var(--vd)}
-.dia-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
-.sug-box{margin-top:1rem;padding:1rem;background:linear-gradient(135deg,#fffbec,#fff8e1);border:2px solid var(--ou);border-radius:12px;position:relative}
-.sug-box::before{content:'💡';position:absolute;top:-12px;left:12px;font-size:20px;background:#fff;padding:0 4px}
 .asec{display:none}.asec.active{display:block}
 .afield{margin-bottom:.85rem}
 .afield label{display:block;font-size:11px;font-weight:700;color:var(--g2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
@@ -221,7 +223,6 @@ a[onclick]:active{transform:scale(.93)}
 @media print{.topbar,.hero,.main,.toast,.ov,.fab-adm{display:none!important}#print-area{display:block!important}}
 #print-area{display:none;padding:2rem;font-family:'DM Sans',sans-serif;color:#1a1a1a}
 @media(max-width:560px){
-  .hero-cards{grid-template-columns:repeat(2,1fr);gap:6px}
 }
 @media(max-width:480px){
   .topbar{padding:.45rem .8rem;padding-top:calc(.45rem + env(safe-area-inset-top))}
@@ -270,13 +271,6 @@ a[onclick]:active{transform:scale(.93)}
     <div class="hero-wk" id="hero-wk">Carregando...</div>
     <h2>Almoço no Batalhão</h2>
     <div class="hero-sub">Confirme sua presença para a semana</div>
-    <div class="hero-cards">
-      <div class="hc"><div class="hc-l">Valor/dia</div><div class="hc-v" id="hc-val">—</div><div class="hc-s">por refeição</div></div>
-      <div class="hc" id="hc-ins-card"><div class="hc-l">Inscritos</div><div class="hc-v" id="hc-ins">0</div><div class="hc-s"> </div></div>
-      <div class="hc" id="hc-arr-card"><div class="hc-l">Arrecadado</div><div class="hc-v" id="hc-arr">R$0</div><div class="hc-s">validado</div></div>
-      <div class="hc" id="hc-pend-card"><div class="hc-l">Pendente</div><div class="hc-v" id="hc-pend" style="color:#ffd27a">R$0</div><div class="hc-s">aguarda aprovação</div></div>
-      <div class="hc" id="hc-saldo-card" style="display:none"><div class="hc-l">Saldo ant.</div><div class="hc-v" id="hc-saldo">R$0</div><div class="hc-s"> </div></div>
-    </div>
   </div>
 </div>
 
@@ -287,49 +281,49 @@ a[onclick]:active{transform:scale(.93)}
     <div style="font-size:14px;font-weight:600;color:var(--g1);margin-bottom:.25rem">Cardápio ainda não disponível</div>
     <div style="font-size:12px;color:var(--g3)">As inscrições para a próxima semana serão abertas em breve. Fique de olho no grupo!</div>
   </div>
+
+  <!-- Identificação (QRA no topo) -->
   <div class="sec">
-    <div class="sec-title">Valor da semana</div>
-    <div class="vbox">
-      <div class="vbox-n"><span class="vbox-cifrao">R$</span><span class="vbox-num" id="val-num">—</span><span class="vbox-lbl">por refeição</span></div>
+    <div class="sec-title">Identificação</div>
+    <div class="field" style="margin:0">
+      <label>NOME (QRA)</label>
+      <input type="text" id="inp-qra" placeholder="Ex: Sd PM Silva" autocomplete="off">
+    </div>
+  </div>
+
+  <!-- Valor por refeição — grande, exibido uma única vez -->
+  <div class="sec">
+    <div class="sec-title">Valor por refeição</div>
+    <div class="vbox vbox-big">
+      <div class="vbox-n"><span class="vbox-cifrao">R$</span><span class="vbox-num" id="val-num">—</span><span class="vbox-lbl">por dia</span></div>
       <div class="vbox-obs" id="val-obs">—</div>
     </div>
   </div>
+
+  <!-- Aviso: pedidos após o prazo -->
   <div class="sec">
-    <div class="sec-title">Cardápio da semana</div>
-    <div class="card" id="cdp-card"><div class="empty-st">Carregando...</div></div>
+    <div class="pos-prazo-box">
+      <span class="pp-ico">⚠️</span>
+      <div>Pedidos de refeição feitos <strong>após o encerramento da previsão</strong> terão <strong>acréscimo no valor</strong> e a mistura <strong>não será garantida</strong>, podendo ser substituída por <strong>2 ovos fritos</strong>.</div>
+    </div>
   </div>
-  <div id="prazo-aviso" style="display:none;margin-bottom:1rem;padding:.75rem 1rem;background:var(--erc);border:1px solid #f1a9a0;border-radius:var(--r);font-size:13px;color:var(--er);font-weight:500"></div>
+
+  <!-- Cardápio com seleção de dias integrada -->
   <div class="sec">
-    <div class="sec-title">Quero almoçar</div>
+    <div class="sec-title">Cardápio — toque nos dias que vai almoçar</div>
+    <div class="card" id="cdp-card" style="padding:.4rem"><div class="empty-st">Carregando...</div></div>
+    <div id="total-resumo" style="display:none;margin-top:10px;padding:11px 14px;background:var(--vdx);border:1px solid #c5ddc9;border-radius:8px;align-items:center;justify-content:space-between">
+      <span style="font-size:13px;color:var(--g2)"><span id="total-dias-txt">0 dia</span> selecionado</span>
+      <span style="font-size:1.15rem;font-weight:700;color:var(--vd)" id="total-valor-txt">R$ 0,00</span>
+    </div>
+  </div>
+
+  <div id="prazo-aviso" style="display:none;margin-bottom:1rem;padding:.75rem 1rem;background:var(--erc);border:1px solid #f1a9a0;border-radius:var(--r);font-size:13px;color:var(--er);font-weight:500"></div>
+
+  <!-- Pagamento e confirmação -->
+  <div class="sec">
+    <div class="sec-title">Pagamento e confirmação</div>
     <div class="card"><div class="cb">
-      <div class="field">
-        <label>NOME (QRA):</label>
-        <input type="text" id="inp-qra" placeholder="Ex: Sd PM Silva" autocomplete="off">
-      </div>
-      <div class="field">
-        <label>Selecione os dias</label>
-        <div class="dias-wrap">
-          <div class="dia-col">
-            <button type="button" class="dia-btn" data-dia="seg" onclick="toggleDia(this)"><span class="db-nome">SEG</span><span class="db-chk">○</span></button>
-          </div>
-          <div class="dia-col">
-            <button type="button" class="dia-btn" data-dia="ter" onclick="toggleDia(this)"><span class="db-nome">TER</span><span class="db-chk">○</span></button>
-          </div>
-          <div class="dia-col">
-            <button type="button" class="dia-btn" data-dia="qua" onclick="toggleDia(this)"><span class="db-nome">QUA</span><span class="db-chk">○</span></button>
-          </div>
-          <div class="dia-col">
-            <button type="button" class="dia-btn" data-dia="qui" onclick="toggleDia(this)"><span class="db-nome">QUI</span><span class="db-chk">○</span></button>
-          </div>
-          <div class="dia-col">
-            <button type="button" class="dia-btn" data-dia="sex" onclick="toggleDia(this)"><span class="db-nome">SEX</span><span class="db-chk">○</span></button>
-          </div>
-        </div>
-        <div id="total-resumo" style="display:none;margin-top:10px;padding:10px 12px;background:var(--vdx);border:1px solid #c5ddc9;border-radius:8px;align-items:center;justify-content:space-between">
-          <span style="font-size:13px;color:var(--g2)"><span id="total-dias-txt">0 dia</span> selecionado</span>
-          <span style="font-size:1.1rem;font-weight:700;color:var(--vd)" id="total-valor-txt">R$ 0,00</span>
-        </div>
-      </div>
       <div class="field" id="pgto-inline-wrap" style="display:none">
         <label>Como pagar</label>
         <div class="pgto-box" style="margin-top:2px">
@@ -339,7 +333,7 @@ a[onclick]:active{transform:scale(.93)}
         </div>
       </div>
       <div class="field">
-        <label>Comprovante de pagamento <span style="color:var(--er);font-weight:700">*obrigatório</span></label>
+        <label>Comprovante de pagamento (Pix) <span style="color:var(--er);font-weight:700">*obrigatório</span></label>
         <div class="upload-comp" id="upload-comp" onclick="document.getElementById('inp-comp').click()">
           <div style="font-size:28px">📎</div>
           <p>Anexe o comprovante do Pix</p>
@@ -350,32 +344,21 @@ a[onclick]:active{transform:scale(.93)}
           <button type="button" onclick="removerComp()">✕</button>
         </div>
       </div>
+      <div id="alerta-comp" style="display:none;margin-bottom:.85rem;padding:1rem;background:#c0392b;border:2px solid #7d2018;border-radius:10px;color:#fff;font-size:14px;font-weight:800;text-align:center;line-height:1.5;letter-spacing:.3px;box-shadow:0 4px 16px rgba(192,57,43,.4)">
+        ⚠️ PARA CONFIRMAR SUA PREVISÃO, ANEXE OBRIGATORIAMENTE O COMPROVANTE DE PIX
+      </div>
       <button type="button" class="btn-pri" id="btn-inscrever" onclick="inscrever()">Confirmar inscrição</button>
       <div id="resumo-pos-inscricao" style="display:none;margin-top:1rem;background:var(--okc);border:1px solid #aaddbf;border-radius:10px;padding:1rem">
         <div style="font-size:13px;font-weight:700;color:var(--ok);margin-bottom:.5rem">✓ Inscrição confirmada!</div>
         <div id="resumo-pos-content" style="font-size:13px;color:var(--g1);line-height:1.7"></div>
         <div style="font-size:11px;color:var(--g2);margin-top:.5rem">Guarde este resumo. Realize o pagamento e anexe o comprovante.</div>
       </div>
-      <div class="sug-box">
-        <div style="font-size:13px;font-weight:800;color:var(--ou);margin-bottom:.5rem;margin-top:.2rem">Sugestão de cardápio para a próxima semana</div>
-        <div style="font-size:12px;color:var(--g2);margin-bottom:.6rem">Tem algum prato que gostaria de ver? Conta pra gente!</div>
-        <textarea id="inp-sugestao" placeholder="Ex: Frango ao molho com arroz e macarrão..." style="width:100%;padding:9px 12px;border:1.5px solid var(--ou);border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;resize:vertical;min-height:70px;color:var(--g1);background:#fff"></textarea>
-        <button type="button" onclick="enviarSugestao()" style="margin-top:8px;padding:9px 16px;font-size:13px;font-weight:700;background:var(--ou);border:none;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--vd);width:100%">Enviar sugestão</button>
-      </div>
     </div></div>
   </div>
+
   <div class="sec">
     <div class="sec-title">Inscritos</div>
     <div class="card"><div id="ins-list"><div style="padding:1rem;display:flex;flex-direction:column;gap:8px"><div style="height:40px;background:var(--g4);border-radius:8px;animation:pulse 1.2s infinite alternate"></div><div style="height:40px;background:var(--g4);border-radius:8px;animation:pulse 1.2s infinite alternate;animation-delay:.2s"></div><div style="height:40px;background:var(--g4);border-radius:8px;animation:pulse 1.2s infinite alternate;animation-delay:.4s"></div></div></div></div>
-  </div>
-</div>
-
-<div style="max-width:680px;margin:0 auto;padding:0 1.2rem 1.5rem">
-  <button type="button" id="btn-historico" onclick="toggleHistorico()" style="width:100%;padding:10px;font-size:12px;border:1px solid var(--g4);border-radius:10px;background:var(--br);cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--g2);display:flex;align-items:center;justify-content:center;gap:6px">
-    <span id="hist-btn-txt">Ver histórico de semanas ▼</span>
-  </button>
-  <div id="sec-historico" style="display:none;margin-top:.75rem">
-    <div id="hist-list"></div>
   </div>
 </div>
 
@@ -797,6 +780,7 @@ const db  = getFirestore(app);
 
 const DK = ['seg','ter','qua','qui','sex'];
 const DN = ['SEG','TER','QUA','QUI','SEX'];
+const DNL = ['SEGUNDA','TERÇA','QUARTA','QUINTA','SEXTA'];
 const SENHA = 'rancho37';
 
 let isAdmin = false;
@@ -826,12 +810,42 @@ function escHTML(s){ const d=document.createElement('div'); d.textContent=String
 
 // ── Dias seleção ─────────────────────────────────────────────────────────────
 function toggleDia(btn){
+  if(btn.classList.contains('bloqueado')) return;
   btn.classList.toggle('ativo');
   const ativo = btn.classList.contains('ativo');
-  btn.querySelector('.db-chk').textContent = ativo ? '●' : '○';
+  const chk = btn.querySelector('.db-chk, .dm-check');
+  if(chk) chk.textContent = ativo ? '●' : '○';
   atualizarTotalDias();
 }
 window.toggleDia = toggleDia;
+
+// Renderiza cardápio como cards de dia clicáveis (seleção integrada)
+function renderCardapioSelecionavel(sem){
+  const card = document.getElementById('cdp-card');
+  if(!card) return;
+  const cdp = (sem && sem.cardapio) || [];
+  if(!cdp.some(r=>r&&r.principal)){
+    card.innerHTML='<div class="empty-st">Cardápio não definido.</div>';
+    const resumo=document.getElementById('total-resumo');
+    if(resumo) resumo.style.display='none';
+    return;
+  }
+  // Preserva a seleção atual do usuário antes de re-renderizar
+  const prev = {};
+  document.querySelectorAll('#cdp-card .dia-btn.ativo').forEach(b=>{ prev[b.dataset.dia]=1; });
+  card.innerHTML = DK.map((d,i)=>{
+    const r = cdp[i]||{};
+    const up = (r.principal||'').toUpperCase();
+    const noLunch = up.includes('NÃO HAVERÁ ALMOÇO')||up.includes('NAO HAVERA ALMOCO');
+    const sel = prev[d] && !noLunch;
+    if(noLunch){
+      return `<div class="dia-menu bloqueado" data-dia="${d}"><div class="dm-check">✕</div><div class="dm-body"><div class="dm-dia">${DNL[i]}</div><div class="dm-prato" style="color:var(--er);font-weight:700">${escHTML(r.principal||'Não haverá almoço')}</div></div></div>`;
+    }
+    return `<button type="button" class="dia-menu dia-btn${sel?' ativo':''}" data-dia="${d}" onclick="toggleDia(this)"><div class="dm-check">${sel?'●':'○'}</div><div class="dm-body"><div class="dm-dia">${DNL[i]}</div><div class="dm-prato">${escHTML(r.principal||'—')}</div>${r.acomp?`<div class="dm-acomp">${escHTML(r.acomp)}</div>`:''}</div></button>`;
+  }).join('');
+  atualizarTotalDias();
+}
+window.renderCardapioSelecionavel = renderCardapioSelecionavel;
 
 function getOvos(){ return {}; }
 window.getOvos=getOvos;
@@ -863,7 +877,8 @@ function getDias(){
 function resetDias(){
   document.querySelectorAll('.dia-btn').forEach(b=>{
     b.classList.remove('ativo');
-    b.querySelector('.db-chk').textContent='○';
+    const chk=b.querySelector('.db-chk, .dm-check');
+    if(chk) chk.textContent='○';
   });
   resetOvos();
   const resumo=document.getElementById('total-resumo');
@@ -1084,6 +1099,8 @@ async function selecionarComp(inp){
     document.getElementById('comp-nome').textContent=f.name;
     document.getElementById('comp-prev').style.display='flex';
     uploadEl.style.display='none';
+    const alerta=document.getElementById('alerta-comp');
+    if(alerta) alerta.style.display='none';
   };
   rd.readAsDataURL(f);
 }
@@ -1154,9 +1171,6 @@ function renderHero(sem, ins){
   if(!sem){
     document.getElementById('hero-wk').textContent='Nenhuma semana configurada';
     verificarSemConfig(null);
-    document.getElementById('hc-val').textContent='—';
-    document.getElementById('hc-ins').textContent='0';
-    document.getElementById('hc-arr').textContent='R$0';
     document.getElementById('val-num').textContent='—';
     document.getElementById('val-obs').textContent='Aguarde o administrador configurar a semana.';
     document.getElementById('cdp-card').innerHTML='<div class="empty-st">Cardápio não definido.</div>';
@@ -1168,31 +1182,12 @@ function renderHero(sem, ins){
   verificarPrazoAutoRelatorio(sem);
   verificarSemConfig(sem);
   const vlr=parseFloat(sem.valor)||0;
-  document.getElementById('hc-val').textContent=vlr?`R$${vlr.toFixed(2)}`:'—';
-  document.getElementById('val-num').textContent=vlr?vlr.toFixed(2):'—';
+  document.getElementById('val-num').textContent=vlr?vlr.toFixed(2).replace('.',','):'—';
   document.getElementById('val-obs').textContent=sem.valorObs||'Inclui prato completo com guarnição, acompanhamento e salada.';
-  document.getElementById('hc-ins').textContent=ins.length;
-  const {saldoAnt, arrAtual, saldo, gastosAtual} = calcSaldoCumulativo(sem.id, ins, vlr);
-  document.getElementById('hc-arr').textContent=`R$${arrAtual.toFixed(2)}`;
-  // Pendente de aprovação = inscritos ainda não validados pelo admin
-  const pend = ins.filter(i=>!i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr, 0);
-  const pendEl=document.getElementById('hc-pend');
-  if(pendEl) pendEl.textContent=`R$${pend.toFixed(2)}`;
-  // Saldo cumulativo
-  const saldoCard=document.getElementById('hc-saldo-card');
-  const saldoEl=document.getElementById('hc-saldo');
-  if(saldoCard && saldoEl && saldo!==0){
-    saldoEl.textContent=`R$${saldo.toFixed(2)}`;
-    saldoEl.style.color=saldo>=0?'#6ee08a':'#ff9980';
-    saldoCard.style.display='block';
-  } else if(saldoCard){ saldoCard.style.display='none'; }
   // atualizarUploadArea
   atualizarUploadArea(sem);
-  // Cardápio
-  const cdp=sem.cardapio||[];
-  document.getElementById('cdp-card').innerHTML=cdp.some(r=>r&&r.principal)
-    ? DK.map((d,i)=>{ const r=cdp[i]||{}; const noLunch=(r.principal||'').toUpperCase().includes('NÃO HAVERÁ ALMOÇO')||(r.principal||'').toUpperCase().includes('NAO HAVERA ALMOCO'); return`<div class="cdp-row"><div class="cdp-dia">${DN[i]}</div><div><div class="cdp-principal"${noLunch?' style="color:var(--er);font-weight:700"':''}>${r.principal||'—'}</div>${r.acomp?`<div class="cdp-acomp">${r.acomp}</div>`:''}</div></div>`; }).join('')
-    : '<div class="empty-st">Cardápio não definido.</div>';
+  // Cardápio com seleção de dias integrada
+  renderCardapioSelecionavel(sem);
   // Inscritos
   renderInscritos(ins, vlr);
   atualizarAdminStatusBar(sem, ins, vlr);
@@ -1362,24 +1357,31 @@ async function carregarSemanaAtiva(){
   });
 }
 
-function mostrarErroComprovante(){
+function mostrarErroComprovante(){ mostrarAlertaComp(); }
+
+function mostrarAlertaComp(){
+  const alerta = document.getElementById('alerta-comp');
   const el = document.getElementById('upload-comp');
+  if(alerta){
+    alerta.style.display='block';
+    alerta.scrollIntoView({behavior:'smooth', block:'center'});
+  }
   if(el){
     el.classList.add('upload-req');
     setTimeout(()=>el.classList.remove('upload-req'), 3000);
-    el.scrollIntoView({behavior:'smooth', block:'center'});
   }
-  toast('⚠️ Comprovante de pagamento obrigatório. Anexe antes de confirmar.');
 }
+window.mostrarAlertaComp = mostrarAlertaComp;
 
 // ── Inscrição ─────────────────────────────────────────────────────────────────
 async function inscrever(){
   const qra=document.getElementById('inp-qra').value.trim();
   if(!qra){ toast('Informe seu QRA'); return; }
   const dias=getDias();
-  if(!Object.values(dias).some(Boolean)){ toast('Selecione ao menos um dia'); return; }
+  if(!Object.values(dias).some(Boolean)){ toast('Selecione ao menos um dia no cardápio'); return; }
   if(!semAtiva){ toast('Nenhuma semana ativa'); return; }
-  if(_cacheSem && _cacheSem.exigirComprovante && !compSel){ mostrarErroComprovante(); return; }
+  // Comprovante de Pix é SEMPRE obrigatório para confirmar a previsão
+  if(!compSel){ mostrarAlertaComp(); return; }
   const btn=document.getElementById('btn-inscrever');
   btn.disabled=true; btn.textContent='Salvando...';
   try{
@@ -3208,6 +3210,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v11.28</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v12.0</div>
 </body>
 </html>
