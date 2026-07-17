@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260717-v12.0-tela-usuario-simplificada -->
+<meta charset="UTF-8"><!-- deploy:20260717-v12.1-layout-cardapio-pagamento-alerta -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -71,24 +71,34 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .vbox-big .vbox-num{font-size:3.4rem;line-height:1}
 .vbox-big .vbox-lbl{font-size:14px}
 /* Cardápio com seleção de dias integrada */
-.dia-menu{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:none;border-bottom:1px solid var(--g5);padding:.85rem .9rem;background:var(--br);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s}
+.dia-menu{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:none;border-bottom:1px solid var(--g5);padding:.7rem .75rem;background:var(--br);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s}
 .dia-menu:last-child{border-bottom:none}
 .dia-menu:hover:not(.bloqueado){background:var(--vdx)}
 .dia-menu:active:not(.bloqueado){transform:scale(.99)}
 .dia-menu.ativo{background:var(--vdx)}
-.dia-menu .dm-check{flex-shrink:0;width:26px;height:26px;border-radius:50%;border:2px solid var(--g4);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--g4);transition:all .15s}
+.dia-menu .dm-day-badge{flex-shrink:0;width:58px;min-height:52px;border-radius:10px;background:var(--vdx);border:2px solid #c5ddc9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;transition:all .15s}
+.dia-menu .dm-day-badge .db-abrev{font-size:16px;font-weight:800;letter-spacing:1px;color:var(--vd);line-height:1}
+.dia-menu.ativo .dm-day-badge{background:var(--vd);border-color:var(--vd)}
+.dia-menu.ativo .dm-day-badge .db-abrev{color:#fff}
+.dia-menu .dm-check{flex-shrink:0;width:28px;height:28px;border-radius:50%;border:2px solid var(--g4);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--g4);transition:all .15s}
 .dia-menu.ativo .dm-check{background:var(--vd);border-color:var(--vd);color:#fff}
-.dia-menu.bloqueado{cursor:not-allowed;opacity:.7}
+.dia-menu.bloqueado{cursor:not-allowed;opacity:.75}
+.dia-menu.bloqueado .dm-day-badge{background:var(--erc);border-color:#f1a9a0}
+.dia-menu.bloqueado .dm-day-badge .db-abrev{color:var(--er)}
 .dia-menu.bloqueado .dm-check{border-color:#f1a9a0;color:var(--er)}
 .dm-body{flex:1;min-width:0}
-.dm-dia{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--vdm);margin-bottom:2px}
-.dia-menu.ativo .dm-dia{color:var(--vd)}
 .dm-prato{font-size:14px;font-weight:600;color:var(--g1);line-height:1.3}
 .dm-acomp{font-size:12px;color:var(--g3);margin-top:1px}
 /* Aviso de pedidos após o prazo */
-.pos-prazo-box{display:flex;gap:10px;align-items:flex-start;background:var(--wnc);border:1px solid #e8d48a;border-left:4px solid #d99a1c;border-radius:var(--r);padding:.85rem 1rem;font-size:12.5px;color:#6b5200;line-height:1.55}
-.pos-prazo-box .pp-ico{font-size:18px;flex-shrink:0;line-height:1.3}
+.pos-prazo-box{display:flex;gap:12px;align-items:flex-start;background:var(--wnc);border:2px solid #d99a1c;border-left:6px solid #d99a1c;border-radius:var(--r);padding:1.1rem 1.15rem;font-size:14px;color:#6b5200;line-height:1.6;box-shadow:0 2px 12px rgba(217,154,28,.18)}
+.pos-prazo-box .pp-ico{font-size:28px;flex-shrink:0;line-height:1.2}
+.pos-prazo-box .pp-tit{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#8a4800;margin-bottom:4px}
 .pos-prazo-box strong{color:#8a4800}
+/* Card Pagamento e confirmação em destaque */
+.pay-card{border:2px solid var(--vdl);border-radius:var(--r);overflow:hidden;background:var(--br);box-shadow:0 3px 14px rgba(26,58,31,.14)}
+.pay-card-hd{background:var(--vd);color:#fff;padding:.8rem 1rem;display:flex;align-items:center;gap:8px}
+.pay-card-hd .pch-ico{font-size:18px}
+.pay-card-hd .pch-tit{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px}
 .field{margin-bottom:.75rem}
 .field label{display:block;font-size:12px;font-weight:600;color:var(--g2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
 .field input,.field textarea{width:100%;padding:9px 12px;border:1px solid var(--g4);border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;background:var(--br);color:var(--g1);transition:border-color .15s}
@@ -304,7 +314,10 @@ a[onclick]:active{transform:scale(.93)}
   <div class="sec">
     <div class="pos-prazo-box">
       <span class="pp-ico">⚠️</span>
-      <div>Pedidos de refeição feitos <strong>após o encerramento da previsão</strong> terão <strong>acréscimo no valor</strong> e a mistura <strong>não será garantida</strong>, podendo ser substituída por <strong>2 ovos fritos</strong>.</div>
+      <div>
+        <div class="pp-tit">Atenção — pedidos fora do prazo</div>
+        Pedidos de refeição feitos <strong>após o encerramento da previsão</strong> terão <strong>acréscimo no valor</strong> e a mistura <strong>não será garantida</strong>, podendo ser substituída por <strong>2 ovos fritos</strong>.
+      </div>
     </div>
   </div>
 
@@ -322,8 +335,9 @@ a[onclick]:active{transform:scale(.93)}
 
   <!-- Pagamento e confirmação -->
   <div class="sec">
-    <div class="sec-title">Pagamento e confirmação</div>
-    <div class="card"><div class="cb">
+    <div class="pay-card">
+      <div class="pay-card-hd"><span class="pch-ico">💳</span><span class="pch-tit">Pagamento e confirmação</span></div>
+      <div class="cb">
       <div class="field" id="pgto-inline-wrap" style="display:none">
         <label>Como pagar</label>
         <div class="pgto-box" style="margin-top:2px">
@@ -780,7 +794,6 @@ const db  = getFirestore(app);
 
 const DK = ['seg','ter','qua','qui','sex'];
 const DN = ['SEG','TER','QUA','QUI','SEX'];
-const DNL = ['SEGUNDA','TERÇA','QUARTA','QUINTA','SEXTA'];
 const SENHA = 'rancho37';
 
 let isAdmin = false;
@@ -839,9 +852,9 @@ function renderCardapioSelecionavel(sem){
     const noLunch = up.includes('NÃO HAVERÁ ALMOÇO')||up.includes('NAO HAVERA ALMOCO');
     const sel = prev[d] && !noLunch;
     if(noLunch){
-      return `<div class="dia-menu bloqueado" data-dia="${d}"><div class="dm-check">✕</div><div class="dm-body"><div class="dm-dia">${DNL[i]}</div><div class="dm-prato" style="color:var(--er);font-weight:700">${escHTML(r.principal||'Não haverá almoço')}</div></div></div>`;
+      return `<div class="dia-menu bloqueado" data-dia="${d}"><div class="dm-day-badge"><span class="db-abrev">${DN[i]}</span></div><div class="dm-body"><div class="dm-prato" style="color:var(--er);font-weight:700">${escHTML(r.principal||'Não haverá almoço')}</div></div><div class="dm-check">✕</div></div>`;
     }
-    return `<button type="button" class="dia-menu dia-btn${sel?' ativo':''}" data-dia="${d}" onclick="toggleDia(this)"><div class="dm-check">${sel?'●':'○'}</div><div class="dm-body"><div class="dm-dia">${DNL[i]}</div><div class="dm-prato">${escHTML(r.principal||'—')}</div>${r.acomp?`<div class="dm-acomp">${escHTML(r.acomp)}</div>`:''}</div></button>`;
+    return `<button type="button" class="dia-menu dia-btn${sel?' ativo':''}" data-dia="${d}" onclick="toggleDia(this)"><div class="dm-day-badge"><span class="db-abrev">${DN[i]}</span></div><div class="dm-body"><div class="dm-prato">${escHTML(r.principal||'—')}</div>${r.acomp?`<div class="dm-acomp">${escHTML(r.acomp)}</div>`:''}</div><div class="dm-check">${sel?'●':'○'}</div></button>`;
   }).join('');
   atualizarTotalDias();
 }
@@ -2722,7 +2735,6 @@ window.mostrarResumoPosInscricao = mostrarResumoPosInscricao;
 // ── Prazo de inscrição ────────────────────────────────────────────────────────
 function verificarPrazo(sem){
   const aviso = document.getElementById('prazo-aviso');
-  const formCard = document.querySelector('.sec .card .cb');
   const btnIns = document.getElementById('btn-inscrever');
   if(!aviso) return;
   if(!sem||!sem.prazoData){
@@ -3210,6 +3222,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v12.0</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v12.1</div>
 </body>
 </html>
