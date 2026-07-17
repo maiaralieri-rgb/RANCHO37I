@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260717-v12.1-layout-cardapio-pagamento-alerta -->
+<meta charset="UTF-8"><!-- deploy:20260717-v12.2-fora-prazo-saldo-manual-pix-verde -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -121,10 +121,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .s-deve{background:var(--wnc);color:var(--wn);padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700}
 .ins-val{font-size:12px;color:var(--g3)}
 .empty-st{padding:1.5rem;text-align:center;color:var(--g3);font-size:13px}
-.pgto-box{background:#fff4ec;border:2px solid #e07620;border-radius:var(--r);padding:.9rem 1.1rem}
-.pgto-tit{font-size:13px;font-weight:800;color:#b84d00;margin-bottom:.4rem}
-.pgto-inf{font-size:13px;color:#5a2e00;line-height:1.6;white-space:pre-wrap;user-select:text;-webkit-user-select:text;cursor:text}
-.pgto-obs{font-size:11px;color:#8a4800;margin-top:.4rem}
+.pgto-box{background:var(--vdx);border:2px solid var(--vdl);border-radius:var(--r);padding:.9rem 1rem}
+.pgto-tit{font-size:14px;font-weight:800;color:var(--vd);margin-bottom:.6rem}
+.pgto-inf{font-size:13px;color:var(--g1);line-height:1.6}
+.pgto-obs{font-size:12px;color:var(--vdm);margin-top:.6rem;font-weight:600}
+.pix-step{display:flex;align-items:flex-start;gap:10px;margin-bottom:.6rem}
+.pix-step:last-child{margin-bottom:0}
+.pix-step .ps-num{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--vd);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
+.pix-step .ps-txt{flex:1;font-size:13.5px;color:var(--g1);line-height:1.5;padding-top:3px}
+.pix-step .ps-txt strong{color:var(--vd)}
+.btn-pix-copy{width:100%;padding:12px;background:var(--vd);border:none;border-radius:9px;font-size:14px;font-weight:800;color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:6px;transition:background .15s;letter-spacing:.3px}
+.btn-pix-copy:hover{background:var(--vdm)}
+.btn-pix-copy.copied,.btn-pix-copy.copied:hover{background:#1a5799}
 .nota-item{display:flex;align-items:center;gap:9px;padding:.6rem .75rem;background:var(--g5);border-radius:8px;margin-bottom:6px}
 .nota-ico{font-size:18px}
 .nota-nome{font-size:12px;font-weight:500;flex:1;color:var(--g1);word-break:break-all}
@@ -339,7 +347,7 @@ a[onclick]:active{transform:scale(.93)}
       <div class="pay-card-hd"><span class="pch-ico">💳</span><span class="pch-tit">Pagamento e confirmação</span></div>
       <div class="cb">
       <div class="field" id="pgto-inline-wrap" style="display:none">
-        <label>Como pagar</label>
+        <label>Como pagar — é só seguir os 3 passos</label>
         <div class="pgto-box" style="margin-top:2px">
           <div class="pgto-tit" id="pgto-tit">⏳ Informações de pagamento em breve</div>
           <div class="pgto-inf" id="pgto-inf">O responsável será definido em breve. Aguarde comunicado no grupo.</div>
@@ -425,8 +433,8 @@ a[onclick]:active{transform:scale(.93)}
         <div class="asc-l">Saldo anterior <span style="font-size:9px;opacity:.6">▶</span></div>
         <div class="asc-v" id="adm-stat-credant" style="color:var(--vd)">R$0</div>
       </div>
-      <div class="adm-stat-card" style="grid-column:1/-1;background:var(--vdx);border-color:var(--vdl);display:flex;align-items:center;justify-content:space-between;padding:.5rem .85rem">
-        <div class="asc-l" style="margin:0">Saldo total</div>
+      <div class="adm-stat-card" style="grid-column:1/-1;background:var(--vdx);border-color:var(--vdl);display:flex;align-items:center;justify-content:space-between;padding:.5rem .85rem;cursor:pointer" onclick="editarSaldoTotal()" title="Toque para ajustar manualmente">
+        <div class="asc-l" style="margin:0">Saldo total <span style="font-size:9px;opacity:.6">✎</span><span id="adm-stat-saldo-manual" style="display:none;font-size:9px;background:var(--ou);color:#fff;border-radius:8px;padding:1px 6px;margin-left:4px;vertical-align:middle">MANUAL</span></div>
         <div class="asc-v" id="adm-stat-saldo" style="font-size:1.15rem;color:var(--vd)">—</div>
       </div>
     </div>
@@ -452,10 +460,9 @@ a[onclick]:active{transform:scale(.93)}
       </div>
       <div class="adm-nav-group" style="grid-column:1/-1">
         <div class="adm-nav-label">🔧 Utilitários</div>
-        <div class="adm-nav-btns adm-nav-5col" style="grid-template-columns:repeat(5,1fr);display:grid;gap:4px">
+        <div class="adm-nav-btns adm-nav-5col" style="grid-template-columns:repeat(4,1fr);display:grid;gap:4px">
           <button type="button" class="adm-nav-btn" onclick="aTab('notas',this)"><span class="nb-ico">📝</span><span class="nb-lbl">Notas</span></button>
           <button type="button" class="adm-nav-btn" onclick="aTab('lembrete',this)"><span class="nb-ico">🔔</span><span class="nb-lbl">Lembrete</span></button>
-          <button type="button" class="adm-nav-btn" onclick="aTab('sugestoes',this)"><span class="nb-ico">💬</span><span class="nb-lbl">Sugestões</span></button>
           <button type="button" class="adm-nav-btn" onclick="aTab('backup',this)"><span class="nb-ico">💾</span><span class="nb-lbl">Backup</span></button>
           <button type="button" class="adm-nav-btn" onclick="aTab('avisos',this)"><span class="nb-ico">📣</span><span class="nb-lbl">Avisos</span></button>
         </div>
@@ -639,12 +646,6 @@ a[onclick]:active{transform:scale(.93)}
       <div id="compras-lista"><div class="empty-st">Selecione uma semana e preencha o cardápio.</div></div>
     </div>
 
-    <!-- SUGESTÕES -->
-    <div class="asec" id="asec-sugestoes">
-      <div style="font-size:12px;color:var(--g2);margin-bottom:.75rem">Sugestões de cardápio enviadas pelos participantes.</div>
-      <div id="adm-sugestoes-list"><div class="empty-st">Nenhuma sugestão ainda.</div></div>
-    </div>
-
     <!-- LEMBRETE -->
     <div class="asec" id="asec-lembrete">
       <div style="font-size:12px;color:var(--g2);margin-bottom:.75rem">Gera automaticamente a mensagem de lembrete para enviar no grupo toda sexta-feira.</div>
@@ -819,6 +820,16 @@ function toast(m){
   setTimeout(()=>t.classList.remove('show'),2600);
 }
 function cntD(dias){ if(!dias||typeof dias!=='object') return 0; return DK.reduce((a,d)=>a+(dias[d]?1:0),0); }
+// Acréscimo por refeição para previsões feitas após o prazo
+const TAXA_FORA_PRAZO = 2;
+function semForaPrazo(sem){
+  if(!sem||!sem.prazoData) return false;
+  return Date.now() > new Date(sem.prazoData+'T'+(sem.prazoHora||'23:59')).getTime();
+}
+// Valor devido por um inscrito: dias × (valor da semana + taxa se inscrito fora do prazo)
+function valorInsc(i, vlr){ return cntD(i.dias) * (vlr + (i && i.foraPrazo ? TAXA_FORA_PRAZO : 0)); }
+window.semForaPrazo = semForaPrazo;
+window.valorInsc = valorInsc;
 function escHTML(s){ const d=document.createElement('div'); d.textContent=String(s||''); return d.innerHTML; }
 
 // ── Dias seleção ─────────────────────────────────────────────────────────────
@@ -875,10 +886,13 @@ function atualizarTotalDias(){
   if(sel === 0){ resumo.style.display='none'; return; }
   resumo.style.display='flex';
   txtDias.textContent = sel === 1 ? '1 dia' : sel + ' dias';
-  // Pegar valor atual da semana do DOM
+  // Pegar valor atual da semana do DOM (+ acréscimo se fora do prazo)
   const vlrTxt = document.getElementById('val-num') ? document.getElementById('val-num').textContent : '0';
-  const vlr = parseFloat(vlrTxt.replace(',','.')) || 0;
-  txtVal.textContent = vlr ? `R$ ${(sel * vlr).toFixed(2).replace('.',',')}` : `${sel} refeição${sel>1?'ões':''}`;
+  let vlr = parseFloat(vlrTxt.replace(',','.')) || 0;
+  const atrasado = document.body.dataset.foraPrazo==='1' || semForaPrazo(_cacheSem);
+  if(vlr && atrasado) vlr += TAXA_FORA_PRAZO;
+  txtVal.textContent = vlr ? `R$ ${(sel * vlr).toFixed(2).replace('.',',')}${atrasado?' *':''}` : `${sel} refeição${sel>1?'ões':''}`;
+  txtDias.textContent += atrasado ? ' (fora do prazo: +R$'+TAXA_FORA_PRAZO.toFixed(2).replace('.',',')+'/dia)' : '';
 }
 window.atualizarTotalDias = atualizarTotalDias;
 
@@ -1150,7 +1164,7 @@ async function recalcArrecadadoSemanas(){
       const vlr = parseFloat(s.valor)||0;
       const arr = snap.docs.map(d=>d.data())
         .filter(i=>i.pago)
-        .reduce((a,i)=>a+cntD(i.dias)*vlr, 0);
+        .reduce((a,i)=>a+valorInsc(i,vlr), 0);
       result[s.id] = arr;
     }catch(e){ console.warn('[arr-semana]', s.id, e); }
   }
@@ -1163,7 +1177,7 @@ window.recalcArrecadadoSemanas = recalcArrecadadoSemanas;
 function calcSaldoCumulativo(semId, insAtivos, vlr){
   const sem = _cacheSemanas.find(s=>s.id===semId);
   if(!sem) return {saldoAnt:0, arrAtual:0, saldo:0, gastosAtual:0};
-  const arrAtual = insAtivos.filter(i=>i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr, 0);
+  const arrAtual = insAtivos.filter(i=>i.pago).reduce((a,i)=>a+valorInsc(i,vlr), 0);
   const gastosAtual = parseFloat(sem.gastos)||0;
   // Sobra de cada semana anterior = arrecadado real − gastos da semana.
   // Usa o arrecadado ao vivo (cache); se ainda não carregou, cai para o campo gravado.
@@ -1240,27 +1254,24 @@ function renderPagamento(pg){
   if(pg&&pg.titulo){
     // Salva a chave para uso no botão de cópia
     window._pixKey = pg.inf||'';
-    document.getElementById('pgto-tit').textContent=pg.titulo;
-    document.getElementById('pgto-obs').textContent=pg.obs||'';
-    // Botão público: só mostra "Clique para copiar chave Pix"
+    document.getElementById('pgto-tit').textContent='💰 '+pg.titulo;
+    document.getElementById('pgto-obs').textContent=pg.obs?('📌 '+pg.obs):'';
+    // Passo a passo simples: copiar chave → pagar no banco → anexar comprovante
     const infEl=document.getElementById('pgto-inf');
-    infEl.innerHTML='';
+    infEl.innerHTML=`
+      <div class="pix-step"><div class="ps-num">1</div><div class="ps-txt">Toque no botão verde abaixo para <strong>copiar a chave Pix</strong>.</div></div>
+      <div class="pix-step"><div class="ps-num">2</div><div class="ps-txt">Abra o <strong>aplicativo do seu banco</strong>, escolha Pix, cole a chave e pague o valor total.</div></div>
+      <div class="pix-step"><div class="ps-num">3</div><div class="ps-txt">Volte aqui e <strong>anexe o comprovante</strong> logo abaixo para confirmar.</div></div>`;
     const btn=document.createElement('button');
     btn.type='button';
-    btn.textContent='📋 Clique para copiar a chave Pix';
-    btn.style.cssText='width:100%;padding:10px;background:#e07620;border:none;border-radius:8px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;margin-top:4px;transition:background .15s';
-    btn.onmouseover=()=>{ if(!btn._copied) btn.style.background='#c45c00'; };
-    btn.onmouseout=()=>{ if(!btn._copied) btn.style.background='#e07620'; };
+    btn.className='btn-pix-copy';
+    btn.textContent='📋 COPIAR CHAVE PIX';
     btn.onclick=()=>{
       const key=window._pixKey||'';
       if(!key) return;
       navigator.clipboard.writeText(key).then(()=>{
-        btn._copied=true;
-        btn.textContent='✓ Chave copiada!';
-        btn.style.background='#1a5799';
-        btn.style.color='#fff';
-        btn.onmouseover=null;
-        btn.onmouseout=null;
+        btn.textContent='✓ CHAVE COPIADA! AGORA PAGUE NO SEU BANCO';
+        btn.classList.add('copied');
       }).catch(()=>{ alert('Chave Pix: '+key); });
     };
     infEl.appendChild(btn);
@@ -1269,6 +1280,7 @@ function renderPagamento(pg){
     if(wrap) wrap.style.display='none';
   }
 }
+window.renderPagamento = renderPagamento;
 
 function renderNotasPub(notas){
   const el=document.getElementById('notas-pub');
@@ -1404,6 +1416,7 @@ async function inscrever(){
     const existe=snap.docs.find(d=>d.data().qra.toLowerCase()===qra.toLowerCase());
     if(existe){ toast('QRA já inscrito. Fale com o admin.'); btn.disabled=false; btn.textContent='Confirmar inscrição'; return; }
     const entry={qra, dias, pago:false, criadoEm:Date.now()};
+    if(semForaPrazo(_cacheSem)) entry.foraPrazo=true; // acréscimo de R$2/refeição
     if(compSel) entry.comprovante=compSel;
     const docRef = await addDoc(insRef, entry);
     // Registra todas as camadas antifraude do comprovante
@@ -1501,7 +1514,7 @@ function abrirModalInscritos(){
     const badge = i.pago
       ? `<span class="s-pago">✓ Pago</span>`
       : (i.comprovante ? `<span class="s-deve">⏳ Aguarda</span>` : `<span class="s-deve">Pendente</span>`);
-    return`<div class="ins-row"><div><div class="ins-nome">${escHTML(i.qra)}</div><div class="ins-dias" style="margin-top:3px">${pills}</div></div><div style="text-align:right"><div>${badge}</div><div class="ins-val">R$${(nd*vlr).toFixed(2)}</div></div></div>`;
+    return`<div class="ins-row"><div><div class="ins-nome">${escHTML(i.qra)}</div><div class="ins-dias" style="margin-top:3px">${pills}</div></div><div style="text-align:right"><div>${badge}</div><div class="ins-val">R$${valorInsc(i,vlr).toFixed(2)}</div></div></div>`;
   }).join('');
   _abrirHcModal(`Inscritos (${_cacheIns.length})`, `<div class="card">${rows}</div>`);
 }
@@ -1511,12 +1524,12 @@ function abrirModalPagantes(){
   const vlr = _cacheSem ? parseFloat(_cacheSem.valor)||0 : 0;
   const pagantes = _cacheIns.filter(i=>i.pago);
   if(!pagantes.length){ _abrirHcModal('Pagamentos validados','<div class="empty-st">Nenhum pagamento validado ainda.</div>'); return; }
-  const total = pagantes.reduce((a,i)=>a+cntD(i.dias)*vlr,0);
+  const total = pagantes.reduce((a,i)=>a+valorInsc(i,vlr),0);
   const rows = pagantes.map(i=>{
     const nd = cntD(i.dias);
     const dias = DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]);
     const pills = dias.map(d=>`<span class="dp">${d}</span>`).join('');
-    return`<div class="ins-row"><div><div class="ins-nome">${escHTML(i.qra)}</div><div class="ins-dias" style="margin-top:3px">${pills}</div></div><div style="text-align:right"><span class="s-pago">✓ Pago</span><div class="ins-val">R$${(nd*vlr).toFixed(2)}</div></div></div>`;
+    return`<div class="ins-row"><div><div class="ins-nome">${escHTML(i.qra)}</div><div class="ins-dias" style="margin-top:3px">${pills}</div></div><div style="text-align:right"><span class="s-pago">✓ Pago</span><div class="ins-val">R$${valorInsc(i,vlr).toFixed(2)}</div></div></div>`;
   }).join('');
   const resumo = `<div style="padding:.6rem .75rem;background:var(--vdx);border-radius:8px;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;font-weight:700;color:var(--vd)">${pagantes.length} pagante${pagantes.length>1?'s':''}</span><span style="font-size:1.1rem;font-weight:800;color:var(--vd)">R$${total.toFixed(2)}</span></div>`;
   _abrirHcModal('Arrecadado — validados', resumo + `<div class="card">${rows}</div>`);
@@ -1753,7 +1766,7 @@ const SECTION_TITLES = {
   semana:'Configurar Semana', inscritos:'Inscritos', listadia:'Lista do Dia',
   cozinheiro:'Cozinheiro', pagamento:'Pagamento', comprovantes:'Comprovantes',
   compras:'Lista de Compras', relatorio:'Relatório', notas:'Notas Fiscais',
-  lembrete:'Lembrete', sugestoes:'Sugestões', backup:'Backup', avisos:'Janela de Avisos Importantes'
+  lembrete:'Lembrete', backup:'Backup', avisos:'Janela de Avisos Importantes'
 };
 function aTab(t,btn){
   document.querySelectorAll('.adm-nav-btn,.atab').forEach(b=>b.classList.remove('active'));
@@ -1783,15 +1796,20 @@ function atualizarAdminStatusBar(sem, ins, vlr){
   if(statIns) statIns.textContent = ins.length;
   const {saldoAnt, arrAtual, saldo, gastosAtual} = sem ? calcSaldoCumulativo(sem.id, ins, vlr) : {saldoAnt:0,arrAtual:0,saldo:0,gastosAtual:0};
   if(statArr) statArr.textContent = `R$${arrAtual.toFixed(2)}`;
-  const pend = ins.filter(i=>!i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr, 0);
+  const pend = ins.filter(i=>!i.pago).reduce((a,i)=>a+valorInsc(i,vlr), 0);
   const pendEl = document.getElementById('adm-stat-pend');
   if(pendEl) pendEl.textContent = `R$${pend.toFixed(2)}`;
   const credEl  = document.getElementById('adm-stat-credant');
   const saldoEl = document.getElementById('adm-stat-saldo');
   if(credEl) credEl.textContent = `R$${saldoAnt.toFixed(2)}`;
+  // Saldo total: usa ajuste manual se definido (previsões fora do prazo alteram valores)
+  const manualBadge = document.getElementById('adm-stat-saldo-manual');
+  const temManual = sem && sem.saldoManual !== undefined && sem.saldoManual !== null && sem.saldoManual !== '';
+  const saldoFinal = temManual ? parseFloat(sem.saldoManual)||0 : saldo;
+  if(manualBadge) manualBadge.style.display = temManual ? 'inline' : 'none';
   if(saldoEl){
-    saldoEl.textContent = `R$${saldo.toFixed(2)}`;
-    saldoEl.style.color = saldo >= 0 ? 'var(--vd)' : 'var(--er)';
+    saldoEl.textContent = `R$${saldoFinal.toFixed(2)}`;
+    saldoEl.style.color = saldoFinal >= 0 ? 'var(--vd)' : 'var(--er)';
   }
 
   if(statPrazo && sem && sem.prazoData){
@@ -1802,6 +1820,27 @@ function atualizarAdminStatusBar(sem, ins, vlr){
   } else if(statPrazo) statPrazo.textContent = '';
 }
 window.atualizarAdminStatusBar = atualizarAdminStatusBar;
+
+// Ajuste manual do saldo total (previsões fora do prazo alteram valores)
+async function editarSaldoTotal(){
+  if(!semAtiva || !_cacheSem){ toast('Selecione uma semana primeiro'); return; }
+  const atual = (_cacheSem.saldoManual !== undefined && _cacheSem.saldoManual !== null && _cacheSem.saldoManual !== '') ? String(_cacheSem.saldoManual) : '';
+  const resp = prompt('Saldo total (R$)\n\nDigite o valor manual (ex: 350.50).\nDeixe VAZIO para voltar ao cálculo automático.', atual);
+  if(resp === null) return; // cancelou
+  const limpo = resp.trim().replace(',','.');
+  try{
+    if(limpo === ''){
+      await updateDoc(doc(db,'semanas',semAtiva),{saldoManual:null});
+      toast('✓ Saldo voltou ao cálculo automático');
+    } else {
+      const v = parseFloat(limpo);
+      if(isNaN(v)){ toast('Valor inválido'); return; }
+      await updateDoc(doc(db,'semanas',semAtiva),{saldoManual:v});
+      toast('✓ Saldo total ajustado manualmente');
+    }
+  }catch(e){ toast('Erro ao salvar saldo'); console.error('[editarSaldoTotal]',e); }
+}
+window.editarSaldoTotal = editarSaldoTotal;
 
 async function preencherAdmin(){
   // Usa cache local para evitar buscas redundantes ao Firestore
@@ -2184,7 +2223,7 @@ async function recalcGastosDeNotas(semId, notas){
     const el=document.getElementById('a-gastos');
     if(el){ el.value=total.toFixed(2); }
     const vlr = _cacheSem ? parseFloat(_cacheSem.valor)||0 : 0;
-    const arr = _cacheIns.filter(i=>i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr, 0);
+    const arr = _cacheIns.filter(i=>i.pago).reduce((a,i)=>a+valorInsc(i,vlr), 0);
     const saldoRemanescente = arr - total;
     await updateDoc(doc(db,'semanas',semId),{gastos:total, creditoAnt:0, saldoRemanescente});
     calcRelatorio();
@@ -2295,7 +2334,7 @@ async function salvarGastos(){
   const creditoAnt=parseFloat(document.getElementById('a-credito-ant').value)||0;
   try{
     const vlr = _cacheSem ? parseFloat(_cacheSem.valor)||0 : 0;
-    const arr = _cacheIns.filter(i=>i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr, 0);
+    const arr = _cacheIns.filter(i=>i.pago).reduce((a,i)=>a+valorInsc(i,vlr), 0);
     const saldoRemanescente = arr - gastos;
     await updateDoc(doc(db,'semanas',semAtiva),{gastos, creditoAnt:0, saldoRemanescente});
   }catch(e){ toast('Erro ao salvar gastos: '+e.message); console.error(e); }
@@ -2308,8 +2347,8 @@ async function calcRelatorio(){
   const sem=_cacheSem;
   const ins=_cacheIns;
   const vlr=sem?parseFloat(sem.valor)||0:0;
-  const totalPrevisto=ins.reduce((a,i)=>a+cntD(i.dias)*vlr,0);
-  const totalArrecadado=ins.filter(i=>i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr,0);
+  const totalPrevisto=ins.reduce((a,i)=>a+valorInsc(i,vlr),0);
+  const totalArrecadado=ins.filter(i=>i.pago).reduce((a,i)=>a+valorInsc(i,vlr),0);
   const totalPendente=totalPrevisto-totalArrecadado;
   // Saldo anterior = sobra cumulativa das semanas anteriores (automático, cronológico)
   const creditoAnt = sem ? calcSaldoCumulativo(sem.id, ins, vlr).saldoAnt : 0;
@@ -2346,7 +2385,7 @@ async function calcRelatorio(){
   document.getElementById('rel-tabela').innerHTML=
     `<div style="display:grid;grid-template-columns:1fr auto auto auto;padding:.5rem .75rem;border-bottom:1px solid var(--g4);font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:.5px"><div>Participante</div><div style="text-align:center">Dias</div><div style="text-align:right">Valor</div><div style="text-align:center">Status</div></div>`+
     ins.map(i=>{
-      const nd=cntD(i.dias),tot=nd*vlr;
+      const nd=cntD(i.dias),tot=valorInsc(i,vlr);
       const dias=DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]).join(' ');
       return`<div style="display:grid;grid-template-columns:1fr auto auto auto;padding:.55rem .75rem;border-bottom:1px solid var(--g5);align-items:center;gap:6px"><div><div style="font-size:13px;font-weight:600">${i.qra}</div><div style="font-size:10px;color:var(--g3)">${dias}</div></div><div style="text-align:center;font-size:13px;color:var(--g2)">${nd}x</div><div style="text-align:right;font-size:13px;font-weight:500">R$${tot.toFixed(2)}</div><div style="text-align:center">${i.pago?`<span class="s-pago">✓ Pago</span>`:`<span class="s-deve">Pendente</span>`}</div></div>`;
     }).join('')+
@@ -2369,7 +2408,7 @@ function imprimirRelatorio(){
       <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:1.5rem">
         <thead><tr style="background:#e8f2ea"><th style="padding:7px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px">Participante</th><th style="padding:7px 10px;text-align:center">Dias</th><th style="padding:7px 10px;text-align:right">Valor</th><th style="padding:7px 10px;text-align:center">Status</th></tr></thead>
         <tbody>${ins.map((i,idx)=>{
-          const nd=cntD(i.dias),tot=nd*vlr;
+          const nd=cntD(i.dias),tot=valorInsc(i,vlr);
           const dias=DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]).join(' ');
           return`<tr style="border-bottom:1px solid #eee;background:${idx%2?'#fafafa':'#fff'}"><td style="padding:7px 10px;font-weight:600">${escHTML(i.qra)}<br><span style="font-size:11px;color:#888;font-weight:400">${escHTML(dias)}</span></td><td style="padding:7px 10px;text-align:center">${nd}</td><td style="padding:7px 10px;text-align:right">R$${tot.toFixed(2)}</td><td style="padding:7px 10px;text-align:center"><span style="padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;background:${i.pago?'#eaf4ee':'#fdf8ec'};color:${i.pago?'#1a6b3a':'#b8860b'}">${i.pago?'Pago':'Pendente'}</span></td></tr>`;
         }).join('')}</tbody>
@@ -2392,7 +2431,7 @@ function copiarRelatorio(){
   const {sem,ins,vlr,totalArrecadado,totalPrevisto,saldo,gastos,creditoAnt}=r;
   let txt=`RELATÓRIO SEMANAL — RANCHO 37I\nSemana: ${sem?sem.label:'—'} | ${new Date().toLocaleDateString('pt-BR')}\n${'─'.repeat(40)}\n\nPARTICIPANTES\n`;
   ins.forEach(i=>{
-    const nd=cntD(i.dias),tot=nd*vlr;
+    const nd=cntD(i.dias),tot=valorInsc(i,vlr);
     const dias=DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]).join(' ');
     txt+=`• ${i.qra} | ${dias} | R$${tot.toFixed(2)} | ${i.pago?'PAGO':'PENDENTE'}\n`;
   });
@@ -2420,7 +2459,6 @@ window.aTab = function(t,btn){
   if(t==='notas'){ renderAdmNotas(_cacheSem?_cacheSem.notas||[]:[]);}
   if(t==='comprovantes') renderAdmComp();
   if(t==='compras') renderListaCompras();
-  if(t==='sugestoes') renderAdmSugestoes();
   if(t==='lembrete') gerarLembrete();
   if(t==='backup') verificarUltimoBackup();
 };
@@ -2717,7 +2755,9 @@ window.abrirWhatsApp = abrirWhatsApp;
 // ── Resumo pós-inscrição ──────────────────────────────────────────────────────
 function mostrarResumoPosInscricao(qra, dias, vlr){
   const diasSel = DK.filter(d=>dias[d]);
-  const total = diasSel.length * vlr;
+  const atrasado = semForaPrazo(_cacheSem);
+  const vlrDia = vlr + (atrasado ? TAXA_FORA_PRAZO : 0);
+  const total = diasSel.length * vlrDia;
   const el = document.getElementById('resumo-pos-content');
   const wrap = document.getElementById('resumo-pos-inscricao');
   if(!el||!wrap) return;
@@ -2725,6 +2765,7 @@ function mostrarResumoPosInscricao(qra, dias, vlr){
     <strong>${qra}</strong><br>
     Dias: ${diasSel.map(d=>DN[DK.indexOf(d)]).join(', ')}<br>
     Refeições: ${diasSel.length}<br>
+    ${atrasado ? `<span style="color:var(--er);font-weight:700">Fora do prazo: +R$${TAXA_FORA_PRAZO.toFixed(2).replace('.',',')} por refeição</span><br>` : ''}
     ${vlr ? `<strong>Total a pagar: R$${total.toFixed(2)}</strong>` : ''}
   `;
   wrap.style.display='block';
@@ -2739,15 +2780,22 @@ function verificarPrazo(sem){
   if(!aviso) return;
   if(!sem||!sem.prazoData){
     aviso.style.display='none';
-    if(btnIns) btnIns.disabled=false;
+    delete document.body.dataset.foraPrazo;
+    if(btnIns){ btnIns.disabled=false; btnIns.textContent='Confirmar inscrição'; }
     return;
   }
   const prazo = new Date(sem.prazoData+'T'+(sem.prazoHora||'23:59'));
   const agora = new Date();
   if(agora > prazo){
-    aviso.textContent = `⏰ Prazo de inscrição encerrado em ${prazo.toLocaleDateString('pt-BR')} às ${prazo.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}. As inscrições para a próxima semana serão abertas em breve.`;
+    // Prazo encerrado NÃO bloqueia mais a inscrição: aplica acréscimo por refeição
+    aviso.innerHTML = `⏰ <strong>Prazo encerrado</strong> (${prazo.toLocaleDateString('pt-BR')} às ${prazo.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}).<br>Você ainda pode fazer sua previsão, mas cada refeição terá <strong>acréscimo de R$${TAXA_FORA_PRAZO.toFixed(2).replace('.',',')}</strong> e a mistura não é garantida (pode ser substituída por 2 ovos fritos).`;
     aviso.style.display='block';
-    if(btnIns){ btnIns.disabled=true; btnIns.textContent='Inscrições encerradas'; }
+    aviso.style.background='var(--erc)';
+    aviso.style.borderColor='#f1a9a0';
+    aviso.style.color='var(--er)';
+    if(btnIns){ btnIns.disabled=false; btnIns.textContent='Confirmar inscrição (fora do prazo)'; }
+    document.body.dataset.foraPrazo='1';
+    atualizarTotalDias();
   } else {
     const diff = prazo - agora;
     const horas = Math.floor(diff/3600000);
@@ -2760,7 +2808,8 @@ function verificarPrazo(sem){
     aviso.style.background='var(--wnc)';
     aviso.style.borderColor='#e8d48a';
     aviso.style.color='var(--wn)';
-    if(btnIns) btnIns.disabled=false;
+    delete document.body.dataset.foraPrazo;
+    if(btnIns){ btnIns.disabled=false; btnIns.textContent='Confirmar inscrição'; }
   }
 }
 window.verificarPrazo = verificarPrazo;
@@ -2852,8 +2901,8 @@ async function toggleHistSem(id){
   }).filter(Boolean).join('');
 
   // Financeiro
-  const totalArrecadado = ins.filter(i=>i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr,0);
-  const totalPrevisto   = ins.reduce((a,i)=>a+cntD(i.dias)*vlr,0);
+  const totalArrecadado = ins.filter(i=>i.pago).reduce((a,i)=>a+valorInsc(i,vlr),0);
+  const totalPrevisto   = ins.reduce((a,i)=>a+valorInsc(i,vlr),0);
   const totalMarmitas   = ins.reduce((a,i)=>a+cntD(i.dias),0);
 
   // Gastos e saldo
@@ -2946,7 +2995,7 @@ function exportarCSV(){
   const {sem,ins,vlr} = r;
   let csv = 'QRA,Seg,Ter,Qua,Qui,Sex,Total Dias,Valor (R$),Status\n';
   ins.forEach(i=>{
-    const nd=cntD(i.dias), tot=nd*vlr;
+    const nd=cntD(i.dias), tot=valorInsc(i,vlr);
     const dias=DK.map(d=>i.dias&&i.dias[d]?'Sim':'').join(',');
     csv += `"${i.qra}",${dias},${nd},"${tot.toFixed(2)}","${i.pago?'Pago':'Pendente'}"\n`;
   });
@@ -2963,49 +3012,6 @@ function exportarCSV(){
 }
 window.exportarCSV = exportarCSV;
 
-// ── Sugestões ─────────────────────────────────────────────────────────────────
-async function enviarSugestao(){
-  if(!semAtiva){ toast('Nenhuma semana ativa'); return; }
-  if(!_cacheSem){ toast('Aguarde o carregamento da semana'); return; }
-  const txt=document.getElementById('inp-sugestao').value.trim();
-  if(!txt){ toast('Escreva uma sugestão primeiro'); return; }
-  const lista=[...(_cacheSem.sugestoes||[])];
-  lista.push({texto:txt, data:new Date().toLocaleDateString('pt-BR'), hora:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});
-  try{
-    await updateDoc(doc(db,'semanas',semAtiva),{sugestoes:lista});
-    document.getElementById('inp-sugestao').value='';
-    toast('✓ Sugestão enviada! Obrigado.');
-  }catch(e){ toast('Erro ao enviar sugestão'); console.error('[enviarSugestao]',e); }
-}
-window.enviarSugestao = enviarSugestao;
-
-async function renderAdmSugestoes(){
-  const lista=(_cacheSem&&_cacheSem.sugestoes)||[];
-  const el=document.getElementById('adm-sugestoes-list');
-  if(!el) return;
-  if(!lista.length){ el.innerHTML='<div class="empty-st">Nenhuma sugestão ainda.</div>'; return; }
-  el.innerHTML=[...lista].reverse().map((s,i)=>
-    `<div style="padding:.65rem .75rem;border-bottom:1px solid var(--g5);display:flex;justify-content:space-between;align-items:start;gap:8px">
-      <div>
-        <div style="font-size:13px;color:var(--g1)">${escHTML(s.texto)}</div>
-        <div style="font-size:10px;color:var(--g3);margin-top:2px">${escHTML(s.data)} às ${escHTML(s.hora)}</div>
-      </div>
-      <button type="button" onclick="delSugestao(${lista.length-1-i})" style="background:none;border:none;color:var(--g3);cursor:pointer;font-size:14px;flex-shrink:0">✕</button>
-    </div>`
-  ).join('');
-}
-window.renderAdmSugestoes = renderAdmSugestoes;
-
-async function delSugestao(idx){
-  if(!semAtiva) return;
-  const lista=[...(_cacheSem&&_cacheSem.sugestoes||[])];
-  lista.splice(idx,1);
-  try{
-    await updateDoc(doc(db,'semanas',semAtiva),{sugestoes:lista});
-    toast('Sugestão removida');
-  }catch(e){ toast('Erro ao remover sugestão'); console.error('[delSugestao]',e); }
-}
-window.delSugestao = delSugestao;
 
 // ── Lista de Compras ──────────────────────────────────────────────────────────
 async function renderListaCompras(){
@@ -3141,8 +3147,8 @@ function gerarRelatorioCozinheiro(){
     corpo += separador;
   });
 
-  const totalArrecadado = ins.filter(i=>i.pago).reduce((a,i)=>a+cntD(i.dias)*vlr,0);
-  const totalEsperado   = ins.reduce((a,i)=>a+cntD(i.dias)*vlr,0);
+  const totalArrecadado = ins.filter(i=>i.pago).reduce((a,i)=>a+valorInsc(i,vlr),0);
+  const totalEsperado   = ins.reduce((a,i)=>a+valorInsc(i,vlr),0);
 
   const rodape =
     `\n💰 Total arrecadado: R$ ${totalArrecadado.toFixed(2).replace('.',',')}` +
@@ -3222,6 +3228,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v12.1</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v12.2</div>
 </body>
 </html>
