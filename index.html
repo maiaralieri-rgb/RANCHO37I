@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260717-v12.3-qr-pix-remove-inscritos -->
+<meta charset="UTF-8"><!-- deploy:20260717-v12.4-autovalidacao-antifraude-limpeza-admin -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -234,7 +234,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .fab-adm:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.32)}
 .fab-adm:active{transform:scale(.94)}
 /* Animação universal de clique em botões */
-button:active,a.btn:active,.btn-sv:active,.btn-pg:active,.btn-cl:active,.btn-back:active,.btn-adm:active,.adm-nav-btn:active,.dia-btn:active,.dia-adm-btn:active,.dia-lista-btn:active{transform:scale(.93);transition:transform .08s}
+button:active,a.btn:active,.btn-sv:active,.btn-pg:active,.btn-cl:active,.btn-back:active,.btn-adm:active,.adm-nav-btn:active,.dia-btn:active,.dia-lista-btn:active{transform:scale(.93);transition:transform .08s}
 button{transition:transform .08s,background .15s,box-shadow .15s}
 a[onclick]{transition:transform .08s}
 a[onclick]:active{transform:scale(.93)}
@@ -450,14 +450,13 @@ a[onclick]:active{transform:scale(.93)}
         <div class="adm-nav-btns" style="grid-template-columns:repeat(4,1fr);display:grid;gap:4px">
           <button type="button" class="adm-nav-btn" onclick="aTab('pagamento',this)"><span class="nb-ico">💳</span><span class="nb-lbl">Pagamento</span></button>
           <button type="button" class="adm-nav-btn" onclick="aTab('comprovantes',this)"><span class="nb-ico">🧾</span><span class="nb-lbl">Comprov.</span></button>
-          <button type="button" class="adm-nav-btn" onclick="aTab('compras',this)"><span class="nb-ico">🛒</span><span class="nb-lbl">Compras</span></button>
+          <button type="button" class="adm-nav-btn" onclick="aTab('notas',this)"><span class="nb-ico">📝</span><span class="nb-lbl">Notas</span></button>
           <button type="button" class="adm-nav-btn" onclick="aTab('relatorio',this)"><span class="nb-ico">📊</span><span class="nb-lbl">Relatório</span></button>
         </div>
       </div>
       <div class="adm-nav-group" style="grid-column:1/-1">
         <div class="adm-nav-label">🔧 Utilitários</div>
-        <div class="adm-nav-btns adm-nav-5col" style="grid-template-columns:repeat(4,1fr);display:grid;gap:4px">
-          <button type="button" class="adm-nav-btn" onclick="aTab('notas',this)"><span class="nb-ico">📝</span><span class="nb-lbl">Notas</span></button>
+        <div class="adm-nav-btns" style="grid-template-columns:repeat(3,1fr);display:grid;gap:4px">
           <button type="button" class="adm-nav-btn" onclick="aTab('lembrete',this)"><span class="nb-ico">🔔</span><span class="nb-lbl">Lembrete</span></button>
           <button type="button" class="adm-nav-btn" onclick="aTab('backup',this)"><span class="nb-ico">💾</span><span class="nb-lbl">Backup</span></button>
           <button type="button" class="adm-nav-btn" onclick="aTab('avisos',this)"><span class="nb-ico">📣</span><span class="nb-lbl">Avisos</span></button>
@@ -579,26 +578,7 @@ a[onclick]:active{transform:scale(.93)}
 
     <!-- INSCRITOS -->
     <div class="asec" id="asec-inscritos">
-      <!-- Inserção manual -->
-      <div style="background:var(--g5);border-radius:var(--r);padding:.85rem;margin-bottom:.85rem">
-        <div style="font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.65rem">Inserir manualmente</div>
-        <input type="text" id="adm-ins-qra" placeholder="QRA (ex: Sd PM Silva)" style="width:100%;padding:8px 10px;border:1px solid var(--g4);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--br);color:var(--g1);margin-bottom:.5rem">
-        <div style="display:flex;gap:5px;margin-bottom:.5rem">
-          <button type="button" class="dia-adm-btn" data-dia="seg" onclick="toggleDiaAdm(this)" style="flex:1;padding:7px 2px;border:2px solid var(--g4);border-radius:7px;background:var(--br);cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif">SEG</button>
-          <button type="button" class="dia-adm-btn" data-dia="ter" onclick="toggleDiaAdm(this)" style="flex:1;padding:7px 2px;border:2px solid var(--g4);border-radius:7px;background:var(--br);cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif">TER</button>
-          <button type="button" class="dia-adm-btn" data-dia="qua" onclick="toggleDiaAdm(this)" style="flex:1;padding:7px 2px;border:2px solid var(--g4);border-radius:7px;background:var(--br);cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif">QUA</button>
-          <button type="button" class="dia-adm-btn" data-dia="qui" onclick="toggleDiaAdm(this)" style="flex:1;padding:7px 2px;border:2px solid var(--g4);border-radius:7px;background:var(--br);cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif">QUI</button>
-          <button type="button" class="dia-adm-btn" data-dia="sex" onclick="toggleDiaAdm(this)" style="flex:1;padding:7px 2px;border:2px solid var(--g4);border-radius:7px;background:var(--br);cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif">SEX</button>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <label style="font-size:12px;color:var(--g2);display:flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap">
-            <input type="checkbox" id="adm-ins-pago"> Já pagou
-          </label>
-          <button type="button" onclick="admInscrever()" style="flex:1;padding:8px;background:var(--vd);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Inserir</button>
-        </div>
-      </div>
-      <!-- Lista -->
-      <div style="font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem">Inscritos</div>
+      <div style="font-size:12px;color:var(--g2);margin-bottom:.75rem">Inscritos da semana — a previsão é feita exclusivamente pelo próprio usuário, com validação automática pelo comprovante de Pix.</div>
       <div class="card"><div id="a-ins-list"><div class="empty-st">Carregando...</div></div></div>
       <div class="totd" id="a-totd"></div>
     </div>
@@ -633,13 +613,6 @@ a[onclick]:active{transform:scale(.93)}
     <div class="asec" id="asec-comprovantes">
       <div style="font-size:12px;color:var(--g2);margin-bottom:.75rem">Comprovantes enviados — validação manual obrigatória pelo admin.</div>
       <div class="card"><div id="a-comp-list"><div class="empty-st">Nenhum comprovante enviado.</div></div></div>
-    </div>
-
-    <!-- RELATÓRIO -->
-    <!-- COMPRAS -->
-    <div class="asec" id="asec-compras">
-      <div style="font-size:12px;color:var(--g2);margin-bottom:.75rem">Lista de compras gerada a partir do cardápio e das inscrições da semana, com preços médios estimados e substitutos econômicos.</div>
-      <div id="compras-lista"><div class="empty-st">Selecione uma semana e preencha o cardápio.</div></div>
     </div>
 
     <!-- LEMBRETE -->
@@ -1050,7 +1023,7 @@ async function selecionarComp(inp){
   const isDoc = f.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
              || f.type === 'application/msword'
              || f.name?.endsWith('.docx') || f.name?.endsWith('.doc');
-  const antifraude = !!(_cacheSem?.exigirComprovante);
+  const antifraude = true; // sempre ativo — comprovante é obrigatório e valida o usuário
 
   if(!isImg && !isPdf && !isDoc){
     if(antifraude){
@@ -1489,7 +1462,8 @@ async function inscrever(){
     const snap=await getDocs(insRef);
     const existe=snap.docs.find(d=>d.data().qra.toLowerCase()===qra.toLowerCase());
     if(existe){ toast('QRA já inscrito. Fale com o admin.'); btn.disabled=false; btn.textContent='Confirmar inscrição'; return; }
-    const entry={qra, dias, pago:false, criadoEm:Date.now()};
+    // Comprovante obrigatório + antifraude aprovado ⇒ validação AUTOMÁTICA
+    const entry={qra, dias, pago:true, autoValidado:true, criadoEm:Date.now()};
     if(semForaPrazo(_cacheSem)) entry.foraPrazo=true; // acréscimo de R$2/refeição
     if(compSel) entry.comprovante=compSel;
     const docRef = await addDoc(insRef, entry);
@@ -1839,7 +1813,7 @@ async function migrarNotasGlobais(){
 const SECTION_TITLES = {
   semana:'Configurar Semana', inscritos:'Inscritos', listadia:'Lista do Dia',
   cozinheiro:'Cozinheiro', pagamento:'Pagamento', comprovantes:'Comprovantes',
-  compras:'Lista de Compras', relatorio:'Relatório', notas:'Notas Fiscais',
+  relatorio:'Relatório', notas:'Notas Fiscais',
   lembrete:'Lembrete', backup:'Backup', avisos:'Janela de Avisos Importantes'
 };
 function aTab(t,btn){
@@ -2532,7 +2506,6 @@ window.aTab = function(t,btn){
   if(t==='listadia'){ /* dia selecionado pelo usuário via botão */ }
   if(t==='notas'){ renderAdmNotas(_cacheSem?_cacheSem.notas||[]:[]);}
   if(t==='comprovantes') renderAdmComp();
-  if(t==='compras') renderListaCompras();
   if(t==='lembrete') gerarLembrete();
   if(t==='backup') verificarUltimoBackup();
 };
@@ -2542,51 +2515,7 @@ window.aTab = function(t,btn){
 
 
 // ── Inserção manual de inscritos pelo admin ───────────────────────────────────
-function toggleDiaAdm(btn){
-  const ativo = btn.style.background === 'rgb(26, 58, 31)' || btn.classList.contains('ativo-adm');
-  if(ativo){
-    btn.style.background='var(--br)';
-    btn.style.color='var(--g1)';
-    btn.style.borderColor='var(--g4)';
-    btn.classList.remove('ativo-adm');
-  } else {
-    btn.style.background='var(--vd)';
-    btn.style.color='#fff';
-    btn.style.borderColor='var(--vd)';
-    btn.classList.add('ativo-adm');
-  }
-}
-window.toggleDiaAdm = toggleDiaAdm;
 
-async function admInscrever(){
-  const qra = document.getElementById('adm-ins-qra').value.trim();
-  if(!qra){ toast('Informe o QRA'); return; }
-  if(!semAtiva){ toast('Nenhuma semana ativa'); return; }
-
-  const dias = {};
-  document.querySelectorAll('.dia-adm-btn').forEach(b=>{
-    dias[b.dataset.dia] = b.classList.contains('ativo-adm') ? 1 : 0;
-  });
-  if(!Object.values(dias).some(Boolean)){ toast('Selecione ao menos um dia'); return; }
-
-  const pago = document.getElementById('adm-ins-pago').checked;
-
-  try{
-    const insRef = collection(db,'semanas',semAtiva,'inscritos');
-    const snap = await getDocs(insRef);
-    const existe = snap.docs.find(d=>d.data().qra.toLowerCase()===qra.toLowerCase());
-    if(existe){ toast('QRA já inscrito nesta semana'); return; }
-    await addDoc(insRef, { qra, dias, pago, criadoEm: Date.now() });
-    document.getElementById('adm-ins-qra').value='';
-    document.getElementById('adm-ins-pago').checked=false;
-    document.querySelectorAll('.dia-adm-btn').forEach(b=>{
-      b.style.background='var(--br)'; b.style.color='var(--g1)';
-      b.style.borderColor='var(--g4)'; b.classList.remove('ativo-adm');
-    });
-    toast(`✓ ${qra} inserido!`);
-  }catch(e){ toast('Erro ao inserir: '+e.message); console.error('[admInscrever]',e); }
-}
-window.admInscrever = admInscrever;
 
 
 // ── Backup / Restauração ───────────────────────────────────────────────────────
@@ -3088,96 +3017,6 @@ window.exportarCSV = exportarCSV;
 
 
 // ── Lista de Compras ──────────────────────────────────────────────────────────
-async function renderListaCompras(){
-  const el=document.getElementById('compras-lista');
-  if(!el) return;
-  if(!semAtiva){ el.innerHTML='<div class="empty-st">Selecione uma semana primeiro.</div>'; return; }
-  const semSnap=await getDoc(doc(db,'semanas',semAtiva));
-  const sem=semSnap.exists()?semSnap.data():null;
-  const insSnap=await getDocs(collection(db,'semanas',semAtiva,'inscritos'));
-  const ins=insSnap.docs.map(d=>d.data());
-  const totalPorDia=DK.map(dk=>ins.filter(i=>i.dias&&i.dias[dk]).length);
-  const cardapio=(sem&&sem.cardapio)||[];
-
-  // Banco de preços médios e substitutos
-  const precos={
-    'bife acebolado':          {preco:'R$32–38/kg',  sub:'Iscas de frango grelhado (R$12–16/kg)'},
-    'frango grelhado':         {preco:'R$12–16/kg',  sub:'Ovo cozido ou omelete (R$0,80/un)'},
-    'frango ensopado':         {preco:'R$12–16/kg',  sub:'Sobrecoxa assada (R$10–13/kg)'},
-    'frango ao molho':         {preco:'R$12–16/kg',  sub:'Frango cozido desfiado (R$10–13/kg)'},
-    'frango xadrez':           {preco:'R$12–16/kg',  sub:'Frango ao molho simples (R$12–16/kg)'},
-    'frango assado':           {preco:'R$12–16/kg',  sub:'Coxa e sobrecoxa assada (R$10–13/kg)'},
-    'estrogonofe':             {preco:'R$32–38/kg',  sub:'Estrogonofe de frango (R$12–16/kg)'},
-    'costelinha':              {preco:'R$22–28/kg',  sub:'Lombo suíno assado (R$16–20/kg)'},
-    'bife à parmegiana':       {preco:'R$32–38/kg',  sub:'Frango à parmegiana (R$12–16/kg)'},
-    'carne assada':            {preco:'R$28–35/kg',  sub:'Frango assado (R$12–16/kg)'},
-    'almôndegas':              {preco:'R$18–24/kg',  sub:'Omelete recheada (R$0,80/ovo)'},
-    'omelete':                 {preco:'R$0,80/ovo',  sub:'Ovo mexido c/ legumes'},
-    'tilápia':                 {preco:'R$18–24/kg',  sub:'Merluza congelada (R$15–20/kg)'},
-    'merluza':                 {preco:'R$15–20/kg',  sub:'Tilápia (R$18–24/kg)'},
-    'moqueca':                 {preco:'R$18–24/kg',  sub:'Peixe grelhado simples (R$15–20/kg)'},
-    'feijoada':                {preco:'R$18–25/kg',  sub:'Feijão tropeiro simples (R$8–12/kg)'},
-    'arroz':                   {preco:'R$4–6/kg',    sub:'Arroz parboilizado (R$3–5/kg)'},
-    'feijão':                  {preco:'R$7–10/kg',   sub:'Feijão carioca a granel (R$5–8/kg)'},
-    'batata':                  {preco:'R$4–7/kg',    sub:'Mandioca cozida (R$3–5/kg)'},
-    'mandioca':                {preco:'R$3–5/kg',    sub:'Batata doce (R$3–5/kg)'},
-    'macarrão':                {preco:'R$4–6/kg',    sub:'Polenta (R$3–5/kg)'},
-    'polenta':                 {preco:'R$3–5/kg',    sub:'Fubá (R$2–4/kg)'},
-    'couve':                   {preco:'R$4–6/maço',  sub:'Repolho refogado (R$2–4/un)'},
-    'farofa':                  {preco:'R$5–8/kg',    sub:'Farinha de mandioca crua (R$3–5/kg)'},
-    'salada':                  {preco:'R$2–5/un',    sub:'Repolho cru com cenoura (R$2–4)'},
-    'tomate':                  {preco:'R$5–9/kg',    sub:'Cenoura ralada (R$3–5/kg)'},
-    'beterraba':               {preco:'R$3–5/kg',    sub:'Cenoura cozida (R$3–5/kg)'},
-  };
-
-  const itensEncontrados=[];
-  cardapio.forEach((r,i)=>{
-    if(!r||!r.principal) return;
-    const qtd=totalPorDia[i]||0;
-    const prato=r.principal.toLowerCase();
-    let found=null;
-    for(const [key,val] of Object.entries(precos)){
-      if(prato.includes(key)){ found={key,val}; break; }
-    }
-    itensEncontrados.push({
-      dia:DN[i], prato:r.principal, acomp:r.acomp||'', qtd,
-      preco:found?found.val.preco:'Consultar mercado local',
-      sub:found?found.val.sub:'—'
-    });
-  });
-
-  // Itens base sempre presentes
-  const base=[
-    {item:'Arroz (base)',preco:'R$4–6/kg',sub:'Arroz parboilizado (R$3–5/kg)'},
-    {item:'Feijão (base)',preco:'R$7–10/kg',sub:'Feijão carioca a granel (R$5–8/kg)'},
-    {item:'Óleo, sal, temperos',preco:'R$15–25/semana',sub:'Comprar em quantidade maior'},
-  ];
-
-  el.innerHTML=`
-    <div style="font-size:11px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem">Por dia — baseado nas inscrições</div>
-    ${itensEncontrados.map(it=>`
-    <div style="background:var(--br);border:1px solid var(--g4);border-radius:8px;padding:.75rem;margin-bottom:8px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <div style="font-size:10px;font-weight:700;color:var(--vd);text-transform:uppercase">${it.dia} — ${it.qtd} marmita${it.qtd!==1?'s':''}</div>
-        <div style="font-size:10px;color:var(--g3)">${it.preco}</div>
-      </div>
-      <div style="font-size:13px;font-weight:600;color:var(--g1)">${it.prato}</div>
-      ${it.acomp?`<div style="font-size:11px;color:var(--g3);margin-top:1px">${it.acomp}</div>`:''}
-      <div style="margin-top:6px;padding:5px 8px;background:var(--vdx);border-radius:6px;font-size:11px;color:var(--vdm)">
-        💰 Substituto econômico: <strong>${it.sub}</strong>
-      </div>
-    </div>`).join('')}
-    <div style="font-size:11px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin:.75rem 0 .5rem">Itens base da semana</div>
-    ${base.map(b=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:.55rem .75rem;background:var(--br);border:1px solid var(--g4);border-radius:8px;margin-bottom:6px;gap:8px">
-      <div style="font-size:13px;font-weight:500">${b.item}</div>
-      <div style="text-align:right">
-        <div style="font-size:12px;color:var(--g2)">${b.preco}</div>
-        <div style="font-size:10px;color:var(--vdm)">💰 ${b.sub}</div>
-      </div>
-    </div>`).join('')}`;
-}
-window.renderListaCompras = renderListaCompras;
 
 // ── Relatório do Cozinheiro ───────────────────────────────────────────────────
 let _textoCozinheiro = '';
@@ -3302,6 +3141,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v12.3</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v12.4</div>
 </body>
 </html>
