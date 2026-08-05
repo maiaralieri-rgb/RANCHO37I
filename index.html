@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260717-v13.0-qra-label-simples -->
+<meta charset="UTF-8"><!-- deploy:20260717-v13.1-modal-conclusao-previsao -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -498,6 +498,19 @@ a[onclick]:active{transform:scale(.93)}
     <div id="aviso-modal-txt" style="font-size:13px;color:var(--g1);line-height:1.8;white-space:pre-wrap;padding:.75rem;background:var(--g5);border-radius:10px;border-left:3px solid var(--ou)"></div>
     <div id="aviso-modal-prazo" style="display:none"></div>
     <button type="button" onclick="fecharAvisoModal()" style="margin-top:.9rem;width:100%;padding:11px;background:var(--vd);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Entendido ✓</button>
+  </div>
+</div>
+
+<!-- Modal de conclusão da previsão -->
+<div id="conclusao-modal" style="display:none;position:fixed;inset:0;z-index:560;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:1.2rem;padding-top:calc(1.2rem + env(safe-area-inset-top))" onclick="fecharConclusao(event)">
+  <div class="aviso-inner" style="background:var(--br);border-radius:20px;width:100%;max-width:460px;padding:1.4rem;box-shadow:0 12px 48px rgba(0,0,0,.35);position:relative;overflow:visible">
+    <img src="./chef-pm.webp" alt="" aria-hidden="true" loading="eager" decoding="async" style="position:absolute;top:-119px;right:-4px;width:130px;pointer-events:none;z-index:1">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
+      <span style="font-size:26px">✅</span>
+      <span style="font-size:16px;font-weight:800;color:var(--vd);letter-spacing:.3px">Previsão concluída!</span>
+    </div>
+    <div id="conclusao-txt" style="font-size:14px;color:var(--g1);line-height:1.7;padding:.85rem 1rem;background:var(--vdx);border-radius:10px;border-left:3px solid var(--vdl)"></div>
+    <button type="button" onclick="fecharConclusao(null)" style="margin-top:.9rem;width:100%;padding:11px;background:var(--vd);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Fechar ✓</button>
   </div>
 </div>
 
@@ -2808,21 +2821,37 @@ function mostrarResumoPosInscricao(qra, dias, jantar, vlr){
   const atrasado = semForaPrazo(_cacheSem);
   const vlrDia = vlr + (atrasado ? TAXA_FORA_PRAZO : 0);
   const total = nRef * vlrDia;
-  const el = document.getElementById('resumo-pos-content');
-  const wrap = document.getElementById('resumo-pos-inscricao');
-  if(!el||!wrap) return;
-  el.innerHTML = `
-    <strong>${qra}</strong><br>
+  const resumo = `
+    <div style="font-weight:700;color:var(--vd);margin-bottom:.5rem">Obrigado pela preferência, ${escHTML(qra)}! 🙌</div>
+    Sua previsão foi registrada com sucesso.<br><br>
     Almoço: ${diasSel.length ? diasSel.map(d=>DN[DK.indexOf(d)]).join(', ') : '—'}<br>
     Jantar: ${jantarSel.length ? jantarSel.map(d=>DN[DK.indexOf(d)]).join(', ') : '—'}<br>
     Refeições: ${nRef}<br>
     ${atrasado ? `<span style="color:var(--er);font-weight:700">Fora do prazo: +R$${TAXA_FORA_PRAZO.toFixed(2).replace('.',',')} por refeição</span><br>` : ''}
-    ${vlr ? `<strong>Total a pagar: R$${total.toFixed(2)}</strong>` : ''}
+    ${vlr ? `<strong>Total: R$${total.toFixed(2)}</strong>` : ''}
   `;
-  wrap.style.display='block';
-  setTimeout(()=>{ wrap.style.display='none'; }, 12000);
+  const txt = document.getElementById('conclusao-txt');
+  const modal = document.getElementById('conclusao-modal');
+  if(txt && modal){
+    txt.innerHTML = resumo;
+    modal.style.display='flex';
+    lockScroll();
+    const inner = modal.querySelector('.aviso-inner');
+    if(inner){ inner.style.animation='none'; requestAnimationFrame(()=>{ inner.style.animation=''; }); }
+  }
+  // Espelha no bloco inline (fallback, caso o modal não exista)
+  const el = document.getElementById('resumo-pos-content');
+  if(el) el.innerHTML = resumo;
 }
 window.mostrarResumoPosInscricao = mostrarResumoPosInscricao;
+
+function fecharConclusao(e){
+  if(e && e.target.id !== 'conclusao-modal') return;
+  const m = document.getElementById('conclusao-modal');
+  if(m) m.style.display='none';
+  unlockScroll();
+}
+window.fecharConclusao = fecharConclusao;
 
 // ── Prazo de inscrição ────────────────────────────────────────────────────────
 function verificarPrazo(sem){
@@ -3189,6 +3218,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v13.0</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v13.1</div>
 </body>
 </html>
