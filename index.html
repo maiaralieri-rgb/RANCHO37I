@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260717-v12.7-lembrete-fora-prazo-comprovante -->
+<meta charset="UTF-8"><!-- deploy:20260717-v12.8-lembrete-revisado-completo -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2729,27 +2729,31 @@ async function gerarLembrete(){
   }).filter(Boolean).join('\n');
 
   const msg =
-`🍽 *RANCHO 37I — ALMOÇO DA SEMANA ${sem.label.toUpperCase()}*
+`🍽 *RANCHO 37I — PREVISÃO DE RANCHO ${sem.label.toUpperCase()}*
 
-Olá, pessoal! As inscrições para a semana que vem já estão abertas.
+Olá, pessoal! As inscrições da semana já estão abertas.
 
 📅 *Prazo para inscrição:* ${prazoTxt}
 
 💰 *Valor por refeição:* ${vlr ? `R$${vlr.toFixed(2)}` : 'a confirmar'}${sem.valorObs ? '\n   _'+sem.valorObs+'_' : ''}
+   🌙 _Quem quiser pode adicionar o *jantar* — cada jantar soma o mesmo valor da refeição._
 
 🥘 *Cardápio previsto:*
 ${cardapioTxt||'   A definir'}
 
-📲 *Como se inscrever:*
+📲 *Como fazer sua previsão (só pelo sistema):*
 1️⃣ Acesse o link abaixo
 2️⃣ Digite seu QRA
-3️⃣ Marque os dias que vai almoçar
-4️⃣ Anexe o comprovante do Pix
-5️⃣ Confirme a inscrição
+3️⃣ Toque nos dias que vai *almoçar* (e marque *🌙 jantar* se quiser)
+4️⃣ Toque em *Gerar QR Code Pix* — ele já vem com o valor certo
+5️⃣ Pague pelo QR ou copie o código no app do seu banco
+6️⃣ *Anexe o comprovante do Pix* e confirme
 
-📎 *O comprovante de Pix é obrigatório* — sem ele a previsão não é concluída.
+✅ *Validação automática:* ao anexar o comprovante, sua previsão já é confirmada — não precisa esperar aprovação.
 
-⚠️ *Inscrições fora do prazo:* ainda podem ser feitas pelo sistema, mas terão *acréscimo de R$${TAXA_FORA_PRAZO.toFixed(2)}* por refeição e *não garantem a mistura selecionada* (pode ser substituída por 2 ovos fritos).
+📎 *O comprovante de Pix é OBRIGATÓRIO* — sem ele a previsão não é concluída. Cada comprovante só pode ser usado uma vez (sistema antifraude).
+
+⚠️ *Inscrições fora do prazo:* ainda podem ser feitas *pelo sistema*, mas terão *acréscimo de R$${TAXA_FORA_PRAZO.toFixed(2)}* por refeição e *não garantem a mistura selecionada* (pode ser substituída por 2 ovos fritos).
 
 🔗 https://previsaoderancho37bpmi-bymlr.netlify.app`;
 
@@ -3175,6 +3179,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v12.7</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v12.8</div>
 </body>
 </html>
