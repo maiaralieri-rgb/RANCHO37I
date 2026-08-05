@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260717-v12.8-lembrete-revisado-completo -->
+<meta charset="UTF-8"><!-- deploy:20260717-v12.9-reordena-prazo-qra-destaque -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -99,6 +99,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .pos-prazo-box .pp-ico{font-size:28px;flex-shrink:0;line-height:1.2}
 .pos-prazo-box .pp-tit{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#8a4800;margin-bottom:4px}
 .pos-prazo-box strong{color:#8a4800}
+/* Prazo em destaque (Inscrições até…) */
+.prazo-destaque{display:none;margin-bottom:1rem;padding:1rem 1.15rem;border-radius:var(--r);font-size:15px;font-weight:800;text-align:center;letter-spacing:.2px;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+/* Campo QRA em destaque */
+.qra-box{background:var(--vdx);border:2px solid var(--vdl);border-radius:var(--r);padding:1rem 1.1rem;box-shadow:0 3px 14px rgba(26,58,31,.14)}
+.qra-box .qra-label{display:block;font-size:13px;font-weight:800;color:var(--vd);text-transform:uppercase;letter-spacing:.5px;margin-bottom:9px}
+.qra-box .qra-input{width:100%;padding:14px 16px;border:2px solid var(--vdl);border-radius:10px;font-size:18px!important;font-weight:600;font-family:'DM Sans',sans-serif;background:#fff;color:var(--g1);transition:border-color .15s,box-shadow .15s}
+.qra-box .qra-input:focus{outline:none;border-color:var(--vd);box-shadow:0 0 0 3px rgba(74,140,82,.25)}
+.qra-box .qra-input::placeholder{color:var(--g4);font-weight:400}
 /* Card Pagamento e confirmação em destaque */
 .pay-card{border:2px solid var(--vdl);border-radius:var(--r);overflow:hidden;background:var(--br);box-shadow:0 3px 14px rgba(26,58,31,.14)}
 .pay-card-hd{background:var(--vd);color:#fff;padding:.8rem 1rem;display:flex;align-items:center;gap:8px}
@@ -305,14 +313,6 @@ a[onclick]:active{transform:scale(.93)}
     <div style="font-size:12px;color:var(--g3)">As inscrições para a próxima semana serão abertas em breve. Fique de olho no grupo!</div>
   </div>
 
-  <!-- Identificação (QRA no topo) -->
-  <div class="sec">
-    <div class="sec-title">Identificação</div>
-    <div class="field" style="margin:0">
-      <label>NOME (QRA)</label>
-      <input type="text" id="inp-qra" placeholder="Ex: Sd PM Silva" autocomplete="off">
-    </div>
-  </div>
 
   <!-- Valor por refeição — grande, exibido uma única vez -->
   <div class="sec">
@@ -323,6 +323,9 @@ a[onclick]:active{transform:scale(.93)}
     </div>
   </div>
 
+  <!-- Prazo de inscrição em destaque -->
+  <div id="prazo-aviso" class="prazo-destaque"></div>
+
   <!-- Aviso: pedidos após o prazo -->
   <div class="sec">
     <div class="pos-prazo-box">
@@ -331,6 +334,14 @@ a[onclick]:active{transform:scale(.93)}
         <div class="pp-tit">Atenção — pedidos fora do prazo</div>
         Pedidos de refeição feitos <strong>após o encerramento da previsão</strong> terão <strong>acréscimo no valor</strong> e a mistura <strong>não será garantida</strong>, podendo ser substituída por <strong>2 ovos fritos</strong>.
       </div>
+    </div>
+  </div>
+
+  <!-- Identificação (QRA) — em destaque, logo abaixo do alerta -->
+  <div class="sec">
+    <div class="qra-box">
+      <label class="qra-label" for="inp-qra">👤 Comece por aqui — informe seu NOME (QRA)</label>
+      <input type="text" id="inp-qra" class="qra-input" placeholder="Ex: Sd PM Silva" autocomplete="off">
     </div>
   </div>
 
@@ -344,7 +355,6 @@ a[onclick]:active{transform:scale(.93)}
     </div>
   </div>
 
-  <div id="prazo-aviso" style="display:none;margin-bottom:1rem;padding:.75rem 1rem;background:var(--erc);border:1px solid #f1a9a0;border-radius:var(--r);font-size:13px;color:var(--er);font-weight:500"></div>
 
   <!-- Pagamento e confirmação -->
   <div class="sec">
@@ -3179,6 +3189,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v12.8</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v12.9</div>
 </body>
 </html>
