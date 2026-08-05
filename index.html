@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260717-v12.5-opcao-jantar-dobra-valor -->
+<meta charset="UTF-8"><!-- deploy:20260717-v12.6-taxa-3-jantar-discreto -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -72,9 +72,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .vbox-big .vbox-lbl{font-size:14px}
 /* Cardápio com seleção de dias integrada */
 .dia-menu{display:flex;align-items:center;gap:9px;width:100%;text-align:left;border:none;border-bottom:1px solid var(--g5);padding:.7rem .75rem;background:var(--br);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s}
-.dm-jantar-btn{flex-shrink:0;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--vdm);background:var(--br);border:1.5px solid var(--vdl);border-radius:20px;padding:6px 9px;cursor:pointer;transition:all .15s;white-space:nowrap;line-height:1}
-.dm-jantar-btn.ativo{background:var(--vd);border-color:var(--vd);color:#fff}
-.dm-jantar-btn:active{transform:scale(.93)}
+.dm-jantar-btn{display:inline-flex;align-items:center;margin-top:6px;font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:700;color:var(--g3);background:transparent;border:1px dashed var(--g4);border-radius:14px;padding:2px 9px;cursor:pointer;transition:all .15s;white-space:nowrap;line-height:1.5}
+.dm-jantar-btn::before{content:'+ jantar'}
+.dm-jantar-btn.ativo{color:var(--vd);border-style:solid;border-color:var(--vdl);background:var(--vdx)}
+.dm-jantar-btn.ativo::before{content:'🌙 jantar ✓'}
+.dm-jantar-btn:active{transform:scale(.94)}
 .dia-menu:last-child{border-bottom:none}
 .dia-menu:hover:not(.bloqueado){background:var(--vdx)}
 .dia-menu:active:not(.bloqueado){transform:scale(.99)}
@@ -800,7 +802,7 @@ function toast(m){
 }
 function cntD(dias){ if(!dias||typeof dias!=='object') return 0; return DK.reduce((a,d)=>a+(dias[d]?1:0),0); }
 // Acréscimo por refeição para previsões feitas após o prazo
-const TAXA_FORA_PRAZO = 2;
+const TAXA_FORA_PRAZO = 3;
 function semForaPrazo(sem){
   if(!sem||!sem.prazoData) return false;
   return Date.now() > new Date(sem.prazoData+'T'+(sem.prazoHora||'23:59')).getTime();
@@ -861,7 +863,7 @@ function renderCardapioSelecionavel(sem){
     }
     const selA = prevA[d]?' ativo':'';
     const selJ = prevJ[d]?' ativo':'';
-    return `<div class="dia-menu dia-btn${selA}" data-dia="${d}" onclick="toggleDia(this)"><div class="dm-day-badge"><span class="db-abrev">${DN[i]}</span></div><div class="dm-body"><div class="dm-prato">${escHTML(r.principal||'—')}</div>${r.acomp?`<div class="dm-acomp">${escHTML(r.acomp)}</div>`:''}</div><button type="button" class="dm-jantar-btn${selJ}" data-dia="${d}" onclick="event.stopPropagation();toggleJantar(this)">🌙 Jantar</button><div class="dm-check">${prevA[d]?'●':'○'}</div></div>`;
+    return `<div class="dia-menu dia-btn${selA}" data-dia="${d}" onclick="toggleDia(this)"><div class="dm-day-badge"><span class="db-abrev">${DN[i]}</span></div><div class="dm-body"><div class="dm-prato">${escHTML(r.principal||'—')}</div>${r.acomp?`<div class="dm-acomp">${escHTML(r.acomp)}</div>`:''}<button type="button" class="dm-jantar-btn${selJ}" data-dia="${d}" onclick="event.stopPropagation();toggleJantar(this)"></button></div><div class="dm-check">${prevA[d]?'●':'○'}</div></div>`;
   }).join('');
   atualizarTotalDias();
 }
@@ -3171,6 +3173,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v12.5</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v12.6</div>
 </body>
 </html>
