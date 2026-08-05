@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260717-v12.4-autovalidacao-antifraude-limpeza-admin -->
+<meta charset="UTF-8"><!-- deploy:20260717-v12.5-opcao-jantar-dobra-valor -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -71,7 +71,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 .vbox-big .vbox-num{font-size:3.4rem;line-height:1}
 .vbox-big .vbox-lbl{font-size:14px}
 /* Cardápio com seleção de dias integrada */
-.dia-menu{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:none;border-bottom:1px solid var(--g5);padding:.7rem .75rem;background:var(--br);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s}
+.dia-menu{display:flex;align-items:center;gap:9px;width:100%;text-align:left;border:none;border-bottom:1px solid var(--g5);padding:.7rem .75rem;background:var(--br);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s}
+.dm-jantar-btn{flex-shrink:0;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--vdm);background:var(--br);border:1.5px solid var(--vdl);border-radius:20px;padding:6px 9px;cursor:pointer;transition:all .15s;white-space:nowrap;line-height:1}
+.dm-jantar-btn.ativo{background:var(--vd);border-color:var(--vd);color:#fff}
+.dm-jantar-btn:active{transform:scale(.93)}
 .dia-menu:last-child{border-bottom:none}
 .dia-menu:hover:not(.bloqueado){background:var(--vdx)}
 .dia-menu:active:not(.bloqueado){transform:scale(.99)}
@@ -313,7 +316,7 @@ a[onclick]:active{transform:scale(.93)}
   <div class="sec">
     <div class="sec-title">Valor por refeição</div>
     <div class="vbox vbox-big">
-      <div class="vbox-n"><span class="vbox-cifrao">R$</span><span class="vbox-num" id="val-num">—</span><span class="vbox-lbl">por dia</span></div>
+      <div class="vbox-n"><span class="vbox-cifrao">R$</span><span class="vbox-num" id="val-num">—</span></div>
       <div class="vbox-obs" id="val-obs">—</div>
     </div>
   </div>
@@ -802,8 +805,11 @@ function semForaPrazo(sem){
   if(!sem||!sem.prazoData) return false;
   return Date.now() > new Date(sem.prazoData+'T'+(sem.prazoHora||'23:59')).getTime();
 }
-// Valor devido por um inscrito: dias × (valor da semana + taxa se inscrito fora do prazo)
-function valorInsc(i, vlr){ return cntD(i.dias) * (vlr + (i && i.foraPrazo ? TAXA_FORA_PRAZO : 0)); }
+// Total de refeições de um inscrito: almoços + jantares (jantar dobra o dia)
+function cntRef(i){ return cntD(i&&i.dias) + cntD(i&&i.jantar); }
+// Valor devido por um inscrito: refeições × (valor da semana + taxa se inscrito fora do prazo)
+function valorInsc(i, vlr){ return cntRef(i) * (vlr + (i && i.foraPrazo ? TAXA_FORA_PRAZO : 0)); }
+window.cntRef = cntRef;
 window.semForaPrazo = semForaPrazo;
 window.valorInsc = valorInsc;
 function escHTML(s){ const d=document.createElement('div'); d.textContent=String(s||''); return d.innerHTML; }
@@ -819,6 +825,18 @@ function toggleDia(btn){
 }
 window.toggleDia = toggleDia;
 
+function toggleJantar(btn){
+  btn.classList.toggle('ativo');
+  atualizarTotalDias();
+}
+window.toggleJantar = toggleJantar;
+
+function getJantar(){
+  const r={};
+  document.querySelectorAll('#cdp-card .dm-jantar-btn').forEach(b=>{ r[b.dataset.dia]=b.classList.contains('ativo')?1:0; });
+  return r;
+}
+
 // Renderiza cardápio como cards de dia clicáveis (seleção integrada)
 function renderCardapioSelecionavel(sem){
   const card = document.getElementById('cdp-card');
@@ -830,18 +848,20 @@ function renderCardapioSelecionavel(sem){
     if(resumo) resumo.style.display='none';
     return;
   }
-  // Preserva a seleção atual do usuário antes de re-renderizar
-  const prev = {};
-  document.querySelectorAll('#cdp-card .dia-btn.ativo').forEach(b=>{ prev[b.dataset.dia]=1; });
+  // Preserva a seleção atual do usuário (almoço e jantar) antes de re-renderizar
+  const prevA = {}, prevJ = {};
+  document.querySelectorAll('#cdp-card .dia-btn.ativo').forEach(b=>{ prevA[b.dataset.dia]=1; });
+  document.querySelectorAll('#cdp-card .dm-jantar-btn.ativo').forEach(b=>{ prevJ[b.dataset.dia]=1; });
   card.innerHTML = DK.map((d,i)=>{
     const r = cdp[i]||{};
     const up = (r.principal||'').toUpperCase();
     const noLunch = up.includes('NÃO HAVERÁ ALMOÇO')||up.includes('NAO HAVERA ALMOCO');
-    const sel = prev[d] && !noLunch;
     if(noLunch){
       return `<div class="dia-menu bloqueado" data-dia="${d}"><div class="dm-day-badge"><span class="db-abrev">${DN[i]}</span></div><div class="dm-body"><div class="dm-prato" style="color:var(--er);font-weight:700">${escHTML(r.principal||'Não haverá almoço')}</div></div><div class="dm-check">✕</div></div>`;
     }
-    return `<button type="button" class="dia-menu dia-btn${sel?' ativo':''}" data-dia="${d}" onclick="toggleDia(this)"><div class="dm-day-badge"><span class="db-abrev">${DN[i]}</span></div><div class="dm-body"><div class="dm-prato">${escHTML(r.principal||'—')}</div>${r.acomp?`<div class="dm-acomp">${escHTML(r.acomp)}</div>`:''}</div><div class="dm-check">${sel?'●':'○'}</div></button>`;
+    const selA = prevA[d]?' ativo':'';
+    const selJ = prevJ[d]?' ativo':'';
+    return `<div class="dia-menu dia-btn${selA}" data-dia="${d}" onclick="toggleDia(this)"><div class="dm-day-badge"><span class="db-abrev">${DN[i]}</span></div><div class="dm-body"><div class="dm-prato">${escHTML(r.principal||'—')}</div>${r.acomp?`<div class="dm-acomp">${escHTML(r.acomp)}</div>`:''}</div><button type="button" class="dm-jantar-btn${selJ}" data-dia="${d}" onclick="event.stopPropagation();toggleJantar(this)">🌙 Jantar</button><div class="dm-check">${prevA[d]?'●':'○'}</div></div>`;
   }).join('');
   atualizarTotalDias();
 }
@@ -854,21 +874,23 @@ function resetOvos(){}
 window.resetOvos=resetOvos;
 
 function atualizarTotalDias(){
-  const sel = document.querySelectorAll('.dia-btn.ativo').length;
+  const nA = document.querySelectorAll('#cdp-card .dia-btn.ativo').length;
+  const nJ = document.querySelectorAll('#cdp-card .dm-jantar-btn.ativo').length;
+  const sel = nA + nJ; // total de refeições (almoço + jantar)
   const resumo = document.getElementById('total-resumo');
   const txtDias = document.getElementById('total-dias-txt');
   const txtVal  = document.getElementById('total-valor-txt');
   if(!resumo) return;
   if(sel === 0){ resumo.style.display='none'; return; }
   resumo.style.display='flex';
-  txtDias.textContent = sel === 1 ? '1 dia' : sel + ' dias';
+  txtDias.textContent = sel === 1 ? '1 refeição' : sel + ' refeições';
   // Pegar valor atual da semana do DOM (+ acréscimo se fora do prazo)
   const vlrTxt = document.getElementById('val-num') ? document.getElementById('val-num').textContent : '0';
   let vlr = parseFloat(vlrTxt.replace(',','.')) || 0;
   const atrasado = document.body.dataset.foraPrazo==='1' || semForaPrazo(_cacheSem);
   if(vlr && atrasado) vlr += TAXA_FORA_PRAZO;
   txtVal.textContent = vlr ? `R$ ${(sel * vlr).toFixed(2).replace('.',',')}${atrasado?' *':''}` : `${sel} refeição${sel>1?'ões':''}`;
-  txtDias.textContent += atrasado ? ' (fora do prazo: +R$'+TAXA_FORA_PRAZO.toFixed(2).replace('.',',')+'/dia)' : '';
+  txtDias.textContent += atrasado ? ' (fora do prazo: +R$'+TAXA_FORA_PRAZO.toFixed(2).replace('.',',')+'/refeição)' : '';
 }
 window.atualizarTotalDias = atualizarTotalDias;
 
@@ -883,6 +905,7 @@ function resetDias(){
     const chk=b.querySelector('.db-chk, .dm-check');
     if(chk) chk.textContent='○';
   });
+  document.querySelectorAll('#cdp-card .dm-jantar-btn').forEach(b=>b.classList.remove('ativo'));
   resetOvos();
   const resumo=document.getElementById('total-resumo');
   if(resumo) resumo.style.display='none';
@@ -1248,9 +1271,10 @@ function gerarPixPayload(valor){
 }
 window.gerarPixPayload = gerarPixPayload;
 
-// Valor total da previsão atual (dias selecionados × valor/dia, com taxa fora do prazo)
+// Valor total da previsão atual (refeições selecionadas × valor, com taxa fora do prazo)
 function valorPrevisaoAtual(){
-  const sel = document.querySelectorAll('#cdp-card .dia-btn.ativo').length;
+  const sel = document.querySelectorAll('#cdp-card .dia-btn.ativo').length
+            + document.querySelectorAll('#cdp-card .dm-jantar-btn.ativo').length;
   const vlrTxt = document.getElementById('val-num') ? document.getElementById('val-num').textContent : '0';
   let vlr = parseFloat(vlrTxt.replace(',','.')) || 0;
   if(vlr && (document.body.dataset.foraPrazo==='1' || semForaPrazo(_cacheSem))) vlr += TAXA_FORA_PRAZO;
@@ -1450,7 +1474,8 @@ async function inscrever(){
   const qra=document.getElementById('inp-qra').value.trim();
   if(!qra){ toast('Informe seu QRA'); return; }
   const dias=getDias();
-  if(!Object.values(dias).some(Boolean)){ toast('Selecione ao menos um dia no cardápio'); return; }
+  const jantar=getJantar();
+  if(!Object.values(dias).some(Boolean) && !Object.values(jantar).some(Boolean)){ toast('Selecione ao menos uma refeição no cardápio'); return; }
   if(!semAtiva){ toast('Nenhuma semana ativa'); return; }
   // Comprovante de Pix é SEMPRE obrigatório para confirmar a previsão
   if(!compSel){ mostrarAlertaComp(); return; }
@@ -1463,7 +1488,7 @@ async function inscrever(){
     const existe=snap.docs.find(d=>d.data().qra.toLowerCase()===qra.toLowerCase());
     if(existe){ toast('QRA já inscrito. Fale com o admin.'); btn.disabled=false; btn.textContent='Confirmar inscrição'; return; }
     // Comprovante obrigatório + antifraude aprovado ⇒ validação AUTOMÁTICA
-    const entry={qra, dias, pago:true, autoValidado:true, criadoEm:Date.now()};
+    const entry={qra, dias, jantar, pago:true, autoValidado:true, criadoEm:Date.now()};
     if(semForaPrazo(_cacheSem)) entry.foraPrazo=true; // acréscimo de R$2/refeição
     if(compSel) entry.comprovante=compSel;
     const docRef = await addDoc(insRef, entry);
@@ -1487,7 +1512,7 @@ async function inscrever(){
       _compHash=null; _compOcr=null;
     }
     const vlrAtual = _cacheSem ? parseFloat(_cacheSem.valor)||0 : 0;
-    mostrarResumoPosInscricao(qra, dias, vlrAtual);
+    mostrarResumoPosInscricao(qra, dias, jantar, vlrAtual);
     resetDias(); removerComp();
     document.getElementById('inp-qra').value='';
   }catch(e){ toast('Erro ao salvar. Tente novamente.'); console.error(e); }
@@ -2072,11 +2097,12 @@ function renderAdmIns(sem, ins){
   if(!ins||!ins.length){ el.innerHTML='<div class="empty-st">Nenhum inscrito.</div>'; td.innerHTML=''; return; }
   const vlr=sem?parseFloat(sem.valor)||0:0;
   el.innerHTML=ins.map(i=>{
-    const dias=DK.filter(d=>i.dias&&i.dias[d]), tot=dias.length*vlr;
+    const dias=DK.filter(d=>i.dias&&i.dias[d]), jant=DK.filter(d=>i.jantar&&i.jantar[d]), tot=valorInsc(i,vlr);
     const comp=i.comprovante?`<a href="${i.comprovante.data64}" download="${i.comprovante.nome}" style="font-size:10px;color:var(--vdm);font-weight:700;text-decoration:none">📎</a>`:'';
     // Valor monetário só aparece quando o pagamento está validado
     const valTxt = vlr ? (i.pago ? ` · <span style="color:var(--ok);font-weight:700">R$${tot.toFixed(2)} ✓</span>` : ` · <span style="color:var(--g3)">a validar</span>`) : '';
-    return`<div class="mgmt-row"><div><div class="mgmt-nome">${escHTML(i.qra)}</div><div class="mgmt-sub">${dias.map(d=>DN[DK.indexOf(d)]).join(', ')}${valTxt}</div></div><div style="display:flex;gap:6px;align-items:center">${comp}<button type="button" class="btn-pg ${i.pago?'pago':'deve'}" onclick="tglPago('${i.id}',${!i.pago})">${i.pago?'✓ Validado':'Validar'}</button><button type="button" class="btn-dl" onclick="delIns('${i.id}')">✕</button></div></div>`;
+    const jantTxt = jant.length ? ` · 🌙 ${jant.map(d=>DN[DK.indexOf(d)]).join(', ')}` : '';
+    return`<div class="mgmt-row"><div><div class="mgmt-nome">${escHTML(i.qra)}</div><div class="mgmt-sub">${dias.map(d=>DN[DK.indexOf(d)]).join(', ')}${jantTxt}${valTxt}</div></div><div style="display:flex;gap:6px;align-items:center">${comp}<button type="button" class="btn-pg ${i.pago?'pago':'deve'}" onclick="tglPago('${i.id}',${!i.pago})">${i.pago?'✓ Validado':'Validar'}</button><button type="button" class="btn-dl" onclick="delIns('${i.id}')">✕</button></div></div>`;
   }).join('');
   td.innerHTML='<div style="font-size:10px;color:var(--g3);font-weight:700;width:100%;margin-bottom:4px">MARMITAS POR DIA</div>'+
     DK.map((dk,i)=>`<div class="totd-item"><div class="totd-l">${DN[i]}</div><div class="totd-n">${ins.filter(x=>x.dias&&x.dias[dk]).length}</div></div>`).join('');
@@ -2756,18 +2782,22 @@ function abrirWhatsApp(){
 window.abrirWhatsApp = abrirWhatsApp;
 
 // ── Resumo pós-inscrição ──────────────────────────────────────────────────────
-function mostrarResumoPosInscricao(qra, dias, vlr){
+function mostrarResumoPosInscricao(qra, dias, jantar, vlr){
+  jantar = jantar||{};
   const diasSel = DK.filter(d=>dias[d]);
+  const jantarSel = DK.filter(d=>jantar[d]);
+  const nRef = diasSel.length + jantarSel.length;
   const atrasado = semForaPrazo(_cacheSem);
   const vlrDia = vlr + (atrasado ? TAXA_FORA_PRAZO : 0);
-  const total = diasSel.length * vlrDia;
+  const total = nRef * vlrDia;
   const el = document.getElementById('resumo-pos-content');
   const wrap = document.getElementById('resumo-pos-inscricao');
   if(!el||!wrap) return;
   el.innerHTML = `
     <strong>${qra}</strong><br>
-    Dias: ${diasSel.map(d=>DN[DK.indexOf(d)]).join(', ')}<br>
-    Refeições: ${diasSel.length}<br>
+    Almoço: ${diasSel.length ? diasSel.map(d=>DN[DK.indexOf(d)]).join(', ') : '—'}<br>
+    Jantar: ${jantarSel.length ? jantarSel.map(d=>DN[DK.indexOf(d)]).join(', ') : '—'}<br>
+    Refeições: ${nRef}<br>
     ${atrasado ? `<span style="color:var(--er);font-weight:700">Fora do prazo: +R$${TAXA_FORA_PRAZO.toFixed(2).replace('.',',')} por refeição</span><br>` : ''}
     ${vlr ? `<strong>Total a pagar: R$${total.toFixed(2)}</strong>` : ''}
   `;
@@ -3141,6 +3171,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v12.4</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v12.5</div>
 </body>
 </html>
