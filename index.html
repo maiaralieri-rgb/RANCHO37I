@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260806-v13.3-jantar-direita-bolinha-sem-lua -->
+<meta charset="UTF-8"><!-- deploy:20260806-v13.4-marmita-para-o-jantar -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -73,7 +73,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cr);color:var(--g1);min-h
 /* Cardápio com seleção de dias integrada */
 .dia-menu{display:flex;align-items:center;gap:9px;width:100%;text-align:left;border:none;border-bottom:1px solid var(--g5);padding:.7rem .75rem;background:var(--br);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s}
 .dm-jantar-btn{flex-shrink:0;width:52px;min-height:52px;border-radius:10px;background:var(--br);border:2px dashed var(--g4);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;padding:0}
-.dm-jantar-btn .djs-lbl{font-size:9px;font-weight:800;letter-spacing:.3px;color:var(--g3);text-transform:uppercase;line-height:1}
+.dm-jantar-btn .djs-lbl{font-size:8px;font-weight:800;letter-spacing:.2px;color:var(--g3);text-transform:uppercase;line-height:1.15;text-align:center;padding:0 3px}
 .dm-jantar-btn.ativo{background:var(--vd);border-style:solid;border-color:var(--vd)}
 .dm-jantar-btn.ativo .djs-lbl{color:#fff}
 .dm-jantar-btn:active{transform:scale(.94)}
@@ -886,7 +886,7 @@ function renderCardapioSelecionavel(sem){
     }
     const selA = prevA[d]?' ativo':'';
     const selJ = prevJ[d]?' ativo':'';
-    return `<div class="dia-menu dia-btn${selA}" data-dia="${d}" onclick="toggleDia(this)"><div class="dm-day-badge"><span class="db-abrev">${DN[i]}</span></div><div class="dm-body"><div class="dm-prato">${escHTML(r.principal||'—')}</div>${r.acomp?`<div class="dm-acomp">${escHTML(r.acomp)}</div>`:''}</div><div class="dm-check">${prevA[d]?'●':'○'}</div><button type="button" class="dm-jantar-btn${selJ}" data-dia="${d}" onclick="event.stopPropagation();toggleJantar(this)"><span class="djs-lbl">Jantar</span></button></div>`;
+    return `<div class="dia-menu dia-btn${selA}" data-dia="${d}" onclick="toggleDia(this)"><div class="dm-day-badge"><span class="db-abrev">${DN[i]}</span></div><div class="dm-body"><div class="dm-prato">${escHTML(r.principal||'—')}</div>${r.acomp?`<div class="dm-acomp">${escHTML(r.acomp)}</div>`:''}</div><div class="dm-check">${prevA[d]?'●':'○'}</div><button type="button" class="dm-jantar-btn${selJ}" data-dia="${d}" onclick="event.stopPropagation();toggleJantar(this)"><span class="djs-lbl">Marmita para o jantar</span></button></div>`;
   }).join('');
   atualizarTotalDias();
 }
@@ -3218,6 +3218,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v13.3</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v13.4</div>
 </body>
 </html>
