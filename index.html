@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260806-v13.4-marmita-para-o-jantar -->
+<meta charset="UTF-8"><!-- deploy:20260806-v13.5-lista-dia-jantar -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2187,39 +2187,56 @@ function gerarListaDia(dk, btn){
   const ins = _cacheIns;
   const dnome = DN[DK.indexOf(dk)];
   const insDodia = ins.filter(i=>i.dias&&i.dias[dk]);
+  const insJantar = ins.filter(i=>i.jantar&&i.jantar[dk]);
   const cdp = sem&&sem.cardapio ? sem.cardapio[DK.indexOf(dk)] : null;
   const prato = cdp&&cdp.principal ? cdp.principal : '—';
   const acomp = cdp&&cdp.acomp ? cdp.acomp : '';
   const data = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
 
-  _listaDiaAtual = {dk, dnome, ins: insDodia, prato, acomp, semLabel: sem?sem.label:'—', data};
+  _listaDiaAtual = {dk, dnome, ins: insDodia, insJantar, prato, acomp, semLabel: sem?sem.label:'—', data};
 
   const infoEl = document.getElementById('lista-dia-info');
   const cdpEl  = document.getElementById('lista-dia-cardapio');
   const tbl    = document.getElementById('lista-dia-tabela');
   const prev   = document.getElementById('lista-dia-preview');
 
-  if(infoEl) infoEl.textContent = `${dnome} — ${insDodia.length} refeição${insDodia.length!==1?'ões':''}`;
+  if(infoEl) infoEl.textContent = `${dnome} — ${insDodia.length} almoço${insDodia.length!==1?'s':''}${insJantar.length?` · ${insJantar.length} marmita${insJantar.length!==1?'s':''} p/ jantar`:''}`;
   if(cdpEl)  cdpEl.textContent  = `Prato: ${prato}${acomp?' · '+acomp:''}`;
 
-  if(!insDodia.length){
+  if(!insDodia.length && !insJantar.length){
     if(tbl) tbl.innerHTML='<div class="empty-st">Nenhum inscrito para este dia.</div>';
     if(prev) prev.style.display='block';
     return;
   }
 
-  if(tbl) tbl.innerHTML=
+  const jantarSet = new Set(insJantar.map(i=>i.qra));
+  let html = insDodia.length ?
     `<div style="display:grid;grid-template-columns:2rem 1fr 1.8rem;padding:.5rem .75rem;border-bottom:1.5px solid var(--g4);font-size:10px;font-weight:800;color:var(--g3);text-transform:uppercase;letter-spacing:.5px">
       <div>#</div><div>Nome (QRA)</div><div style="text-align:center">Ass.</div>
     </div>`+
     insDodia.map((i,idx)=>{
+      const tagJ = jantarSet.has(i.qra) ? ` <span style="font-size:9px;font-weight:800;color:var(--vd);background:var(--vdx);border:1px solid var(--vdl);border-radius:10px;padding:1px 6px;letter-spacing:.3px;white-space:nowrap">🌙 + JANTAR</span>` : '';
       return`<div style="display:grid;grid-template-columns:2rem 1fr 1.8rem;padding:.65rem .75rem;border-bottom:1px solid var(--g5);align-items:center;font-size:13px">
         <div style="font-weight:700;color:var(--g3)">${idx+1}</div>
-        <div style="font-weight:600;color:var(--g1)">${escHTML(i.qra)}</div>
+        <div style="font-weight:600;color:var(--g1)">${escHTML(i.qra)}${tagJ}</div>
         <div style="border-bottom:1.5px solid var(--g2);height:22px;margin-right:4px"></div>
       </div>`;
-    }).join('');
+    }).join('')
+    : '<div class="empty-st">Nenhum almoço para este dia.</div>';
 
+  // Bloco específico de solicitações de jantar
+  if(insJantar.length){
+    html += `<div style="padding:.65rem .75rem;border-top:2px solid var(--vdl);background:var(--vdx)">
+      <div style="font-size:11px;font-weight:800;color:var(--vd);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🌙 Marmitas para o jantar — ${insJantar.length}</div>
+      ${insJantar.map((i,idx)=>`<div style="display:grid;grid-template-columns:2rem 1fr 1.8rem;padding:.35rem 0;align-items:center;font-size:13px">
+        <div style="font-weight:700;color:var(--g3)">${idx+1}</div>
+        <div style="font-weight:600;color:var(--g1)">${escHTML(i.qra)}</div>
+        <div style="border-bottom:1.5px solid var(--g2);height:20px;margin-right:4px"></div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  if(tbl) tbl.innerHTML = html;
   if(prev) prev.style.display='block';
 }
 window.gerarListaDia = gerarListaDia;
@@ -2227,13 +2244,32 @@ window.gerarListaDia = gerarListaDia;
 function imprimirListaDia(){
   const d = _listaDiaAtual; if(!d){ toast('Selecione um dia primeiro'); return; }
   const dt = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
+  const jantarSet = new Set((d.insJantar||[]).map(i=>i.qra));
   const rows = d.ins.map((i,idx)=>{
+    const tagJ = jantarSet.has(i.qra) ? ` <span style="font-size:10px;font-weight:800;color:#1a3a1f;border:1px solid #1a3a1f;border-radius:10px;padding:1px 6px">🌙 + JANTAR</span>` : '';
     return`<tr style="border-bottom:1px solid #ddd">
       <td style="padding:10px 8px;font-size:13px;color:#888;text-align:center">${idx+1}</td>
-      <td style="padding:10px 8px;font-size:14px;font-weight:600">${escHTML(i.qra)}</td>
+      <td style="padding:10px 8px;font-size:14px;font-weight:600">${escHTML(i.qra)}${tagJ}</td>
       <td style="padding:10px 8px;min-width:120px"><div style="border-bottom:1.5px solid #333;margin-top:18px"></div></td>
     </tr>`;
   }).join('');
+
+  const jantarSecao = (d.insJantar&&d.insJantar.length) ? `
+    <div style="margin-top:1.8rem">
+      <h2 style="font-size:1rem;color:#1a3a1f;margin:0 0 .5rem;font-weight:800;border-bottom:2px solid #1a3a1f;padding-bottom:4px">🌙 Marmitas para o jantar — ${d.insJantar.length}</h2>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:#e8f2ea;border-bottom:2px solid #1a3a1f">
+          <th style="padding:8px;text-align:center;font-size:11px;text-transform:uppercase;width:36px">#</th>
+          <th style="padding:8px;text-align:left;font-size:11px;text-transform:uppercase">Nome (QRA)</th>
+          <th style="padding:8px;text-align:center;font-size:11px;text-transform:uppercase;width:140px">Assinatura</th>
+        </tr></thead>
+        <tbody>${d.insJantar.map((i,idx)=>`<tr style="border-bottom:1px solid #ddd">
+          <td style="padding:10px 8px;font-size:13px;color:#888;text-align:center">${idx+1}</td>
+          <td style="padding:10px 8px;font-size:14px;font-weight:600">${escHTML(i.qra)}</td>
+          <td style="padding:10px 8px;min-width:120px"><div style="border-bottom:1.5px solid #333;margin-top:18px"></div></td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>` : '';
 
   document.getElementById('print-area').innerHTML=`
     <div style="max-width:680px;margin:0 auto;font-family:'DM Sans',Arial,sans-serif;color:#1a1a1a">
@@ -2259,10 +2295,11 @@ function imprimirListaDia(){
         <tbody>${rows}</tbody>
         <tfoot>
           <tr style="background:#f5f5f5">
-            <td colspan="4" style="padding:8px 8px;font-size:12px;font-weight:700;text-align:right">Total: ${d.ins.length} refeição${d.ins.length!==1?'ões':''}</td>
+            <td colspan="4" style="padding:8px 8px;font-size:12px;font-weight:700;text-align:right">Total: ${d.ins.length} almoço${d.ins.length!==1?'s':''}${d.insJantar&&d.insJantar.length?` · ${d.insJantar.length} marmita${d.insJantar.length!==1?'s':''} p/ jantar`:''}</td>
           </tr>
         </tfoot>
       </table>
+      ${jantarSecao}
       <div style="margin-top:2.5rem;display:grid;grid-template-columns:1fr 1fr;gap:2rem">
         <div>
           <div style="border-top:1.5px solid #333;padding-top:6px;font-size:11px;color:#888;text-align:center">Responsável pelo rancho</div>
@@ -3218,6 +3255,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v13.4</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v13.5</div>
 </body>
 </html>
