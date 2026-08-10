@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260806-v13.8-listas-relatorios-limpos-refeicoes -->
+<meta charset="UTF-8"><!-- deploy:20260806-v13.9-contabilidade-refeicoes-alinhada -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1606,13 +1606,13 @@ function abrirModalInscritos(){
   if(!_cacheIns.length){ _abrirHcModal('Inscritos','<div class="empty-st">Nenhum inscrito ainda.</div>'); return; }
   const vlr = _cacheSem ? parseFloat(_cacheSem.valor)||0 : 0;
   const rows = _cacheIns.map(i=>{
-    const nd = cntD(i.dias);
-    const dias = DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]);
-    const pills = dias.map(d=>`<span class="dp">${d}</span>`).join('');
+    const pillsA = DK.filter(d=>i.dias&&i.dias[d]).map(d=>`<span class="dp">${DN[DK.indexOf(d)]}</span>`).join('');
+    const pillsJ = DK.filter(d=>i.jantar&&i.jantar[d]).map(d=>`<span class="dp" style="background:var(--vd);color:#fff">🌙${DN[DK.indexOf(d)]}</span>`).join('');
+    const fp = i.foraPrazo ? `<span class="dp" style="background:var(--erc);color:var(--er);border-color:#f1a9a0">⏰ fora do prazo</span>` : '';
     const badge = i.pago
       ? `<span class="s-pago">✓ Pago</span>`
       : (i.comprovante ? `<span class="s-deve">⏳ Aguarda</span>` : `<span class="s-deve">Pendente</span>`);
-    return`<div class="ins-row"><div><div class="ins-nome">${escHTML(i.qra)}</div><div class="ins-dias" style="margin-top:3px">${pills}</div></div><div style="text-align:right"><div>${badge}</div><div class="ins-val">R$${valorInsc(i,vlr).toFixed(2)}</div></div></div>`;
+    return`<div class="ins-row"><div><div class="ins-nome">${escHTML(i.qra)}</div><div class="ins-dias" style="margin-top:3px">${pillsA}${pillsJ}${fp}</div></div><div style="text-align:right"><div>${badge}</div><div class="ins-val">R$${valorInsc(i,vlr).toFixed(2)}</div></div></div>`;
   }).join('');
   _abrirHcModal(`Inscritos (${_cacheIns.length})`, `<div class="card">${rows}</div>`);
 }
@@ -1624,10 +1624,9 @@ function abrirModalPagantes(){
   if(!pagantes.length){ _abrirHcModal('Pagamentos validados','<div class="empty-st">Nenhum pagamento validado ainda.</div>'); return; }
   const total = pagantes.reduce((a,i)=>a+valorInsc(i,vlr),0);
   const rows = pagantes.map(i=>{
-    const nd = cntD(i.dias);
-    const dias = DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]);
-    const pills = dias.map(d=>`<span class="dp">${d}</span>`).join('');
-    return`<div class="ins-row"><div><div class="ins-nome">${escHTML(i.qra)}</div><div class="ins-dias" style="margin-top:3px">${pills}</div></div><div style="text-align:right"><span class="s-pago">✓ Pago</span><div class="ins-val">R$${valorInsc(i,vlr).toFixed(2)}</div></div></div>`;
+    const pillsA = DK.filter(d=>i.dias&&i.dias[d]).map(d=>`<span class="dp">${DN[DK.indexOf(d)]}</span>`).join('');
+    const pillsJ = DK.filter(d=>i.jantar&&i.jantar[d]).map(d=>`<span class="dp" style="background:var(--vd);color:#fff">🌙${DN[DK.indexOf(d)]}</span>`).join('');
+    return`<div class="ins-row"><div><div class="ins-nome">${escHTML(i.qra)}</div><div class="ins-dias" style="margin-top:3px">${pillsA}${pillsJ}</div></div><div style="text-align:right"><span class="s-pago">✓ Pago</span><div class="ins-val">R$${valorInsc(i,vlr).toFixed(2)}</div></div></div>`;
   }).join('');
   const resumo = `<div style="padding:.6rem .75rem;background:var(--vdx);border-radius:8px;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;font-weight:700;color:var(--vd)">${pagantes.length} pagante${pagantes.length>1?'s':''}</span><span style="font-size:1.1rem;font-weight:800;color:var(--vd)">R$${total.toFixed(2)}</span></div>`;
   _abrirHcModal('Arrecadado — validados', resumo + `<div class="card">${rows}</div>`);
@@ -2122,15 +2121,31 @@ function renderAdmIns(sem, ins){
   if(!ins||!ins.length){ el.innerHTML='<div class="empty-st">Nenhum inscrito.</div>'; td.innerHTML=''; return; }
   const vlr=sem?parseFloat(sem.valor)||0:0;
   el.innerHTML=ins.map(i=>{
-    const dias=DK.filter(d=>i.dias&&i.dias[d]), jant=DK.filter(d=>i.jantar&&i.jantar[d]), tot=valorInsc(i,vlr);
+    const dias=DK.filter(d=>i.dias&&i.dias[d]), jant=DK.filter(d=>i.jantar&&i.jantar[d]);
+    const nRef=dias.length+jant.length, tot=valorInsc(i,vlr);
     const comp=i.comprovante?`<a href="${i.comprovante.data64}" download="${i.comprovante.nome}" style="font-size:10px;color:var(--vdm);font-weight:700;text-decoration:none">📎</a>`:'';
-    // Valor monetário só aparece quando o pagamento está validado
-    const valTxt = vlr ? (i.pago ? ` · <span style="color:var(--ok);font-weight:700">R$${tot.toFixed(2)} ✓</span>` : ` · <span style="color:var(--g3)">a validar</span>`) : '';
+    const almTxt = `🍽 ${dias.length?dias.map(d=>DN[DK.indexOf(d)]).join(', '):'—'}`;
     const jantTxt = jant.length ? ` · 🌙 ${jant.map(d=>DN[DK.indexOf(d)]).join(', ')}` : '';
-    return`<div class="mgmt-row"><div><div class="mgmt-nome">${escHTML(i.qra)}</div><div class="mgmt-sub">${dias.map(d=>DN[DK.indexOf(d)]).join(', ')}${jantTxt}${valTxt}</div></div><div style="display:flex;gap:6px;align-items:center">${comp}<button type="button" class="btn-pg ${i.pago?'pago':'deve'}" onclick="tglPago('${i.id}',${!i.pago})">${i.pago?'✓ Validado':'Validar'}</button><button type="button" class="btn-dl" onclick="delIns('${i.id}')">✕</button></div></div>`;
+    const refTxt = ` · <strong>${nRef} ref.</strong>`;
+    const fpTxt = i.foraPrazo ? ` · <span style="color:var(--er);font-weight:700">fora do prazo</span>` : '';
+    const valTxt = vlr ? (i.pago ? ` · <span style="color:var(--ok);font-weight:700">R$${tot.toFixed(2)} ✓</span>` : ` · <span style="color:var(--g3)">R$${tot.toFixed(2)} a validar</span>`) : '';
+    return`<div class="mgmt-row"><div><div class="mgmt-nome">${escHTML(i.qra)}</div><div class="mgmt-sub">${almTxt}${jantTxt}${refTxt}${fpTxt}${valTxt}</div></div><div style="display:flex;gap:6px;align-items:center">${comp}<button type="button" class="btn-pg ${i.pago?'pago':'deve'}" onclick="tglPago('${i.id}',${!i.pago})">${i.pago?'✓ Validado':'Validar'}</button><button type="button" class="btn-dl" onclick="delIns('${i.id}')">✕</button></div></div>`;
   }).join('');
-  td.innerHTML='<div style="font-size:10px;color:var(--g3);font-weight:700;width:100%;margin-bottom:4px">MARMITAS POR DIA</div>'+
-    DK.map((dk,i)=>`<div class="totd-item"><div class="totd-l">${DN[i]}</div><div class="totd-n">${ins.filter(x=>x.dias&&x.dias[dk]).length}</div></div>`).join('');
+  // Refeições por dia (almoço + jantar) + totais da semana
+  const totRef = ins.reduce((a,i)=>a+cntRef(i),0);
+  const totAlmoco = DK.reduce((a,dk)=>a+ins.filter(x=>x.dias&&x.dias[dk]).length,0);
+  const totJantar = DK.reduce((a,dk)=>a+ins.filter(x=>x.jantar&&x.jantar[dk]).length,0);
+  const arrec = ins.filter(i=>i.pago).reduce((a,i)=>a+valorInsc(i,vlr),0);
+  const prev  = ins.reduce((a,i)=>a+valorInsc(i,vlr),0);
+  td.innerHTML='<div style="font-size:10px;color:var(--g3);font-weight:700;width:100%;margin-bottom:4px">REFEIÇÕES POR DIA (almoço + jantar)</div>'+
+    DK.map((dk,i)=>{
+      const a=ins.filter(x=>x.dias&&x.dias[dk]).length, j=ins.filter(x=>x.jantar&&x.jantar[dk]).length;
+      return `<div class="totd-item"><div class="totd-l">${DN[i]}</div><div class="totd-n">${a+j}</div>${j?`<div style="font-size:8px;color:var(--vdm);font-weight:700">🌙 ${j}</div>`:''}</div>`;
+    }).join('')+
+    `<div style="width:100%;margin-top:8px;padding:.6rem .75rem;background:var(--vdx);border:1px solid #c5ddc9;border-radius:8px;font-size:12px;color:var(--vd);line-height:1.7">
+      <div><strong>${totRef}</strong> refeições no total &nbsp;·&nbsp; 🍽 ${totAlmoco} almoços &nbsp;·&nbsp; 🌙 ${totJantar} jantares</div>
+      ${vlr?`<div>Arrecadado (validado): <strong>R$${arrec.toFixed(2)}</strong> de R$${prev.toFixed(2)} previstos</div>`:''}
+    </div>`;
   if(body) body.scrollTop=savedScroll;
 }
 
@@ -2511,10 +2526,12 @@ async function calcRelatorio(){
       <div class="rc-s">= Saldo anterior (R$${creditoAnt.toFixed(2)}) + Arrecadado (R$${totalArrecadado.toFixed(2)})${gastos?` − Gastos (R$${gastos.toFixed(2)})`:''}  </div>
     </div>`;
   document.getElementById('rel-tabela').innerHTML=
-    `<div style="display:grid;grid-template-columns:1fr auto auto auto;padding:.5rem .75rem;border-bottom:1px solid var(--g4);font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:.5px"><div>Participante</div><div style="text-align:center">Dias</div><div style="text-align:right">Valor</div><div style="text-align:center">Status</div></div>`+
+    `<div style="display:grid;grid-template-columns:1fr auto auto auto;padding:.5rem .75rem;border-bottom:1px solid var(--g4);font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:.5px"><div>Participante</div><div style="text-align:center">Refeições</div><div style="text-align:right">Valor</div><div style="text-align:center">Status</div></div>`+
     ins.map(i=>{
-      const nd=cntD(i.dias),tot=valorInsc(i,vlr);
-      const dias=DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]).join(' ');
+      const nd=cntRef(i),tot=valorInsc(i,vlr);
+      const dsA=DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]);
+      const dsJ=DK.filter(d=>i.jantar&&i.jantar[d]).map(d=>DN[DK.indexOf(d)]);
+      const dias=`🍽 ${dsA.length?dsA.join(' '):'—'}${dsJ.length?` · 🌙 ${dsJ.join(' ')}`:''}${i.foraPrazo?' · ⏰ fora do prazo':''}`;
       return`<div style="display:grid;grid-template-columns:1fr auto auto auto;padding:.55rem .75rem;border-bottom:1px solid var(--g5);align-items:center;gap:6px"><div><div style="font-size:13px;font-weight:600">${i.qra}</div><div style="font-size:10px;color:var(--g3)">${dias}</div></div><div style="text-align:center;font-size:13px;color:var(--g2)">${nd}x</div><div style="text-align:right;font-size:13px;font-weight:500">R$${tot.toFixed(2)}</div><div style="text-align:center">${i.pago?`<span class="s-pago">✓ Pago</span>`:`<span class="s-deve">Pendente</span>`}</div></div>`;
     }).join('')+
     `<div style="display:grid;grid-template-columns:1fr auto;padding:.6rem .75rem;background:var(--g5);font-size:12px;font-weight:700;color:var(--g1)"><div>TOTAL PREVISTO</div><div>R$${totalPrevisto.toFixed(2)}</div></div>`;
@@ -2534,10 +2551,12 @@ function imprimirRelatorio(){
         <div style="font-size:12px;color:#888">Gerado em ${dt}</div>
       </div>
       <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:1.5rem">
-        <thead><tr style="background:#e8f2ea"><th style="padding:7px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px">Participante</th><th style="padding:7px 10px;text-align:center">Dias</th><th style="padding:7px 10px;text-align:right">Valor</th><th style="padding:7px 10px;text-align:center">Status</th></tr></thead>
+        <thead><tr style="background:#e8f2ea"><th style="padding:7px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px">Participante</th><th style="padding:7px 10px;text-align:center">Refeições</th><th style="padding:7px 10px;text-align:right">Valor</th><th style="padding:7px 10px;text-align:center">Status</th></tr></thead>
         <tbody>${ins.map((i,idx)=>{
-          const nd=cntD(i.dias),tot=valorInsc(i,vlr);
-          const dias=DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]).join(' ');
+          const nd=cntRef(i),tot=valorInsc(i,vlr);
+          const dsA=DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]);
+          const dsJ=DK.filter(d=>i.jantar&&i.jantar[d]).map(d=>DN[DK.indexOf(d)]);
+          const dias=`Almoço: ${dsA.length?dsA.join(' '):'—'}${dsJ.length?` · Jantar: ${dsJ.join(' ')}`:''}${i.foraPrazo?' · fora do prazo':''}`;
           return`<tr style="border-bottom:1px solid #eee;background:${idx%2?'#fafafa':'#fff'}"><td style="padding:7px 10px;font-weight:600">${escHTML(i.qra)}<br><span style="font-size:11px;color:#888;font-weight:400">${escHTML(dias)}</span></td><td style="padding:7px 10px;text-align:center">${nd}</td><td style="padding:7px 10px;text-align:right">R$${tot.toFixed(2)}</td><td style="padding:7px 10px;text-align:center"><span style="padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;background:${i.pago?'#eaf4ee':'#fdf8ec'};color:${i.pago?'#1a6b3a':'#b8860b'}">${i.pago?'Pago':'Pendente'}</span></td></tr>`;
         }).join('')}</tbody>
       </table>
@@ -2559,9 +2578,11 @@ function copiarRelatorio(){
   const {sem,ins,vlr,totalArrecadado,totalPrevisto,saldo,gastos,creditoAnt}=r;
   let txt=`RELATÓRIO SEMANAL — RANCHO 37I\nSemana: ${sem?sem.label:'—'} | ${new Date().toLocaleDateString('pt-BR')}\n${'─'.repeat(40)}\n\nPARTICIPANTES\n`;
   ins.forEach(i=>{
-    const nd=cntD(i.dias),tot=valorInsc(i,vlr);
-    const dias=DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]).join(' ');
-    txt+=`• ${i.qra} | ${dias} | R$${tot.toFixed(2)} | ${i.pago?'PAGO':'PENDENTE'}\n`;
+    const tot=valorInsc(i,vlr), nRef=cntRef(i);
+    const dsA=DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]).join(' ');
+    const dsJ=DK.filter(d=>i.jantar&&i.jantar[d]).map(d=>DN[DK.indexOf(d)]).join(' ');
+    const det=`Almoço: ${dsA||'—'}${dsJ?` | Jantar: ${dsJ}`:''}`;
+    txt+=`• ${i.qra} | ${det} | ${nRef} ref | R$${tot.toFixed(2)} | ${i.pago?'PAGO':'PENDENTE'}${i.foraPrazo?' | FORA DO PRAZO':''}\n`;
   });
   txt+=`\n${'─'.repeat(40)}\nTotal previsto:                R$${totalPrevisto.toFixed(2)}\nArrecadado na semana:          R$${totalArrecadado.toFixed(2)}\nSaldo anterior (sem. passada): R$${creditoAnt.toFixed(2)}\nTotal de gastos:               R$${gastos.toFixed(2)}\n${'─'.repeat(40)}\nSaldo p/ próx. semana:         R$${saldo.toFixed(2)}\n  (= R$${creditoAnt.toFixed(2)} + R$${totalArrecadado.toFixed(2)}${gastos?` − R$${gastos.toFixed(2)}`:''})\n`;
   navigator.clipboard.writeText(txt).then(()=>toast('✓ Copiado!')).catch(()=>toast('Erro ao copiar'));
@@ -3102,13 +3123,15 @@ window.histDelNota = histDelNota;
 function exportarCSV(){
   const r=window._relData; if(!r){ toast('Calcule o relatório primeiro'); return; }
   const {sem,ins,vlr} = r;
-  let csv = 'QRA,Seg,Ter,Qua,Qui,Sex,Total Dias,Valor (R$),Status\n';
+  let csv = 'QRA,Almoço,Jantar,Refeições,Valor (R$),Status,Fora do prazo\n';
   ins.forEach(i=>{
-    const nd=cntD(i.dias), tot=valorInsc(i,vlr);
-    const dias=DK.map(d=>i.dias&&i.dias[d]?'Sim':'').join(',');
-    csv += `"${i.qra}",${dias},${nd},"${tot.toFixed(2)}","${i.pago?'Pago':'Pendente'}"\n`;
+    const nd=cntRef(i), tot=valorInsc(i,vlr);
+    const dsA=DK.filter(d=>i.dias&&i.dias[d]).map(d=>DN[DK.indexOf(d)]).join(' ');
+    const dsJ=DK.filter(d=>i.jantar&&i.jantar[d]).map(d=>DN[DK.indexOf(d)]).join(' ');
+    csv += `"${i.qra}","${dsA}","${dsJ}",${nd},"${tot.toFixed(2)}","${i.pago?'Pago':'Pendente'}","${i.foraPrazo?'Sim':'Não'}"\n`;
   });
-  csv += `\n"TOTAL","","","","","","","${r.totalPrevisto.toFixed(2)}",""\n`;
+  const totRef=ins.reduce((a,i)=>a+cntRef(i),0);
+  csv += `\n"TOTAL","","",${totRef},"${r.totalPrevisto.toFixed(2)}","",""\n`;
   csv += `"Arrecadado","","","","","","","${r.totalArrecadado.toFixed(2)}",""\n`;
   csv += `"Gastos","","","","","","","${r.gastos.toFixed(2)}",""\n`;
   csv += `"Crédito próx. semana","","","","","","","${r.saldo.toFixed(2)}",""\n`;
@@ -3251,6 +3274,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v13.8</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v13.9</div>
 </body>
 </html>
