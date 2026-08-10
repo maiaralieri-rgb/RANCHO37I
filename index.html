@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260806-v13.5-lista-dia-jantar -->
+<meta charset="UTF-8"><!-- deploy:20260806-v13.6-lista-dia-marca-fora-prazo -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2216,9 +2216,10 @@ function gerarListaDia(dk, btn){
     </div>`+
     insDodia.map((i,idx)=>{
       const tagJ = jantarSet.has(i.qra) ? ` <span style="font-size:9px;font-weight:800;color:var(--vd);background:var(--vdx);border:1px solid var(--vdl);border-radius:10px;padding:1px 6px;letter-spacing:.3px;white-space:nowrap">🌙 + JANTAR</span>` : '';
+      const tagFP = i.foraPrazo ? ` <span style="font-size:9px;font-weight:800;color:var(--er);background:var(--erc);border:1px solid #f1a9a0;border-radius:10px;padding:1px 6px;letter-spacing:.3px;white-space:nowrap">⏰ FORA DO PRAZO</span>` : '';
       return`<div style="display:grid;grid-template-columns:2rem 1fr 1.8rem;padding:.65rem .75rem;border-bottom:1px solid var(--g5);align-items:center;font-size:13px">
         <div style="font-weight:700;color:var(--g3)">${idx+1}</div>
-        <div style="font-weight:600;color:var(--g1)">${escHTML(i.qra)}${tagJ}</div>
+        <div style="font-weight:600;color:var(--g1)">${escHTML(i.qra)}${tagJ}${tagFP}</div>
         <div style="border-bottom:1.5px solid var(--g2);height:22px;margin-right:4px"></div>
       </div>`;
     }).join('')
@@ -2228,11 +2229,13 @@ function gerarListaDia(dk, btn){
   if(insJantar.length){
     html += `<div style="padding:.65rem .75rem;border-top:2px solid var(--vdl);background:var(--vdx)">
       <div style="font-size:11px;font-weight:800;color:var(--vd);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🌙 Marmitas para o jantar — ${insJantar.length}</div>
-      ${insJantar.map((i,idx)=>`<div style="display:grid;grid-template-columns:2rem 1fr 1.8rem;padding:.35rem 0;align-items:center;font-size:13px">
+      ${insJantar.map((i,idx)=>{
+        const tagFP = i.foraPrazo ? ` <span style="font-size:9px;font-weight:800;color:var(--er);background:var(--erc);border:1px solid #f1a9a0;border-radius:10px;padding:1px 6px;letter-spacing:.3px;white-space:nowrap">⏰ FORA DO PRAZO</span>` : '';
+        return`<div style="display:grid;grid-template-columns:2rem 1fr 1.8rem;padding:.35rem 0;align-items:center;font-size:13px">
         <div style="font-weight:700;color:var(--g3)">${idx+1}</div>
-        <div style="font-weight:600;color:var(--g1)">${escHTML(i.qra)}</div>
+        <div style="font-weight:600;color:var(--g1)">${escHTML(i.qra)}${tagFP}</div>
         <div style="border-bottom:1.5px solid var(--g2);height:20px;margin-right:4px"></div>
-      </div>`).join('')}
+      </div>`;}).join('')}
     </div>`;
   }
 
@@ -2245,11 +2248,12 @@ function imprimirListaDia(){
   const d = _listaDiaAtual; if(!d){ toast('Selecione um dia primeiro'); return; }
   const dt = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
   const jantarSet = new Set((d.insJantar||[]).map(i=>i.qra));
+  const tagFP_print = ` <span style="font-size:10px;font-weight:800;color:#c0392b;border:1px solid #c0392b;border-radius:10px;padding:1px 6px">⏰ FORA DO PRAZO</span>`;
   const rows = d.ins.map((i,idx)=>{
     const tagJ = jantarSet.has(i.qra) ? ` <span style="font-size:10px;font-weight:800;color:#1a3a1f;border:1px solid #1a3a1f;border-radius:10px;padding:1px 6px">🌙 + JANTAR</span>` : '';
     return`<tr style="border-bottom:1px solid #ddd">
       <td style="padding:10px 8px;font-size:13px;color:#888;text-align:center">${idx+1}</td>
-      <td style="padding:10px 8px;font-size:14px;font-weight:600">${escHTML(i.qra)}${tagJ}</td>
+      <td style="padding:10px 8px;font-size:14px;font-weight:600">${escHTML(i.qra)}${tagJ}${i.foraPrazo?tagFP_print:''}</td>
       <td style="padding:10px 8px;min-width:120px"><div style="border-bottom:1.5px solid #333;margin-top:18px"></div></td>
     </tr>`;
   }).join('');
@@ -2265,7 +2269,7 @@ function imprimirListaDia(){
         </tr></thead>
         <tbody>${d.insJantar.map((i,idx)=>`<tr style="border-bottom:1px solid #ddd">
           <td style="padding:10px 8px;font-size:13px;color:#888;text-align:center">${idx+1}</td>
-          <td style="padding:10px 8px;font-size:14px;font-weight:600">${escHTML(i.qra)}</td>
+          <td style="padding:10px 8px;font-size:14px;font-weight:600">${escHTML(i.qra)}${i.foraPrazo?tagFP_print:''}</td>
           <td style="padding:10px 8px;min-width:120px"><div style="border-bottom:1.5px solid #333;margin-top:18px"></div></td>
         </tr>`).join('')}</tbody>
       </table>
@@ -3255,6 +3259,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v13.5</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v13.6</div>
 </body>
 </html>
