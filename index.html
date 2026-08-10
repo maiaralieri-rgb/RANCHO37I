@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260806-v13.7-fora-prazo-data-hora -->
+<meta charset="UTF-8"><!-- deploy:20260806-v13.8-listas-relatorios-limpos-refeicoes -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2186,61 +2186,57 @@ function gerarListaDia(dk, btn){
   const sem = _cacheSem;
   const ins = _cacheIns;
   const dnome = DN[DK.indexOf(dk)];
-  const insDodia = ins.filter(i=>i.dias&&i.dias[dk]);
-  const insJantar = ins.filter(i=>i.jantar&&i.jantar[dk]);
   const cdp = sem&&sem.cardapio ? sem.cardapio[DK.indexOf(dk)] : null;
   const prato = cdp&&cdp.principal ? cdp.principal : '—';
   const acomp = cdp&&cdp.acomp ? cdp.acomp : '';
   const data = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
 
-  _listaDiaAtual = {dk, dnome, ins: insDodia, insJantar, prato, acomp, semLabel: sem?sem.label:'—', data};
+  // Lista unificada por usuário (união de almoço + jantar do dia)
+  const pessoas = ins
+    .filter(i=>(i.dias&&i.dias[dk])||(i.jantar&&i.jantar[dk]))
+    .map(i=>({qra:i.qra, almoco:!!(i.dias&&i.dias[dk]), jantar:!!(i.jantar&&i.jantar[dk]), foraPrazo:!!i.foraPrazo, criadoEm:i.criadoEm}))
+    .sort((a,b)=>a.qra.localeCompare(b.qra,'pt-BR'));
+  const nAlmoco = pessoas.filter(p=>p.almoco).length;
+  const nJantar = pessoas.filter(p=>p.jantar).length;
+  const nRef = nAlmoco + nJantar;
+
+  _listaDiaAtual = {dk, dnome, pessoas, nAlmoco, nJantar, nRef, prato, acomp, semLabel: sem?sem.label:'—', data};
 
   const infoEl = document.getElementById('lista-dia-info');
   const cdpEl  = document.getElementById('lista-dia-cardapio');
   const tbl    = document.getElementById('lista-dia-tabela');
   const prev   = document.getElementById('lista-dia-preview');
 
-  if(infoEl) infoEl.textContent = `${dnome} — ${insDodia.length} almoço${insDodia.length!==1?'s':''}${insJantar.length?` · ${insJantar.length} marmita${insJantar.length!==1?'s':''} p/ jantar`:''}`;
+  if(infoEl) infoEl.textContent = `${dnome} — ${nRef} refeição${nRef!==1?'ões':''} no total`;
   if(cdpEl)  cdpEl.textContent  = `Prato: ${prato}${acomp?' · '+acomp:''}`;
 
-  if(!insDodia.length && !insJantar.length){
+  if(!pessoas.length){
     if(tbl) tbl.innerHTML='<div class="empty-st">Nenhum inscrito para este dia.</div>';
     if(prev) prev.style.display='block';
     return;
   }
 
-  const fmtDataHora = ts => { if(!ts) return ''; const dt=new Date(ts); return ` · ${dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})} ${dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`; };
-  const jantarSet = new Set(insJantar.map(i=>i.qra));
-  let html = insDodia.length ?
-    `<div style="display:grid;grid-template-columns:2rem 1fr 1.8rem;padding:.5rem .75rem;border-bottom:1.5px solid var(--g4);font-size:10px;font-weight:800;color:var(--g3);text-transform:uppercase;letter-spacing:.5px">
-      <div>#</div><div>Nome (QRA)</div><div style="text-align:center">Ass.</div>
-    </div>`+
-    insDodia.map((i,idx)=>{
-      const tagJ = jantarSet.has(i.qra) ? ` <span style="font-size:9px;font-weight:800;color:var(--vd);background:var(--vdx);border:1px solid var(--vdl);border-radius:10px;padding:1px 6px;letter-spacing:.3px;white-space:nowrap">🌙 + JANTAR</span>` : '';
-      const tagFP = i.foraPrazo ? ` <span style="font-size:9px;font-weight:800;color:var(--er);background:var(--erc);border:1px solid #f1a9a0;border-radius:10px;padding:1px 6px;letter-spacing:.3px;white-space:nowrap">⏰ FORA DO PRAZO${fmtDataHora(i.criadoEm)}</span>` : '';
-      return`<div style="display:grid;grid-template-columns:2rem 1fr 1.8rem;padding:.65rem .75rem;border-bottom:1px solid var(--g5);align-items:center;font-size:13px">
-        <div style="font-weight:700;color:var(--g3)">${idx+1}</div>
-        <div style="font-weight:600;color:var(--g1)">${escHTML(i.qra)}${tagJ}${tagFP}</div>
-        <div style="border-bottom:1.5px solid var(--g2);height:22px;margin-right:4px"></div>
-      </div>`;
-    }).join('')
-    : '<div class="empty-st">Nenhum almoço para este dia.</div>';
+  const fmtDataHora = ts => { if(!ts) return '—'; const dt=new Date(ts); return `${dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})} ${dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`; };
+  const chip = (txt,on) => `<span style="font-size:9px;font-weight:800;letter-spacing:.3px;border-radius:10px;padding:2px 7px;white-space:nowrap;${on?'color:#fff;background:var(--vd);border:1px solid var(--vd)':'color:var(--g4);background:var(--g5);border:1px solid var(--g4)'}">${txt}</span>`;
 
-  // Bloco específico de solicitações de jantar
-  if(insJantar.length){
-    html += `<div style="padding:.65rem .75rem;border-top:2px solid var(--vdl);background:var(--vdx)">
-      <div style="font-size:11px;font-weight:800;color:var(--vd);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🌙 Marmitas para o jantar — ${insJantar.length}</div>
-      ${insJantar.map((i,idx)=>{
-        const tagFP = i.foraPrazo ? ` <span style="font-size:9px;font-weight:800;color:var(--er);background:var(--erc);border:1px solid #f1a9a0;border-radius:10px;padding:1px 6px;letter-spacing:.3px;white-space:nowrap">⏰ FORA DO PRAZO${fmtDataHora(i.criadoEm)}</span>` : '';
-        return`<div style="display:grid;grid-template-columns:2rem 1fr 1.8rem;padding:.35rem 0;align-items:center;font-size:13px">
-        <div style="font-weight:700;color:var(--g3)">${idx+1}</div>
-        <div style="font-weight:600;color:var(--g1)">${escHTML(i.qra)}${tagFP}</div>
-        <div style="border-bottom:1.5px solid var(--g2);height:20px;margin-right:4px"></div>
-      </div>`;}).join('')}
+  const linhas = pessoas.map((p,idx)=>`
+    <div style="display:grid;grid-template-columns:1.7rem 1fr auto;gap:8px;padding:.6rem .75rem;border-bottom:1px solid var(--g5);align-items:center">
+      <div style="font-weight:700;color:var(--g3);font-size:13px">${idx+1}</div>
+      <div style="min-width:0">
+        <div style="font-weight:600;color:var(--g1);font-size:13px">${escHTML(p.qra)}</div>
+        <div style="font-size:10.5px;color:var(--g3);margin-top:2px">🕒 ${fmtDataHora(p.criadoEm)}${p.foraPrazo?` <span style="color:var(--er);font-weight:800">· FORA DO PRAZO</span>`:''}</div>
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0">${chip('ALMOÇO',p.almoco)}${chip('JANTAR',p.jantar)}</div>
+    </div>`).join('');
+
+  const resumo = `
+    <div style="display:flex;gap:10px;padding:.65rem .75rem;background:var(--vdx);border-bottom:1.5px solid var(--vdl);font-size:12px;font-weight:800;color:var(--vd);flex-wrap:wrap;align-items:center">
+      <span>🍽 ${nAlmoco} almoço${nAlmoco!==1?'s':''}</span>
+      <span>🌙 ${nJantar} jantar${nJantar!==1?'es':''}</span>
+      <span style="margin-left:auto;background:var(--vd);color:#fff;border-radius:12px;padding:2px 10px">${nRef} refeições</span>
     </div>`;
-  }
 
-  if(tbl) tbl.innerHTML = html;
+  if(tbl) tbl.innerHTML = resumo + linhas;
   if(prev) prev.style.display='block';
 }
 window.gerarListaDia = gerarListaDia;
@@ -2248,41 +2244,25 @@ window.gerarListaDia = gerarListaDia;
 function imprimirListaDia(){
   const d = _listaDiaAtual; if(!d){ toast('Selecione um dia primeiro'); return; }
   const dt = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
-  const jantarSet = new Set((d.insJantar||[]).map(i=>i.qra));
-  const fmtDataHora = ts => { if(!ts) return ''; const dt=new Date(ts); return ` · ${dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})} ${dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`; };
-  const tagFP_print = i => ` <span style="font-size:10px;font-weight:800;color:#c0392b;border:1px solid #c0392b;border-radius:10px;padding:1px 6px">⏰ FORA DO PRAZO${fmtDataHora(i.criadoEm)}</span>`;
-  const rows = d.ins.map((i,idx)=>{
-    const tagJ = jantarSet.has(i.qra) ? ` <span style="font-size:10px;font-weight:800;color:#1a3a1f;border:1px solid #1a3a1f;border-radius:10px;padding:1px 6px">🌙 + JANTAR</span>` : '';
-    return`<tr style="border-bottom:1px solid #ddd">
-      <td style="padding:10px 8px;font-size:13px;color:#888;text-align:center">${idx+1}</td>
-      <td style="padding:10px 8px;font-size:14px;font-weight:600">${escHTML(i.qra)}${tagJ}${i.foraPrazo?tagFP_print(i):''}</td>
-      <td style="padding:10px 8px;min-width:120px"><div style="border-bottom:1.5px solid #333;margin-top:18px"></div></td>
-    </tr>`;
-  }).join('');
+  const fmtDataHora = ts => { if(!ts) return '—'; const dh=new Date(ts); return `${dh.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})} ${dh.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`; };
+  const marca = on => on ? '<span style="color:#1a3a1f;font-weight:800">✓</span>' : '<span style="color:#ccc">—</span>';
+  const pessoas = d.pessoas||[];
 
-  const jantarSecao = (d.insJantar&&d.insJantar.length) ? `
-    <div style="margin-top:1.8rem">
-      <h2 style="font-size:1rem;color:#1a3a1f;margin:0 0 .5rem;font-weight:800;border-bottom:2px solid #1a3a1f;padding-bottom:4px">🌙 Marmitas para o jantar — ${d.insJantar.length}</h2>
-      <table style="width:100%;border-collapse:collapse">
-        <thead><tr style="background:#e8f2ea;border-bottom:2px solid #1a3a1f">
-          <th style="padding:8px;text-align:center;font-size:11px;text-transform:uppercase;width:36px">#</th>
-          <th style="padding:8px;text-align:left;font-size:11px;text-transform:uppercase">Nome (QRA)</th>
-          <th style="padding:8px;text-align:center;font-size:11px;text-transform:uppercase;width:140px">Assinatura</th>
-        </tr></thead>
-        <tbody>${d.insJantar.map((i,idx)=>`<tr style="border-bottom:1px solid #ddd">
-          <td style="padding:10px 8px;font-size:13px;color:#888;text-align:center">${idx+1}</td>
-          <td style="padding:10px 8px;font-size:14px;font-weight:600">${escHTML(i.qra)}${i.foraPrazo?tagFP_print(i):''}</td>
-          <td style="padding:10px 8px;min-width:120px"><div style="border-bottom:1.5px solid #333;margin-top:18px"></div></td>
-        </tr>`).join('')}</tbody>
-      </table>
-    </div>` : '';
+  const rows = pessoas.map((p,idx)=>`<tr style="border-bottom:1px solid #ddd">
+      <td style="padding:9px 6px;font-size:12px;color:#888;text-align:center">${idx+1}</td>
+      <td style="padding:9px 8px;font-size:13px;font-weight:600">${escHTML(p.qra)}${p.foraPrazo?' <span style="font-size:9px;font-weight:800;color:#c0392b;border:1px solid #c0392b;border-radius:8px;padding:0 5px">FORA DO PRAZO</span>':''}</td>
+      <td style="padding:9px 6px;text-align:center;font-size:14px">${marca(p.almoco)}</td>
+      <td style="padding:9px 6px;text-align:center;font-size:14px">${marca(p.jantar)}</td>
+      <td style="padding:9px 6px;font-size:11px;color:#666;text-align:center;white-space:nowrap">${fmtDataHora(p.criadoEm)}</td>
+      <td style="padding:9px 8px;min-width:110px"><div style="border-bottom:1.5px solid #333;margin-top:16px"></div></td>
+    </tr>`).join('');
 
   document.getElementById('print-area').innerHTML=`
-    <div style="max-width:680px;margin:0 auto;font-family:'DM Sans',Arial,sans-serif;color:#1a1a1a">
-      <div style="border-bottom:3px solid #1a3a1f;padding-bottom:.75rem;margin-bottom:1.2rem;display:flex;justify-content:space-between;align-items:flex-end">
+    <div style="max-width:720px;margin:0 auto;font-family:'DM Sans',Arial,sans-serif;color:#1a1a1a">
+      <div style="border-bottom:3px solid #1a3a1f;padding-bottom:.75rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:flex-end">
         <div>
           <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">37° BPM-I — Rancho</div>
-          <h1 style="font-size:1.4rem;color:#1a3a1f;margin:0;font-weight:800">Lista de Almoço — ${d.dnome}</h1>
+          <h1 style="font-size:1.4rem;color:#1a3a1f;margin:0;font-weight:800">Lista do Dia — ${d.dnome}</h1>
           <div style="font-size:12px;color:#666;margin-top:4px">Semana ${d.semLabel}</div>
         </div>
         <div style="text-align:right;font-size:11px;color:#888">
@@ -2290,29 +2270,35 @@ function imprimirListaDia(){
           <div style="margin-top:3px;font-weight:600;color:#1a3a1f">${d.prato}${d.acomp?' · '+d.acomp:''}</div>
         </div>
       </div>
+      <div style="display:flex;gap:10px;margin-bottom:1rem;font-size:12px;font-weight:700">
+        <div style="flex:1;background:#e8f2ea;border-radius:8px;padding:.55rem;text-align:center"><div style="font-size:1.3rem;color:#1a3a1f">${d.nAlmoco}</div>almoços</div>
+        <div style="flex:1;background:#e8f2ea;border-radius:8px;padding:.55rem;text-align:center"><div style="font-size:1.3rem;color:#1a3a1f">${d.nJantar}</div>jantares</div>
+        <div style="flex:1;background:#1a3a1f;color:#fff;border-radius:8px;padding:.55rem;text-align:center"><div style="font-size:1.3rem">${d.nRef}</div>refeições no total</div>
+      </div>
       <table style="width:100%;border-collapse:collapse">
         <thead>
           <tr style="background:#e8f2ea;border-bottom:2px solid #1a3a1f">
-            <th style="padding:8px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.5px;width:36px">#</th>
-            <th style="padding:8px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px">Nome (QRA)</th>
-            <th style="padding:8px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.5px;width:140px">Assinatura</th>
+            <th style="padding:7px 6px;text-align:center;font-size:10px;text-transform:uppercase;letter-spacing:.5px;width:30px">#</th>
+            <th style="padding:7px 8px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px">Nome (QRA)</th>
+            <th style="padding:7px 6px;text-align:center;font-size:10px;text-transform:uppercase;letter-spacing:.5px;width:56px">Almoço</th>
+            <th style="padding:7px 6px;text-align:center;font-size:10px;text-transform:uppercase;letter-spacing:.5px;width:56px">Jantar</th>
+            <th style="padding:7px 6px;text-align:center;font-size:10px;text-transform:uppercase;letter-spacing:.5px;width:80px">Concluído em</th>
+            <th style="padding:7px 8px;text-align:center;font-size:10px;text-transform:uppercase;letter-spacing:.5px;width:120px">Assinatura</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
         <tfoot>
-          <tr style="background:#f5f5f5">
-            <td colspan="4" style="padding:8px 8px;font-size:12px;font-weight:700;text-align:right">Total: ${d.ins.length} almoço${d.ins.length!==1?'s':''}${d.insJantar&&d.insJantar.length?` · ${d.insJantar.length} marmita${d.insJantar.length!==1?'s':''} p/ jantar`:''}</td>
+          <tr style="background:#f5f5f5;border-top:2px solid #1a3a1f">
+            <td colspan="2" style="padding:8px;font-size:12px;font-weight:800">TOTAL</td>
+            <td style="padding:8px;text-align:center;font-size:12px;font-weight:800">${d.nAlmoco}</td>
+            <td style="padding:8px;text-align:center;font-size:12px;font-weight:800">${d.nJantar}</td>
+            <td colspan="2" style="padding:8px;font-size:12px;font-weight:800;text-align:right">${d.nRef} refeições</td>
           </tr>
         </tfoot>
       </table>
-      ${jantarSecao}
       <div style="margin-top:2.5rem;display:grid;grid-template-columns:1fr 1fr;gap:2rem">
-        <div>
-          <div style="border-top:1.5px solid #333;padding-top:6px;font-size:11px;color:#888;text-align:center">Responsável pelo rancho</div>
-        </div>
-        <div>
-          <div style="border-top:1.5px solid #333;padding-top:6px;font-size:11px;color:#888;text-align:center">Visto do comandante</div>
-        </div>
+        <div><div style="border-top:1.5px solid #333;padding-top:6px;font-size:11px;color:#888;text-align:center">Responsável pelo rancho</div></div>
+        <div><div style="border-top:1.5px solid #333;padding-top:6px;font-size:11px;color:#888;text-align:center">Visto do comandante</div></div>
       </div>
     </div>`;
   window.print();
@@ -3026,7 +3012,7 @@ async function toggleHistSem(id){
   // Financeiro
   const totalArrecadado = ins.filter(i=>i.pago).reduce((a,i)=>a+valorInsc(i,vlr),0);
   const totalPrevisto   = ins.reduce((a,i)=>a+valorInsc(i,vlr),0);
-  const totalMarmitas   = ins.reduce((a,i)=>a+cntD(i.dias),0);
+  const totalMarmitas   = ins.reduce((a,i)=>a+cntRef(i),0);
 
   // Gastos e saldo
   const gastosSem = parseFloat(s.gastos)||0;
@@ -3170,13 +3156,17 @@ function gerarRelatorioCozinheiro(){
   let totalMarmitas = 0;
   DK.forEach((dk,i)=>{
     const r = cdp[i]||{};
-    const qtd = ins.filter(x=>x.dias&&x.dias[dk]).length;
+    const qAlmoco = ins.filter(x=>x.dias&&x.dias[dk]).length;
+    const qJantar = ins.filter(x=>x.jantar&&x.jantar[dk]).length;
+    const qtd = qAlmoco + qJantar;
     if(!qtd && !r.principal) return;
     totalMarmitas += qtd;
     corpo += `\n📌 ${DN[i]}\n`;
     corpo += `   Prato: ${r.principal||'—'}\n`;
     if(r.acomp) corpo += `   Acomp: ${r.acomp}\n`;
-    corpo += `   Marmitas: ${qtd} pessoa${qtd!==1?'s':''}\n`;
+    corpo += `   Almoços: ${qAlmoco}\n`;
+    corpo += `   Jantares: ${qJantar}\n`;
+    corpo += `   Total de marmitas: ${qtd}\n`;
     corpo += separador;
   });
 
@@ -3261,6 +3251,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v13.7</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v13.8</div>
 </body>
 </html>
