@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260806-v13.9-contabilidade-refeicoes-alinhada -->
+<meta charset="UTF-8"><!-- deploy:20260806-v14.0-controle-caixa-notas -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -619,21 +619,27 @@ a[onclick]:active{transform:scale(.93)}
       <button type="button" class="btn-sv" onclick="salvarPagamento()">💾 Salvar</button>
     </div>
 
-    <!-- NOTAS -->
+    <!-- NOTAS / CONTROLE DE CAIXA -->
     <div class="asec" id="asec-notas">
       <div id="notas-sem-ctx" style="font-size:11px;color:var(--g2);margin-bottom:.75rem;padding:.4rem .7rem;background:var(--vdx);border-radius:6px;border:1px solid #c5ddc9"></div>
-      <div style="border:2px dashed var(--g4);border-radius:10px;padding:1rem;text-align:center;cursor:pointer;background:var(--g5);margin-bottom:.5rem" onclick="document.getElementById('inp-nota').click()">
-        <div style="font-size:26px">📄</div>
-        <p style="font-size:12px;color:var(--g3);margin-top:5px">Anexar nota fiscal (imagem ou PDF)</p>
-        <input type="file" id="inp-nota" accept="image/*,.pdf" style="display:none" onchange="anexarNota(this)">
-      </div>
-      <div id="nota-valor-row" style="display:none;margin-bottom:.75rem;background:var(--wnc);border:1px solid #e8d48a;border-radius:8px;padding:.65rem .75rem">
-        <div style="font-size:11px;font-weight:700;color:var(--wn);margin-bottom:5px">Valor desta nota (R$)</div>
-        <div style="display:flex;gap:6px">
-          <input type="number" id="inp-nota-valor" step="0.01" min="0" placeholder="0,00" style="flex:1;padding:7px 10px;border:1px solid #e8d48a;border-radius:7px;font-size:13px;font-family:'DM Sans',sans-serif;background:#fff">
-          <button type="button" onclick="confirmarAnexarNota()" style="padding:7px 14px;background:var(--vd);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Salvar</button>
+
+      <!-- Resumo do caixa (ao vivo) -->
+      <div id="caixa-resumo" style="margin-bottom:.85rem"></div>
+
+      <!-- Adicionar nota de compra -->
+      <div style="background:var(--g5);border-radius:var(--r);padding:.85rem;margin-bottom:.85rem">
+        <div style="font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.65rem">➕ Nova nota de compra (saída de caixa)</div>
+        <input type="text" id="nota-desc" placeholder="Descrição (ex: Açougue, Hortifruti, Gás...)" style="width:100%;padding:9px 11px;border:1px solid var(--g4);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--br);color:var(--g1);margin-bottom:.5rem">
+        <div style="display:flex;gap:6px;margin-bottom:.5rem">
+          <div style="position:relative;flex:1"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--g3);font-weight:700">R$</span><input type="number" id="inp-nota-valor" step="0.01" min="0" placeholder="0,00" style="width:100%;padding:9px 11px 9px 30px;border:1px solid var(--g4);border-radius:8px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;background:var(--br);color:var(--g1)"></div>
+          <button type="button" onclick="document.getElementById('inp-nota').click()" style="padding:0 12px;border:1px dashed var(--g4);border-radius:8px;background:var(--br);cursor:pointer;font-size:12px;font-weight:700;color:var(--g2);font-family:'DM Sans',sans-serif;white-space:nowrap">📎 Foto</button>
+          <input type="file" id="inp-nota" accept="image/*,.pdf" style="display:none" onchange="anexarNota(this)">
         </div>
+        <div id="nota-anexo-status" style="display:none;font-size:11px;color:var(--vdm);font-weight:600;margin-bottom:.5rem"></div>
+        <button type="button" onclick="adicionarGasto()" style="width:100%;padding:10px;background:var(--vd);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">+ Adicionar ao caixa</button>
       </div>
+
+      <div style="font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem">Notas de compra da semana</div>
       <div id="a-notas-list"></div>
     </div>
 
@@ -710,9 +716,8 @@ a[onclick]:active{transform:scale(.93)}
     </div>
 
     <div class="asec" id="asec-relatorio">
-      <div class="afield"><label>Total de gastos da semana (R$)</label><input type="number" id="a-gastos" step="0.01" min="0" placeholder="0,00" oninput="calcRelatorio()"></div>
+      <div class="afield"><label>Total de gastos (R$) — automático das notas de compra</label><input type="number" id="a-gastos" step="0.01" readonly style="background:var(--g5);color:var(--g2)" placeholder="0,00"><div style="font-size:10px;color:var(--g3);margin-top:3px">Vem da soma das <strong>notas de compra</strong> (aba Notas). Lance cada nota lá e o gasto entra aqui automaticamente.</div></div>
       <div class="afield"><label>Crédito acumulado semana anterior (R$) — automático</label><input type="number" id="a-credito-ant" step="0.01" readonly style="background:var(--g5);color:var(--g2)" placeholder="0,00"><div style="font-size:10px;color:var(--g3);margin-top:3px">Calculado automaticamente: sobra de todas as semanas anteriores.</div></div>
-      <button type="button" class="btn-sv" style="background:var(--vdm);margin-bottom:.75rem" onclick="salvarGastos().then(()=>toast('✓ Gastos salvos!'))">💾 Salvar gastos e crédito</button>
       <div id="rel-preview" style="display:none;margin-top:.5rem">
         <div style="background:var(--vdx);border:1px solid #c5ddc9;border-radius:var(--r);padding:1rem;margin-bottom:.75rem">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="rel-cards"></div>
@@ -725,7 +730,7 @@ a[onclick]:active{transform:scale(.93)}
           <button type="button" class="btn-sv" style="flex:1;background:#1a5799" onclick="exportarCSV()">📊 Exportar Excel</button>
         </div>
       </div>
-      <div id="rel-empty" style="padding:1.5rem;text-align:center;color:var(--g3);font-size:13px">Informe o total de gastos para gerar o relatório.</div>
+      <div id="rel-empty" style="padding:1.5rem;text-align:center;color:var(--g3);font-size:13px">Selecione uma semana ativa para gerar o relatório.</div>
     </div>
 
     <!-- AVISOS -->
@@ -837,6 +842,14 @@ function valorInsc(i, vlr){ return cntRef(i) * (vlr + (i && i.foraPrazo ? TAXA_F
 window.cntRef = cntRef;
 window.semForaPrazo = semForaPrazo;
 window.valorInsc = valorInsc;
+// Gastos de uma semana = soma das notas de compra (FONTE ÚNICA).
+// Fallback para o campo antigo `gastos` apenas em semanas sem notas (compatibilidade).
+function gastosSemana(sem){
+  if(sem && Array.isArray(sem.notas) && sem.notas.length)
+    return sem.notas.reduce((a,n)=>a+(parseFloat(n.valor)||0),0);
+  return parseFloat(sem&&sem.gastos)||0;
+}
+window.gastosSemana = gastosSemana;
 function escHTML(s){ const d=document.createElement('div'); d.textContent=String(s||''); return d.innerHTML; }
 
 // ── Dias seleção ─────────────────────────────────────────────────────────────
@@ -1202,14 +1215,14 @@ function calcSaldoCumulativo(semId, insAtivos, vlr){
   const sem = _cacheSemanas.find(s=>s.id===semId);
   if(!sem) return {saldoAnt:0, arrAtual:0, saldo:0, gastosAtual:0};
   const arrAtual = insAtivos.filter(i=>i.pago).reduce((a,i)=>a+valorInsc(i,vlr), 0);
-  const gastosAtual = parseFloat(sem.gastos)||0;
+  const gastosAtual = gastosSemana(sem);
   // Sobra de cada semana anterior = arrecadado real − gastos da semana.
   // Usa o arrecadado ao vivo (cache); se ainda não carregou, cai para o campo gravado.
   const saldoAnt = _cacheSemanas
     .filter(s=>s.criadoEm < sem.criadoEm)
     .reduce((a,s)=>{
       const arrS = _cacheArrPorSemana[s.id];
-      const gastosS = parseFloat(s.gastos)||0;
+      const gastosS = gastosSemana(s);
       const sobra = (arrS!==undefined) ? (arrS - gastosS) : (parseFloat(s.saldoRemanescente)||0);
       return a + sobra;
     }, 0);
@@ -1469,6 +1482,7 @@ async function carregarSemanaAtiva(){
     renderHero(_cacheSem, _cacheIns);
     if(isAdmin){
       renderAdmIns(_cacheSem, _cacheIns);
+      renderCaixaResumo();
       // Atualiza comprovantes se a aba estiver visível
       const abaComp = document.getElementById('asec-comprovantes');
       if(abaComp && abaComp.classList.contains('active')) renderAdmComp();
@@ -1862,7 +1876,7 @@ async function migrarNotasGlobais(){
 const SECTION_TITLES = {
   semana:'Configurar Semana', inscritos:'Inscritos', listadia:'Lista do Dia',
   cozinheiro:'Cozinheiro', pagamento:'Pagamento', comprovantes:'Comprovantes',
-  relatorio:'Relatório', notas:'Notas Fiscais',
+  relatorio:'Relatório', notas:'Notas / Caixa',
   lembrete:'Lembrete', backup:'Backup', avisos:'Janela de Avisos Importantes'
 };
 function aTab(t,btn){
@@ -1957,7 +1971,7 @@ async function preencherAdmin(){
     if(ep) ep.value=r.principal||''; if(ea) ea.value=r.acomp||'';
   });
   const gEl=document.getElementById('a-gastos'), caEl=document.getElementById('a-credito-ant');
-  if(gEl) gEl.value=sem.gastos||'';
+  if(gEl){ const g=gastosSemana(sem); gEl.value=g?g.toFixed(2):''; }
   // Crédito anterior é automático: sobra cumulativa das semanas anteriores
   if(caEl){ const vlrSem=parseFloat(sem.valor)||0; caEl.value=calcSaldoCumulativo(sem.id, _cacheIns, vlrSem).saldoAnt.toFixed(2); }
   const exigirEl=document.getElementById('a-exigir-comp');
@@ -1965,7 +1979,7 @@ async function preencherAdmin(){
   const tgl=document.getElementById('toggle-exigir-comp');
   if(tgl){ tgl.classList.toggle('on', !!(sem.exigirComprovante)); }
   const ctxEl = document.getElementById('notas-sem-ctx');
-  if(ctxEl) ctxEl.textContent = sem ? `Notas da semana: ${sem.label}` : 'Selecione uma semana';
+  if(ctxEl) ctxEl.textContent = sem ? `Controle de caixa — semana ${sem.label}` : 'Selecione uma semana';
   // Pagamento — lê de config/pagamento (global)
   try{
     const pgSnap=await getDoc(doc(db,'config','pagamento'));
@@ -2321,65 +2335,105 @@ function imprimirListaDia(){
 window.imprimirListaDia = imprimirListaDia;
 
 // ── Admin — Notas ─────────────────────────────────────────────────────────────
+function renderCaixaResumo(){
+  const el=document.getElementById('caixa-resumo');
+  if(!el) return;
+  const sem=_cacheSem;
+  if(!sem){ el.innerHTML=''; return; }
+  const vlr=parseFloat(sem.valor)||0;
+  const {saldoAnt, arrAtual} = calcSaldoCumulativo(sem.id, _cacheIns, vlr);
+  const gastos=gastosSemana(sem);
+  const emCaixa=saldoAnt+arrAtual-gastos;
+  const cor = emCaixa>=0 ? 'var(--vd)' : 'var(--er)';
+  const bg  = emCaixa>=0 ? 'var(--vdx)' : 'var(--erc)';
+  const bd  = emCaixa>=0 ? '#c5ddc9' : '#f1a9a0';
+  const linha=(l,v,c)=>`<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:2px 0"><span style="color:var(--g2)">${l}</span><span style="font-weight:700;color:${c||'var(--g1)'}">R$${v.toFixed(2)}</span></div>`;
+  el.innerHTML=`<div style="background:${bg};border:1.5px solid ${bd};border-radius:var(--r);padding:.9rem 1rem">
+    <div style="font-size:10px;font-weight:800;color:${cor};text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem">💵 Valor em caixa</div>
+    ${linha('Saldo anterior', saldoAnt, 'var(--vdm)')}
+    ${linha('+ Arrecadado na semana', arrAtual, 'var(--vdm)')}
+    ${linha('− Gastos (notas de compra)', gastos, gastos>0?'var(--er)':'var(--g2)')}
+    <div style="border-top:1.5px dashed ${bd};margin:.5rem 0"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:800;color:${cor}">= Valor em caixa</span><span style="font-size:1.35rem;font-weight:800;color:${cor}">R$${emCaixa.toFixed(2)}</span></div>
+  </div>`;
+}
+window.renderCaixaResumo=renderCaixaResumo;
+
 function renderAdmNotas(lista){
   const el=document.getElementById('a-notas-list');
+  renderCaixaResumo();
   if(!el) return;
-  el.innerHTML=lista.map((n,i)=>
-    `<div class="nota-adm-row"><span>${n.tipo==='pdf'?'📄':'🧾'}</span><div class="nota-adm-nm">${n.nome} <span style="color:var(--g3)">${n.data}</span></div><button type="button" class="btn-dn" onclick="delNota(${i})">✕</button></div>`
-  ).join('')||'<div style="font-size:12px;color:var(--g3);padding:.5rem 0">Nenhuma nota.</div>';
+  const total=(lista||[]).reduce((a,n)=>a+(parseFloat(n.valor)||0),0);
+  if(!lista||!lista.length){
+    el.innerHTML='<div style="font-size:12px;color:var(--g3);padding:.5rem 0">Nenhuma nota de compra lançada.</div>';
+    return;
+  }
+  el.innerHTML=lista.map((n,i)=>{
+    const val=parseFloat(n.valor)||0;
+    const nome=n.desc||n.nome||'Compra';
+    const anexo=n.data64?`<a href="${n.data64}" download="${escHTML(n.nome||'nota')}" style="text-decoration:none;font-size:14px" title="Baixar anexo">${n.tipo==='pdf'?'📄':'🧾'}</a>`:'<span style="opacity:.35;font-size:14px">🧾</span>';
+    return`<div class="nota-adm-row"><span>${anexo}</span><div class="nota-adm-nm">${escHTML(nome)} <span style="color:var(--g3)">${n.data||''}</span></div><span style="font-size:13px;font-weight:700;color:var(--er);white-space:nowrap;margin:0 6px">R$${val.toFixed(2)}</span><button type="button" class="btn-dn" onclick="delNota(${i})">✕</button></div>`;
+  }).join('')+
+  `<div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem .75rem;margin-top:6px;background:var(--g5);border-radius:8px;font-weight:800"><span style="font-size:12px;color:var(--g2);text-transform:uppercase;letter-spacing:.5px">Total de gastos</span><span style="font-size:1.05rem;color:var(--er)">R$${total.toFixed(2)}</span></div>`;
 }
 
 let _notaPendente = null;
-async function anexarNota(inp){
-  if(!semAtiva){ toast('Selecione uma semana primeiro'); return; }
+function anexarNota(inp){
   const f=inp.files[0]; if(!f) return;
   const rd=new FileReader();
-  rd.onload=async e=>{
-    _notaPendente={nome:f.name,tipo:f.type.includes('pdf')?'pdf':'img',data:new Date().toLocaleDateString('pt-BR'),data64:e.target.result};
-    const row=document.getElementById('nota-valor-row');
-    const vi=document.getElementById('inp-nota-valor');
-    if(row){ row.style.display='block'; if(vi){vi.value='';vi.focus();} }
+  rd.onload=e=>{
+    _notaPendente={nome:f.name,tipo:f.type.includes('pdf')?'pdf':'img',data64:e.target.result};
+    const st=document.getElementById('nota-anexo-status');
+    if(st){ st.style.display='block'; st.textContent='📎 Anexo pronto: '+f.name; }
   };
   rd.readAsDataURL(f); inp.value='';
 }
 window.anexarNota=anexarNota;
 
-async function confirmarAnexarNota(){
-  if(!_notaPendente||!semAtiva) return;
+async function adicionarGasto(){
+  if(!semAtiva){ toast('Selecione uma semana primeiro'); return; }
   const vi=document.getElementById('inp-nota-valor');
+  const di=document.getElementById('nota-desc');
   const valor=parseFloat((vi?vi.value:'').replace(',','.'))||0;
-  const nota={..._notaPendente,valor};
-  _notaPendente=null;
-  const row=document.getElementById('nota-valor-row');
-  if(row) row.style.display='none';
-  const lista=[...(_cacheSem?_cacheSem.notas||[]:[])] ;
+  const desc=(di?di.value:'').trim();
+  if(valor<=0){ toast('Informe o valor da nota (maior que zero)'); if(vi)vi.focus(); return; }
+  const nota={
+    desc: desc||'Compra',
+    nome: _notaPendente?_notaPendente.nome:(desc||'Compra'),
+    tipo: _notaPendente?_notaPendente.tipo:'img',
+    data: new Date().toLocaleDateString('pt-BR'),
+    criadoEm: Date.now(),
+    valor
+  };
+  if(_notaPendente&&_notaPendente.data64) nota.data64=_notaPendente.data64;
+  const lista=[...(_cacheSem?_cacheSem.notas||[]:[])];
   lista.push(nota);
-  await updateDoc(doc(db,'semanas',semAtiva),{notas:lista});
-  await recalcGastosDeNotas(semAtiva, lista);
-  toast('✓ Nota anexada');
+  try{
+    await salvarNotas(semAtiva, lista);
+    // limpa o formulário
+    if(vi)vi.value=''; if(di)di.value=''; _notaPendente=null;
+    const st=document.getElementById('nota-anexo-status'); if(st){ st.style.display='none'; st.textContent=''; }
+    toast('✓ Nota adicionada ao caixa');
+  }catch(e){ toast('Erro ao salvar: '+e.message); console.error(e); }
 }
-window.confirmarAnexarNota=confirmarAnexarNota;
+window.adicionarGasto=adicionarGasto;
 
-async function recalcGastosDeNotas(semId, notas){
+// Salva as notas E sincroniza o campo `gastos` (soma), mantendo tudo consistente
+async function salvarNotas(semId, notas){
   const total=notas.reduce((a,n)=>a+(parseFloat(n.valor)||0),0);
-  if(total>0){
-    const el=document.getElementById('a-gastos');
-    if(el){ el.value=total.toFixed(2); }
-    const vlr = _cacheSem ? parseFloat(_cacheSem.valor)||0 : 0;
-    const arr = _cacheIns.filter(i=>i.pago).reduce((a,i)=>a+valorInsc(i,vlr), 0);
-    const saldoRemanescente = arr - total;
-    await updateDoc(doc(db,'semanas',semId),{gastos:total, creditoAnt:0, saldoRemanescente});
-    calcRelatorio();
-  }
+  const vlr = _cacheSem ? parseFloat(_cacheSem.valor)||0 : 0;
+  const arr = _cacheIns.filter(i=>i.pago).reduce((a,i)=>a+valorInsc(i,vlr), 0);
+  await updateDoc(doc(db,'semanas',semId),{notas, gastos:total, saldoRemanescente: arr-total});
 }
-window.recalcGastosDeNotas=recalcGastosDeNotas;
 
 async function delNota(idx){
   if(!semAtiva) return;
-  const lista=[...(_cacheSem?_cacheSem.notas||[]:[])] ;
+  const lista=[...(_cacheSem?_cacheSem.notas||[]:[])];
   lista.splice(idx,1);
-  await updateDoc(doc(db,'semanas',semAtiva),{notas:lista});
-  toast('Nota removida');
+  try{
+    await salvarNotas(semAtiva, lista);
+    toast('Nota removida');
+  }catch(e){ toast('Erro ao remover: '+e.message); console.error(e); }
 }
 window.delNota = delNota;
 
@@ -2471,23 +2525,11 @@ function renderAdmComp(){
 }
 
 // ── Relatório ─────────────────────────────────────────────────────────────────
-async function salvarGastos(){
-  if(!semAtiva) return;
-  const gastos=parseFloat(document.getElementById('a-gastos').value)||0;
-  const creditoAnt=parseFloat(document.getElementById('a-credito-ant').value)||0;
-  try{
-    const vlr = _cacheSem ? parseFloat(_cacheSem.valor)||0 : 0;
-    const arr = _cacheIns.filter(i=>i.pago).reduce((a,i)=>a+valorInsc(i,vlr), 0);
-    const saldoRemanescente = arr - gastos;
-    await updateDoc(doc(db,'semanas',semAtiva),{gastos, creditoAnt:0, saldoRemanescente});
-  }catch(e){ toast('Erro ao salvar gastos: '+e.message); console.error(e); }
-}
-window.salvarGastos=salvarGastos;
-
 async function calcRelatorio(){
   if(!semAtiva){ document.getElementById('rel-empty').style.display='block'; document.getElementById('rel-preview').style.display='none'; return; }
-  const gastos=parseFloat(document.getElementById('a-gastos').value)||0;
   const sem=_cacheSem;
+  const gastos=gastosSemana(sem);
+  const gEl0=document.getElementById('a-gastos'); if(gEl0) gEl0.value=gastos?gastos.toFixed(2):'';
   const ins=_cacheIns;
   const vlr=sem?parseFloat(sem.valor)||0:0;
   const totalPrevisto=ins.reduce((a,i)=>a+valorInsc(i,vlr),0);
@@ -3274,6 +3316,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v13.9</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v14.0</div>
 </body>
 </html>
