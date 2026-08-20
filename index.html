@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- deploy:20260806-v14.1-saldo-abertura-ancora -->
+<meta charset="UTF-8"><!-- deploy:20260806-v14.2-caixa-global-continuo -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -440,12 +440,8 @@ a[onclick]:active{transform:scale(.93)}
         <div class="asc-l">Pendente <span style="font-size:9px;opacity:.7">▶</span></div>
         <div class="asc-v" id="adm-stat-pend" style="color:var(--wn)">R$0</div>
       </div>
-      <div class="adm-stat-card" style="border-color:#c5ddc9;cursor:pointer" onclick="abrirModalGrafico()">
-        <div class="asc-l">Saldo anterior <span style="font-size:9px;opacity:.6">▶</span></div>
-        <div class="asc-v" id="adm-stat-credant" style="color:var(--vd)">R$0</div>
-      </div>
-      <div class="adm-stat-card" style="grid-column:1/-1;background:var(--vdx);border-color:var(--vdl);display:flex;align-items:center;justify-content:space-between;padding:.5rem .85rem;cursor:pointer" onclick="editarSaldoTotal()" title="Toque para ajustar manualmente">
-        <div class="asc-l" style="margin:0">Saldo total <span style="font-size:9px;opacity:.6">✎</span><span id="adm-stat-saldo-manual" style="display:none;font-size:9px;background:var(--ou);color:#fff;border-radius:8px;padding:1px 6px;margin-left:4px;vertical-align:middle">MANUAL</span></div>
+      <div class="adm-stat-card" style="grid-column:1/-1;background:var(--vdx);border-color:var(--vdl);display:flex;align-items:center;justify-content:space-between;padding:.5rem .85rem;cursor:pointer" onclick="editarSaldoTotal()" title="Toque para ajustar ao saldo real">
+        <div class="asc-l" style="margin:0">💵 Valor em caixa <span style="font-size:9px;opacity:.6">✎</span></div>
         <div class="asc-v" id="adm-stat-saldo" style="font-size:1.15rem;color:var(--vd)">—</div>
       </div>
     </div>
@@ -728,7 +724,6 @@ a[onclick]:active{transform:scale(.93)}
 
     <div class="asec" id="asec-relatorio">
       <div class="afield"><label>Total de gastos (R$) — automático das notas de compra</label><input type="number" id="a-gastos" step="0.01" readonly style="background:var(--g5);color:var(--g2)" placeholder="0,00"><div style="font-size:10px;color:var(--g3);margin-top:3px">Vem da soma das <strong>notas de compra</strong> (aba Notas). Lance cada nota lá e o gasto entra aqui automaticamente.</div></div>
-      <div class="afield"><label>Crédito acumulado semana anterior (R$) — automático</label><input type="number" id="a-credito-ant" step="0.01" readonly style="background:var(--g5);color:var(--g2)" placeholder="0,00"><div style="font-size:10px;color:var(--g3);margin-top:3px">Calculado automaticamente: sobra de todas as semanas anteriores.</div></div>
       <div id="rel-preview" style="display:none;margin-top:.5rem">
         <div style="background:var(--vdx);border:1px solid #c5ddc9;border-radius:var(--r);padding:1rem;margin-bottom:.75rem">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="rel-cards"></div>
@@ -1241,6 +1236,22 @@ function calcSaldoCumulativo(semId, insAtivos, vlr){
   const saldo = saldoAnt + arrAtual - gastosAtual;
   return {saldoAnt, arrAtual, saldo, gastosAtual};
 }
+
+// Caixa GLOBAL contínuo: soma de TODO o arrecadado − TODAS as notas (+ ajuste de abertura).
+// Flui naturalmente entre as semanas cadastradas, sem "saldo anterior" por semana.
+function totaisCaixa(){
+  let arr=0, gastos=0;
+  _cacheSemanas.forEach(s=>{
+    const vlr=parseFloat(s.valor)||0;
+    const arrS = (s.id===semAtiva)
+      ? _cacheIns.filter(i=>i.pago).reduce((a,i)=>a+valorInsc(i,vlr),0)
+      : (_cacheArrPorSemana[s.id]!==undefined ? _cacheArrPorSemana[s.id] : ((parseFloat(s.saldoRemanescente)||0)+gastosSemana(s)));
+    arr += arrS;
+    gastos += gastosSemana(s);
+  });
+  return {arr, gastos, saldo: _saldoInicial + arr - gastos};
+}
+window.totaisCaixa = totaisCaixa;
 
 // ── Render tela principal ────────────────────────────────────────────────────
 function renderHero(sem, ins){
@@ -1924,19 +1935,14 @@ function atualizarAdminStatusBar(sem, ins, vlr){
   nome.textContent = sem ? `Semana ${sem.label}` : 'Nenhuma semana';
   if(statSem) statSem.textContent = sem ? sem.label : '—';
   if(statIns) statIns.textContent = ins.length;
-  const {saldoAnt, arrAtual, saldo, gastosAtual} = sem ? calcSaldoCumulativo(sem.id, ins, vlr) : {saldoAnt:0,arrAtual:0,saldo:0,gastosAtual:0};
+  const arrAtual = ins.filter(i=>i.pago).reduce((a,i)=>a+valorInsc(i,vlr), 0);
   if(statArr) statArr.textContent = `R$${arrAtual.toFixed(2)}`;
   const pend = ins.filter(i=>!i.pago).reduce((a,i)=>a+valorInsc(i,vlr), 0);
   const pendEl = document.getElementById('adm-stat-pend');
   if(pendEl) pendEl.textContent = `R$${pend.toFixed(2)}`;
-  const credEl  = document.getElementById('adm-stat-credant');
+  // Valor em caixa: GLOBAL contínuo (arrecadado − notas, fluindo entre semanas)
+  const saldoFinal = totaisCaixa().saldo;
   const saldoEl = document.getElementById('adm-stat-saldo');
-  if(credEl) credEl.textContent = `R$${saldoAnt.toFixed(2)}`;
-  // Saldo total: usa ajuste manual se definido (previsões fora do prazo alteram valores)
-  const manualBadge = document.getElementById('adm-stat-saldo-manual');
-  const temManual = sem && sem.saldoManual !== undefined && sem.saldoManual !== null && sem.saldoManual !== '';
-  const saldoFinal = temManual ? parseFloat(sem.saldoManual)||0 : saldo;
-  if(manualBadge) manualBadge.style.display = temManual ? 'inline' : 'none';
   if(saldoEl){
     saldoEl.textContent = `R$${saldoFinal.toFixed(2)}`;
     saldoEl.style.color = saldoFinal >= 0 ? 'var(--vd)' : 'var(--er)';
@@ -1953,21 +1959,14 @@ window.atualizarAdminStatusBar = atualizarAdminStatusBar;
 
 // Ajuste manual do saldo total (previsões fora do prazo alteram valores)
 async function editarSaldoTotal(){
-  if(!semAtiva || !_cacheSem){ toast('Selecione uma semana primeiro'); return; }
-  const atual = (_cacheSem.saldoManual !== undefined && _cacheSem.saldoManual !== null && _cacheSem.saldoManual !== '') ? String(_cacheSem.saldoManual) : '';
-  const resp = prompt('Saldo total (R$)\n\nDigite o valor manual (ex: 350.50).\nDeixe VAZIO para voltar ao cálculo automático.', atual);
+  const resp = prompt('Valor em caixa (R$)\n\nInforme o saldo real de hoje (ex: 578,90).\nO sistema ancora nesse valor e segue somando arrecadado − notas.', totaisCaixa().saldo.toFixed(2));
   if(resp === null) return; // cancelou
-  const limpo = resp.trim().replace(',','.');
+  const real = parseFloat(resp.trim().replace(',','.'));
+  if(isNaN(real)){ toast('Valor inválido'); return; }
+  const novoInicial = _saldoInicial + (real - totaisCaixa().saldo);
   try{
-    if(limpo === ''){
-      await updateDoc(doc(db,'semanas',semAtiva),{saldoManual:null});
-      toast('✓ Saldo voltou ao cálculo automático');
-    } else {
-      const v = parseFloat(limpo);
-      if(isNaN(v)){ toast('Valor inválido'); return; }
-      await updateDoc(doc(db,'semanas',semAtiva),{saldoManual:v});
-      toast('✓ Saldo total ajustado manualmente');
-    }
+    await setDoc(doc(db,'config','caixa'), {saldoInicial:novoInicial, definidoEm:Date.now(), definidoValor:real}, {merge:true});
+    toast('✓ Valor em caixa ajustado para R$'+real.toFixed(2));
   }catch(e){ toast('Erro ao salvar saldo'); console.error('[editarSaldoTotal]',e); }
 }
 window.editarSaldoTotal = editarSaldoTotal;
@@ -1989,10 +1988,8 @@ async function preencherAdmin(){
     const ep=document.getElementById('cp-'+dk), ea=document.getElementById('ca-'+dk);
     if(ep) ep.value=r.principal||''; if(ea) ea.value=r.acomp||'';
   });
-  const gEl=document.getElementById('a-gastos'), caEl=document.getElementById('a-credito-ant');
+  const gEl=document.getElementById('a-gastos');
   if(gEl){ const g=gastosSemana(sem); gEl.value=g?g.toFixed(2):''; }
-  // Crédito anterior é automático: sobra cumulativa das semanas anteriores
-  if(caEl){ const vlrSem=parseFloat(sem.valor)||0; caEl.value=calcSaldoCumulativo(sem.id, _cacheIns, vlrSem).saldoAnt.toFixed(2); }
   const exigirEl=document.getElementById('a-exigir-comp');
   if(exigirEl) exigirEl.checked=sem.exigirComprovante||false;
   const tgl=document.getElementById('toggle-exigir-comp');
@@ -2358,10 +2355,8 @@ async function definirSaldoReal(){
   const inp=document.getElementById('inp-saldo-real');
   const real=parseFloat((inp?inp.value:'').replace(',','.'));
   if(isNaN(real)){ toast('Informe o saldo real de hoje'); if(inp)inp.focus(); return; }
-  const sem=_cacheSem;
-  const caixaAtual = sem ? calcSaldoCumulativo(sem.id,_cacheIns,parseFloat(sem.valor)||0).saldo : _saldoInicial;
-  // Ajusta o saldo de abertura para que o valor em caixa exibido passe a ser exatamente `real`
-  const novoInicial = _saldoInicial + (real - caixaAtual);
+  // Ajusta a âncora para que o valor em caixa GLOBAL passe a ser exatamente `real`
+  const novoInicial = _saldoInicial + (real - totaisCaixa().saldo);
   try{
     await setDoc(doc(db,'config','caixa'), {saldoInicial:novoInicial, definidoEm:Date.now(), definidoValor:real}, {merge:true});
     if(inp) inp.value='';
@@ -2379,21 +2374,15 @@ function renderCaixaResumo(){
       : 'Nenhum saldo de abertura definido. O valor parte de zero + movimentações registradas.';
   }
   if(!el) return;
-  const sem=_cacheSem;
-  if(!sem){ el.innerHTML=''; return; }
-  const vlr=parseFloat(sem.valor)||0;
-  const {saldoAnt, arrAtual} = calcSaldoCumulativo(sem.id, _cacheIns, vlr);
-  const gastos=gastosSemana(sem);
-  const emCaixa=saldoAnt+arrAtual-gastos;
+  const {arr, gastos, saldo:emCaixa} = totaisCaixa();
   const cor = emCaixa>=0 ? 'var(--vd)' : 'var(--er)';
   const bg  = emCaixa>=0 ? 'var(--vdx)' : 'var(--erc)';
   const bd  = emCaixa>=0 ? '#c5ddc9' : '#f1a9a0';
   const linha=(l,v,c)=>`<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:2px 0"><span style="color:var(--g2)">${l}</span><span style="font-weight:700;color:${c||'var(--g1)'}">R$${v.toFixed(2)}</span></div>`;
   el.innerHTML=`<div style="background:${bg};border:1.5px solid ${bd};border-radius:var(--r);padding:.9rem 1rem">
-    <div style="font-size:10px;font-weight:800;color:${cor};text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem">💵 Valor em caixa</div>
-    ${linha('Saldo anterior', saldoAnt, 'var(--vdm)')}
-    ${linha('+ Arrecadado na semana', arrAtual, 'var(--vdm)')}
-    ${linha('− Gastos (notas de compra)', gastos, gastos>0?'var(--er)':'var(--g2)')}
+    <div style="font-size:10px;font-weight:800;color:${cor};text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem">💵 Valor em caixa (acumulado)</div>
+    ${linha('Arrecadado (todas as semanas)', arr, 'var(--vdm)')}
+    ${linha('− Notas de compra (todas as semanas)', gastos, gastos>0?'var(--er)':'var(--g2)')}
     <div style="border-top:1.5px dashed ${bd};margin:.5rem 0"></div>
     <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:800;color:${cor}">= Valor em caixa</span><span style="font-size:1.35rem;font-weight:800;color:${cor}">R$${emCaixa.toFixed(2)}</span></div>
   </div>`;
@@ -2576,18 +2565,11 @@ async function calcRelatorio(){
   const totalPrevisto=ins.reduce((a,i)=>a+valorInsc(i,vlr),0);
   const totalArrecadado=ins.filter(i=>i.pago).reduce((a,i)=>a+valorInsc(i,vlr),0);
   const totalPendente=totalPrevisto-totalArrecadado;
-  // Saldo anterior = sobra cumulativa das semanas anteriores (automático, cronológico)
-  const creditoAnt = sem ? calcSaldoCumulativo(sem.id, ins, vlr).saldoAnt : 0;
-  const caEl=document.getElementById('a-credito-ant'); if(caEl) caEl.value=creditoAnt.toFixed(2);
-  const saldo=creditoAnt+totalArrecadado-gastos;
+  // Valor em caixa GLOBAL contínuo (arrecadado − notas de todas as semanas)
+  const {arr:arrTotal, gastos:gastosTotal, saldo}=totaisCaixa();
   document.getElementById('rel-empty').style.display='none';
   document.getElementById('rel-preview').style.display='block';
   document.getElementById('rel-cards').innerHTML=`
-    <div class="rel-card" style="border-color:#c5ddc9;background:var(--vdx)">
-      <div class="rc-l">Saldo anterior</div>
-      <div class="rc-v pos">R$${creditoAnt.toFixed(2)}</div>
-      <div class="rc-s">crédito semana anterior</div>
-    </div>
     <div class="rel-card green">
       <div class="rc-l">Arrecadado na semana</div>
       <div class="rc-v pos">R$${totalArrecadado.toFixed(2)}</div>
@@ -2599,14 +2581,19 @@ async function calcRelatorio(){
       <div class="rc-s">aguardando pagamento</div>
     </div>
     <div class="rel-card">
-      <div class="rc-l">Total de gastos</div>
+      <div class="rc-l">Gastos (notas) na semana</div>
       <div class="rc-v ${gastos>0?'neg':''}">R$${gastos.toFixed(2)}</div>
-      <div class="rc-s">notas da semana</div>
+      <div class="rc-s">notas de compra</div>
+    </div>
+    <div class="rel-card" style="border-color:#c5ddc9;background:var(--vdx)">
+      <div class="rc-l">Arrecadado acumulado</div>
+      <div class="rc-v pos">R$${arrTotal.toFixed(2)}</div>
+      <div class="rc-s">todas as semanas</div>
     </div>
     <div class="rel-card" style="grid-column:1/-1;background:${saldo>=0?'var(--vdx)':'var(--erc)'};border-color:${saldo>=0?'#c5ddc9':'#f1a9a0'}">
-      <div class="rc-l">Saldo total para a próxima semana</div>
+      <div class="rc-l">💵 Valor total em caixa</div>
       <div class="rc-v ${saldo>=0?'pos':'neg'}" style="font-size:1.4rem">R$${saldo.toFixed(2)}</div>
-      <div class="rc-s">= Saldo anterior (R$${creditoAnt.toFixed(2)}) + Arrecadado (R$${totalArrecadado.toFixed(2)})${gastos?` − Gastos (R$${gastos.toFixed(2)})`:''}  </div>
+      <div class="rc-s">= Arrecadado acumulado (R$${arrTotal.toFixed(2)}) − Notas acumuladas (R$${gastosTotal.toFixed(2)})</div>
     </div>`;
   document.getElementById('rel-tabela').innerHTML=
     `<div style="display:grid;grid-template-columns:1fr auto auto auto;padding:.5rem .75rem;border-bottom:1px solid var(--g4);font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:.5px"><div>Participante</div><div style="text-align:center">Refeições</div><div style="text-align:right">Valor</div><div style="text-align:center">Status</div></div>`+
@@ -2619,13 +2606,13 @@ async function calcRelatorio(){
     }).join('')+
     `<div style="display:grid;grid-template-columns:1fr auto;padding:.6rem .75rem;background:var(--g5);font-size:12px;font-weight:700;color:var(--g1)"><div>TOTAL PREVISTO</div><div>R$${totalPrevisto.toFixed(2)}</div></div>`;
   // Guarda para impressão
-  window._relData={sem,ins,vlr,totalArrecadado,totalPrevisto,totalPendente,saldo,gastos,creditoAnt};
+  window._relData={sem,ins,vlr,totalArrecadado,totalPrevisto,totalPendente,saldo,gastos,arrTotal,gastosTotal};
 }
 window.calcRelatorio = calcRelatorio;
 
 function imprimirRelatorio(){
   const r=window._relData; if(!r){ toast('Calcule o relatório primeiro'); return; }
-  const {sem,ins,vlr,totalArrecadado,totalPrevisto,saldo,gastos,creditoAnt}=r;
+  const {sem,ins,vlr,totalArrecadado,totalPrevisto,saldo,gastos,arrTotal,gastosTotal}=r;
   const dt=new Date().toLocaleDateString('pt-BR');
   document.getElementById('print-area').innerHTML=`
     <div style="max-width:680px;margin:0 auto;font-family:sans-serif;color:#1a1a1a">
@@ -2644,12 +2631,12 @@ function imprimirRelatorio(){
         }).join('')}</tbody>
       </table>
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
-        ${[['Saldo anterior (semana passada)',`R$${creditoAnt.toFixed(2)}`,'#1a6b3a'],['Arrecadado na semana',`R$${totalArrecadado.toFixed(2)}`,'#1a6b3a'],['Pendente',`R$${(totalPrevisto-totalArrecadado).toFixed(2)}`,'#b8860b'],['Total de gastos',`R$${gastos.toFixed(2)}`,'#c0392b']].map(([l,v,c])=>`<div style="border:1px solid #e4e2dc;border-radius:8px;padding:.75rem;text-align:center"><div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">${l}</div><div style="font-size:1.2rem;font-weight:700;color:${c}">${v}</div></div>`).join('')}
+        ${[['Arrecadado na semana',`R$${totalArrecadado.toFixed(2)}`,'#1a6b3a'],['Pendente',`R$${(totalPrevisto-totalArrecadado).toFixed(2)}`,'#b8860b'],['Gastos (notas) na semana',`R$${gastos.toFixed(2)}`,'#c0392b'],['Arrecadado acumulado',`R$${arrTotal.toFixed(2)}`,'#1a6b3a']].map(([l,v,c])=>`<div style="border:1px solid #e4e2dc;border-radius:8px;padding:.75rem;text-align:center"><div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">${l}</div><div style="font-size:1.2rem;font-weight:700;color:${c}">${v}</div></div>`).join('')}
       </div>
       <div style="margin-top:10px;padding:.85rem;border-radius:8px;background:${saldo>=0?'#e8f2ea':'#fdf0ef'};border:2px solid ${saldo>=0?'#1a3a1f':'#c0392b'}">
-        <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Saldo para a próxima semana</div>
+        <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Valor total em caixa</div>
         <div style="font-size:1.5rem;font-weight:700;color:${saldo>=0?'#1a3a1f':'#c0392b'}">R$${saldo.toFixed(2)}</div>
-        <div style="font-size:11px;color:#888;margin-top:4px">= Saldo anterior (R$${creditoAnt.toFixed(2)}) + Arrecadado (R$${totalArrecadado.toFixed(2)})${gastos?` − Gastos (R$${gastos.toFixed(2)})`:''}  </div>
+        <div style="font-size:11px;color:#888;margin-top:4px">= Arrecadado acumulado (R$${arrTotal.toFixed(2)}) − Notas acumuladas (R$${gastosTotal.toFixed(2)})</div>
       </div>
     </div>`;
   window.print();
@@ -2658,7 +2645,7 @@ window.imprimirRelatorio = imprimirRelatorio;
 
 function copiarRelatorio(){
   const r=window._relData; if(!r){ toast('Calcule o relatório primeiro'); return; }
-  const {sem,ins,vlr,totalArrecadado,totalPrevisto,saldo,gastos,creditoAnt}=r;
+  const {sem,ins,vlr,totalArrecadado,totalPrevisto,saldo,gastos,arrTotal,gastosTotal}=r;
   let txt=`RELATÓRIO SEMANAL — RANCHO 37I\nSemana: ${sem?sem.label:'—'} | ${new Date().toLocaleDateString('pt-BR')}\n${'─'.repeat(40)}\n\nPARTICIPANTES\n`;
   ins.forEach(i=>{
     const tot=valorInsc(i,vlr), nRef=cntRef(i);
@@ -2667,7 +2654,7 @@ function copiarRelatorio(){
     const det=`Almoço: ${dsA||'—'}${dsJ?` | Jantar: ${dsJ}`:''}`;
     txt+=`• ${i.qra} | ${det} | ${nRef} ref | R$${tot.toFixed(2)} | ${i.pago?'PAGO':'PENDENTE'}${i.foraPrazo?' | FORA DO PRAZO':''}\n`;
   });
-  txt+=`\n${'─'.repeat(40)}\nTotal previsto:                R$${totalPrevisto.toFixed(2)}\nArrecadado na semana:          R$${totalArrecadado.toFixed(2)}\nSaldo anterior (sem. passada): R$${creditoAnt.toFixed(2)}\nTotal de gastos:               R$${gastos.toFixed(2)}\n${'─'.repeat(40)}\nSaldo p/ próx. semana:         R$${saldo.toFixed(2)}\n  (= R$${creditoAnt.toFixed(2)} + R$${totalArrecadado.toFixed(2)}${gastos?` − R$${gastos.toFixed(2)}`:''})\n`;
+  txt+=`\n${'─'.repeat(40)}\nTotal previsto:            R$${totalPrevisto.toFixed(2)}\nArrecadado na semana:      R$${totalArrecadado.toFixed(2)}\nGastos (notas) na semana:  R$${gastos.toFixed(2)}\n${'─'.repeat(40)}\nArrecadado acumulado:      R$${arrTotal.toFixed(2)}\nNotas acumuladas:          R$${gastosTotal.toFixed(2)}\nVALOR TOTAL EM CAIXA:      R$${saldo.toFixed(2)}\n  (= arrecadado acumulado − notas acumuladas)\n`;
   navigator.clipboard.writeText(txt).then(()=>toast('✓ Copiado!')).catch(()=>toast('Erro ao copiar'));
 }
 window.copiarRelatorio = copiarRelatorio;
@@ -3122,10 +3109,9 @@ async function toggleHistSem(id){
   const totalPrevisto   = ins.reduce((a,i)=>a+valorInsc(i,vlr),0);
   const totalMarmitas   = ins.reduce((a,i)=>a+cntRef(i),0);
 
-  // Gastos e saldo
-  const gastosSem = parseFloat(s.gastos)||0;
-  const credAntSem = parseFloat(s.creditoAnt)||0;
-  const saldo = gastosSem > 0 ? totalArrecadado + credAntSem - gastosSem : null;
+  // Gastos e resultado da semana (arrecadado − notas)
+  const gastosSem = gastosSemana(s);
+  const saldo = (gastosSem > 0 || totalArrecadado > 0) ? totalArrecadado - gastosSem : null;
 
   // Notas fiscais
   const notasAdminHtml = isAdmin
@@ -3162,8 +3148,8 @@ async function toggleHistSem(id){
       </div>
     </div>
     ${vlr&&totalPrevisto!==totalArrecadado?`<div style="font-size:11px;color:var(--wn);background:var(--wnc);border-radius:6px;padding:.35rem .6rem;margin-bottom:.75rem">Aguardando validação de pagamentos pelo admin. O valor arrecadado sobe conforme cada pagamento é validado.</div>`:''}
-    ${gastosSem>0?`<div style="background:${saldo>=0?'var(--vdx)':'var(--erc)'};border:1px solid ${saldo>=0?'#c5ddc9':'#f1a9a0'};border-radius:8px;padding:.55rem .75rem;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center"><div style="font-size:11px;font-weight:700;color:var(--g2)">Gastos: <strong>R$${gastosSem.toFixed(2)}</strong>${credAntSem>0?` · Crédito ant.: R$${credAntSem.toFixed(2)}`:''}</div><div style="font-size:13px;font-weight:800;color:${saldo>=0?'var(--vd)':'var(--er)'}">Saldo: R$${saldo.toFixed(2)}</div></div>`:''}
-    <div style="font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.4rem">Notas Fiscais</div>
+    ${saldo!==null?`<div style="background:${saldo>=0?'var(--vdx)':'var(--erc)'};border:1px solid ${saldo>=0?'#c5ddc9':'#f1a9a0'};border-radius:8px;padding:.55rem .75rem;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center"><div style="font-size:11px;font-weight:700;color:var(--g2)">Arrecadado: <strong>R$${totalArrecadado.toFixed(2)}</strong> · Notas: <strong>R$${gastosSem.toFixed(2)}</strong></div><div style="font-size:13px;font-weight:800;color:${saldo>=0?'var(--vd)':'var(--er)'}">Resultado: R$${saldo.toFixed(2)}</div></div>`:''}
+    <div style="font-size:10px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.4rem">Notas de compra</div>
     ${notasAdminHtml}
     ${notasHtml}
   `;
@@ -3361,6 +3347,6 @@ function iniciarListenersUmaVez(){
 iniciarListenersUmaVez();
 carregarAviso();
 </script>
-<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v14.1</div>
+<div style="text-align:center;padding:.6rem 1rem 1.2rem;font-size:11px;color:var(--g3);letter-spacing:.3px">desenvolvedor: Maiara Lieri Ribeiro · v14.2</div>
 </body>
 </html>
